@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { asset } from "@/lib/asset";
 
 interface TryAmplifierHomeProps {
   onComplete: () => void;
@@ -34,11 +35,11 @@ export const TryAmplifierHome = ({ onComplete }: TryAmplifierHomeProps) => {
             style={{
               aspectRatio: "3.66 / 1",
               backgroundColor: "#1E5631",
-              WebkitMaskImage: "url(/brand/amplifier-logo-black.svg)",
+              WebkitMaskImage: `url(${asset("brand/amplifier-logo-black.svg")})`,
               WebkitMaskSize: "contain",
               WebkitMaskRepeat: "no-repeat",
               WebkitMaskPosition: "left center",
-              maskImage: "url(/brand/amplifier-logo-black.svg)",
+              maskImage: `url(${asset("brand/amplifier-logo-black.svg")})`,
               maskSize: "contain",
               maskRepeat: "no-repeat",
               maskPosition: "left center",

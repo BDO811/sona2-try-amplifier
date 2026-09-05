@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAssessment, getIsSeniorMode } from "@/context/AssessmentContext";
 import { isDeveloperModeEnabled, isPathwayEnabled } from "@/lib/utils";
 import { t } from "@/lib/i18n";
+import { asset } from "@/lib/asset";
 
 export interface TriageData {
   biologicalSex: "male" | "female";
@@ -249,7 +250,7 @@ export const TriageFlow = ({ onComplete, onStepChange, externalStep }: TriageFlo
 
   const totalSteps = 4;
 
-  const STEP_BACKGROUNDS = ["/images/wellness-call.jpg", "/images/wellness-calm.jpg", "/images/voice-conversation.jpg", "/images/voice-studio.jpg"];
+  const STEP_BACKGROUNDS = [asset("images/wellness-call.jpg"), asset("images/wellness-calm.jpg"), asset("images/voice-conversation.jpg"), asset("images/voice-studio.jpg")];
 
   return (
     <div className="absolute inset-0 flex items-center justify-center p-4 z-10 overflow-hidden" style={{ backgroundColor: "#DBCCB1" }}>
@@ -276,7 +277,7 @@ export const TriageFlow = ({ onComplete, onStepChange, externalStep }: TriageFlo
       >
         {/* Chrome Headers */}
         <div className="flex items-center justify-between mb-2">
-          <img src="/brand/amplifier-logo-white.svg" alt="Amplifier" className="h-5 w-auto" />
+          <img src={asset("brand/amplifier-logo-white.svg")} alt="Amplifier" className="h-5 w-auto" />
           <span className="font-mono text-xs tracking-[0.2em] uppercase text-[#DBCCB1]/85">
             SONA-2 // 2026
           </span>

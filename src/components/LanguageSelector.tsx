@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useAssessment } from "@/context/AssessmentContext";
 import { Language, LANGUAGE_OPTIONS, t } from "@/lib/i18n";
+import { asset } from "@/lib/asset";
 
 interface LanguageSelectorProps {
   onComplete: () => void;
@@ -21,7 +22,7 @@ export const LanguageSelector = ({ onComplete }: LanguageSelectorProps) => {
       {/* Background photo at low opacity */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-40"
-        style={{ backgroundImage: "url(/images/voice-conversation.jpg)" }}
+        style={{ backgroundImage: `url(${asset("images/voice-conversation.jpg")})` }}
       />
       <div className="absolute inset-0" style={{ backgroundColor: "#DBCCB1", opacity: 0.4 }} />
 
@@ -33,7 +34,7 @@ export const LanguageSelector = ({ onComplete }: LanguageSelectorProps) => {
       >
         {/* Chrome Headers */}
         <div className="flex items-center justify-between mb-8">
-          <img src="/brand/amplifier-logo-white.svg" alt="Amplifier" className="h-10 w-auto" />
+          <img src={asset("brand/amplifier-logo-white.svg")} alt="Amplifier" className="h-10 w-auto" />
           <span className="font-mono text-xs tracking-[0.25em] uppercase text-[#DBCCB1]/90">
             SONA-2 // 2026
           </span>

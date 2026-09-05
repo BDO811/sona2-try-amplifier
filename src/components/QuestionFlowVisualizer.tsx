@@ -9,6 +9,7 @@ import { transformApiResultToVisualization, ApiResult } from "@/lib/cognitive-ap
 import { isV2Result, transformV2ResultToVisualization, V2JobDetail } from "@/lib/v2-api-visual-mapping";
 import { getModelForPathway } from "@/lib/pathway-model-map";
 import { t, getQuestionPool } from "@/lib/i18n";
+import { asset } from "@/lib/asset";
 
 const RECORDING_MIME_TYPE = "audio/webm;codecs=opus";
 const RECORDING_SAMPLE_RATE = 48000;
@@ -16,9 +17,9 @@ const RECORDING_DURATION_SECONDS = 15;
 const MIN_SPEECH_SECONDS = 10;
 const SPEECH_GAIN_THRESHOLD = 0.15;
 const QUESTION_BACKGROUNDS = [
-  "/images/talk-laugh-outdoors.jpg",
-  "/images/talk-conversation-dinner.jpg",
-  "/images/voice-friends.jpg",
+  asset("images/talk-laugh-outdoors.jpg"),
+  asset("images/talk-conversation-dinner.jpg"),
+  asset("images/voice-friends.jpg"),
 ];
 
 function runLeadGenHealthCheck(): void {

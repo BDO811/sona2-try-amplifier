@@ -3,6 +3,7 @@
  */
 
 import lamejs from 'lamejs';
+import { asset } from '@/lib/asset';
 
 // Declare global Flac type
 declare global {
@@ -93,7 +94,7 @@ async function getFlacLib(): Promise<any> {
       return;
     }
 
-    window.FLAC_SCRIPT_LOCATION = '/libflacjs/';
+    window.FLAC_SCRIPT_LOCATION = asset('libflacjs/');
     const useWasm = typeof WebAssembly !== 'undefined';
     const libFile = useWasm ? 'libflac.wasm.js' : 'libflac.js';
     const scriptUrl = `${window.FLAC_SCRIPT_LOCATION}${libFile}`;
