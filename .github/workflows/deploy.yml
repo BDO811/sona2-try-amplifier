@@ -32,7 +32,11 @@ jobs:
 
       - run: npx vitest run
 
+      # Serve from the Pages project subpath until try.amplifierhealth.com DNS
+      # exists. Set this to "/" (and re-add the custom domain) once it does.
       - run: npm run build
+        env:
+          VITE_BASE_PATH: /sona2-try-amplifier/
 
       # The app uses BrowserRouter, so /detailed-analysis and friends are
       # client-side routes with no file behind them. GitHub Pages serves

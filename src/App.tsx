@@ -20,6 +20,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter
+        // Matches Vite's base, so routes resolve whether the app is served from
+        // a domain root or from a GitHub Pages project subpath.
+        basename={import.meta.env.BASE_URL}
         future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true,
