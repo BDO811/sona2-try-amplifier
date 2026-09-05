@@ -1,0 +1,797 @@
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { ChevronLeft, FileText, Download } from "lucide-react";
+import { useAssessment, BRAND_COLOR } from "@/context/AssessmentContext";
+import { toast } from "sonner";
+import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
+import { jsPDF } from "jspdf";
+import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
+
+// Descriptions for audio quality metrics (matching AnalysisFailed page)
+const METRIC_DESCRIPTIONS = {
+  pesq: "Average Perceptual Evaluation of Speech Quality score, measuring overall speech quality perception.",
+  stoi: "Average Short-Time Objective Intelligibility score, measuring how intelligible the speech is.",
+};
+
+const DetailedAnalysisView = () => {
+  const navigate = useNavigate();
+  const { pathway, visualizedResult, userProfile } = useAssessment();
+
+  useEffect(() => {
+    if (!visualizedResult?.biomarkers?.length) {
+      navigate("/");
+    }
+  }, [visualizedResult, navigate]);
+
+  const protocolId = getProtocolId(pathway || "BRAIN_AGE");
+  const biomarkers: BiomarkerDefinition[] = visualizedResult?.biomarkers || [];
+  const assessmentTitle = pathway === "BRAIN_AGE" ? "Cognitive"
+    : pathway === "LONGEVITY" ? "Longevity"
+    : pathway === "MENTAL_HEALTH" ? "Mental Health"
+    : pathway === "FERTILITY" ? "Fertility"
+    : pathway === "WELLNESS" ? "Wellness"
+    : "Cognitive";
+  const signalQuality = visualizedResult?.signalQuality;
+  const extendedMetrics = visualizedResult?.extendedMetrics || [];
+
+  if (!visualizedResult || !biomarkers.length) {
+    return null;
+  }
+
+  // Helper function to convert hex color to RGB array for jsPDF
+  const hexToRgb = (hex: string): [number, number, number] => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? [
+          parseInt(result[1], 16),
+          parseInt(result[2], 16),
+          parseInt(result[3], 16),
+        ]
+      : [0, 0, 0];
+  };
+
+  // Helper function to get biomarker color based on z-score (matching BiometricLabGrid)
+  const getBiomarkerColor = (zScore?: number): string => {
+    if (zScore === undefined) return "#1E5631"; // Default cyan
+    const absZScore = Math.abs(zScore);
+    if (absZScore < 2.0) return "#10B981"; // Green - normal
+    if (absZScore < 3.0) return "#F59E0B"; // Orange
+    return "#EF4444"; // Red
+  };
+
+  const handleDownloadPDF = () => {
+    toast.loading("Generating Clinical PDF...", { id: "pdf-gen" });
+    
+    try {
+      // Create PDF document
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const maxWidth = pageWidth - 2 * margin;
+      let yPosition = margin;
+
+      // Helper function to add a new page if needed
+      const checkPageBreak = (requiredHeight: number) => {
+        if (yPosition + requiredHeight > pageHeight - margin) {
+          doc.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // Helper function to add text with word wrapping
+      const addWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number, fontStyle: string = "normal") => {
+        doc.setFontSize(fontSize);
+        doc.setFont("helvetica", fontStyle);
+        const lines = doc.splitTextToSize(text, maxWidth);
+        doc.text(lines, x, y);
+        return lines.length * (fontSize * 0.35); // Approximate line height
+      };
+
+      // Header
+      doc.setFillColor(30, 86, 49);
+      doc.rect(0, 0, pageWidth, 30, "F");
+      
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("TECHNICAL APPENDIX", margin, 15);
+      
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Protocol: ${protocolId}`, margin, 22);
+      
+      yPosition = 40;
+
+      // Assessment Title
+      doc.setTextColor(30, 86, 49);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(assessmentTitle.toUpperCase(), margin, yPosition);
+      yPosition += 8;
+
+      // Metadata: Date, Job ID, Patient Info
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      const reportDate = visualizedResult?.createdAt 
+        ? new Date(visualizedResult.createdAt).toISOString().split('T')[0].replace(/-/g, '.')
+        : new Date().toISOString().split('T')[0].replace(/-/g, '.');
+      doc.text(`Date: ${reportDate}`, margin, yPosition);
+      yPosition += 5;
+      
+      if (visualizedResult) {
+        doc.text(`Job ID: ${visualizedResult.jobId}`, margin, yPosition);
+        yPosition += 5;
+      }
+
+      if (userProfile?.fullName) {
+        doc.text(`Patient: ${userProfile.fullName}`, margin, yPosition);
+        yPosition += 5;
+      }
+
+      if (userProfile?.ageRange) {
+        const ageLabel = userProfile.ageRange === "under30" ? "Under 30" :
+                        userProfile.ageRange === "30-45" ? "30-45" :
+                        userProfile.ageRange === "46-60" ? "46-60" : "60+";
+        doc.text(`Age Range: ${ageLabel}`, margin, yPosition);
+        yPosition += 5;
+      }
+
+      yPosition += 8;
+
+       // Prominent Outcome Section - After header, before biomarkers (matching dashboard style)
+       if (visualizedResult) {
+         checkPageBreak(30);
+         const outcomeColor = hexToRgb(getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier));
+         const outcomeText = formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier);
+         const classificationText = visualizedResult.classification;
+         
+         // Center the outcome section
+         const centerX = pageWidth / 2;
+         
+         // Likelihood tier in brackets (like SpectrogramWaveform)
+         doc.setFontSize(28);
+         doc.setFont("helvetica", "light");
+         
+         // Calculate text widths for positioning
+         const outcomeTextWidth = doc.getTextWidth(outcomeText);
+         const bracketWidth = doc.getTextWidth("[");
+         const spacing = 2;
+         
+         // Left bracket (semi-transparent)
+         const bracketColor = [Math.round(outcomeColor[0] * 0.25), Math.round(outcomeColor[1] * 0.25), Math.round(outcomeColor[2] * 0.25)];
+         doc.setTextColor(bracketColor[0], bracketColor[1], bracketColor[2]);
+         doc.text("[", centerX - outcomeTextWidth / 2 - bracketWidth - spacing, yPosition);
+         
+         // Outcome text
+         doc.setTextColor(outcomeColor[0], outcomeColor[1], outcomeColor[2]);
+         doc.text(outcomeText, centerX, yPosition, { align: "center" });
+         
+         // Right bracket (semi-transparent)
+         doc.setTextColor(bracketColor[0], bracketColor[1], bracketColor[2]);
+         doc.text("]", centerX + outcomeTextWidth / 2 + spacing, yPosition);
+         
+         yPosition += 10;
+         
+         // Classification text below (like dashboard)
+         doc.setFontSize(11);
+         doc.setFont("helvetica", "bold");
+         doc.setTextColor(outcomeColor[0], outcomeColor[1], outcomeColor[2]);
+         doc.text(classificationText, centerX, yPosition, { align: "center" });
+         
+         yPosition += 12;
+         yPosition += 8; // Extra spacing before biomarkers
+       }
+
+      // Section 1: Biometric Results and Descriptions
+      checkPageBreak(20);
+      doc.setTextColor(30, 86, 49);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("BIOMETRIC RESULTS AND DESCRIPTIONS", margin, yPosition);
+      yPosition += 8;
+
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 5;
+
+      // Note about biomarker subset
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(120, 120, 120);
+      const noteText = "Note: We analyze over 1,000 voice biomarkers. The markers shown here are a small subset that are easiest to interpret and most influential in your result.";
+      const noteHeight = addWrappedText(noteText, margin, yPosition, maxWidth, 7);
+      yPosition += noteHeight + 5;
+
+      biomarkers.forEach((biomarker, index) => {
+        // Check if we need a new page
+        const biomarkerHeight = 50; // Approximate height per biomarker
+        if (checkPageBreak(biomarkerHeight)) {
+          // Redraw section header on new page
+          doc.setTextColor(30, 86, 49);
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.text("BIOMETRIC RESULTS AND DESCRIPTIONS (continued)", margin, yPosition);
+          yPosition += 8;
+          doc.setDrawColor(200, 200, 200);
+          doc.line(margin, yPosition, pageWidth - margin, yPosition);
+          yPosition += 5;
+        }
+
+        // Biomarker Title
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        const titleHeight = addWrappedText(biomarker.title, margin, yPosition, maxWidth - 40, 10, "bold");
+        yPosition += titleHeight + 2;
+
+        // Normal Range - right under the feature name
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Normal Range: ${biomarker.normalRange}`, margin, yPosition);
+        yPosition += 5;
+
+        // Value and Unit - with color coding matching BiometricLabGrid
+        const biomarkerColor = hexToRgb(getBiomarkerColor(biomarker.zScore));
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(biomarkerColor[0], biomarkerColor[1], biomarkerColor[2]);
+        doc.text(`${biomarker.value} ${biomarker.unit}`, pageWidth - margin, yPosition, { align: "right" });
+        yPosition += 6;
+
+        // Definition
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(0, 0, 0);
+        const defHeight = addWrappedText(biomarker.definition, margin, yPosition, maxWidth, 9);
+        yPosition += defHeight + 3;
+
+        // Clinical Context - Only show if not in normal range (z-score >= 2.0) AND context exists
+        if (biomarker.zScore !== undefined && Math.abs(biomarker.zScore) >= 2.0 && biomarker.clinicalContext) {
+          doc.setFillColor(240, 248, 255);
+          doc.rect(margin, yPosition - 2, maxWidth, 15, "F");
+          doc.setFontSize(8);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(0, 0, 0);
+          doc.text("Clinical Context:", margin + 2, yPosition + 3);
+          doc.setFont("helvetica", "normal");
+          const contextHeight = addWrappedText(biomarker.clinicalContext, margin + 2, yPosition + 7, maxWidth - 4, 8);
+          yPosition += Math.max(contextHeight, 12) + 3;
+        }
+
+        yPosition += 3;
+
+        // Separator line
+        if (index < biomarkers.length - 1) {
+          doc.setDrawColor(220, 220, 220);
+          doc.line(margin, yPosition, pageWidth - margin, yPosition);
+          yPosition += 5;
+        }
+      });
+
+      yPosition += 10;
+
+      // Section 2: Signal Quality Report (moved to bottom)
+      checkPageBreak(20);
+      doc.setTextColor(30, 86, 49);
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "bold");
+      doc.text("SIGNAL QUALITY REPORT", margin, yPosition);
+      yPosition += 8;
+
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 5;
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+
+      const signalQualityData: Array<[string, string, string?]> = []; // [label, value, description?]
+      
+      if (signalQuality?.pesq !== undefined) {
+        signalQualityData.push(["PESQ Score", signalQuality.pesq.toFixed(2), METRIC_DESCRIPTIONS.pesq]);
+      }
+      if (signalQuality?.stoi !== undefined) {
+        signalQualityData.push(["STOI Score", signalQuality.stoi.toFixed(2), METRIC_DESCRIPTIONS.stoi]);
+      }
+      if (signalQuality?.audioClarity !== undefined) {
+        signalQualityData.push(["Audio Clarity", `${signalQuality.audioClarity.toFixed(1)} / 100`]);
+      } else if (signalQuality?.snr) {
+        signalQualityData.push(["Signal-to-Noise Ratio (SI-SDR)", `${signalQuality.snr.toFixed(1)}dB`]);
+      }
+      if (signalQuality?.voicePercentage !== undefined) {
+        signalQualityData.push(["Voice Percentage", `${(signalQuality.voicePercentage * 100).toFixed(1)}%`]);
+      }
+      if (signalQuality?.frequencyResponse) {
+        signalQualityData.push(["Frequency Range Analyzed", signalQuality.frequencyResponse]);
+      }
+      if (signalQuality?.sampleRate) {
+        signalQualityData.push(["Sample Rate", signalQuality.sampleRate]);
+      }
+      if (signalQuality?.duration !== undefined) {
+        signalQualityData.push(["Capture Duration", `${signalQuality.duration.toFixed(1)} seconds`]);
+      }
+      
+      // If no audio quality data, show NA
+      if (signalQualityData.length === 0) {
+        signalQualityData.push(["Audio Quality", "NA"]);
+      }
+
+      signalQualityData.forEach(([label, value, description]) => {
+        checkPageBreak(description ? 12 : 8);
+        doc.setFont("helvetica", "normal");
+        doc.text(label + ":", margin, yPosition);
+        doc.setFont("helvetica", "bold");
+        doc.text(value, margin + 60, yPosition);
+        yPosition += 6;
+        
+        // Add description for PESQ and STOI
+        if (description) {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          const descHeight = addWrappedText(description, margin, yPosition, maxWidth - 60, 8, "normal");
+          yPosition += descHeight + 2;
+          doc.setFontSize(9); // Reset font size
+          doc.setTextColor(0, 0, 0); // Reset text color
+        }
+      });
+
+      // Footer on last page
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(
+          `Page ${i} of ${totalPages}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: "center" }
+        );
+        doc.text(
+          `Generated on ${new Date().toLocaleString()}`,
+          pageWidth / 2,
+          pageHeight - 5,
+          { align: "center" }
+        );
+      }
+
+      // Generate filename
+      const timestamp = new Date().toISOString().split("T")[0];
+      const filename = `Clinical_Report_${protocolId}_${timestamp}.pdf`;
+
+      // Save PDF
+      doc.save(filename);
+
+      toast.success("PDF Downloaded Successfully", {
+        id: "pdf-gen",
+        description: `Your clinical report has been saved as ${filename}`,
+        duration: 4000,
+      });
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      toast.error("PDF Generation Failed", {
+        id: "pdf-gen",
+        description: "There was an error generating the PDF. Please try again.",
+        duration: 4000,
+      });
+    }
+  };
+
+  const handleBack = () => {
+    navigate("/");
+  };
+
+  return (
+    <motion.div
+      className="min-h-screen text-white"
+      style={{ backgroundColor: "#DBCCB1" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* Navigation Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 p-6 md:p-8 pointer-events-none">
+        <div className="flex items-center max-w-2xl mx-auto pointer-events-auto">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1 font-mono text-xs tracking-widest text-black/50 hover:text-black/80 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>BACK</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      {/* Top margin clears the fixed BACK header above. Without it the card's
+          top edge sat under the header and the dark BACK label landed on black. */}
+      <div className="max-w-2xl mx-auto px-6 pt-10 pb-16 md:px-10 md:pt-12 rounded-3xl bg-black/[0.92] mt-20 mb-6 md:mt-24 md:mb-10 backdrop-blur-md">
+        {/* Header */}
+        <motion.div
+          className="mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <h1 
+            className="font-mono text-sm md:text-base uppercase tracking-[0.2em] font-medium mb-2"
+            style={{ color: BRAND_COLOR }}
+          >
+            Technical Appendix: {protocolId}
+          </h1>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mb-3">
+            {assessmentTitle} Assessment — Detailed Biomarker Analysis
+          </p>
+          
+          {/* Metadata Header Bar (matching dashboard) */}
+          {visualizedResult && (
+            <div className="flex flex-col px-4 py-2 border-b border-white/10 font-mono text-[9px] md:text-[10px] uppercase tracking-wider mb-6">
+              {/* First Row: Date | Sample Rate | Robustness | Model */}
+              <div className="flex items-center justify-center gap-3 flex-wrap mb-1">
+                <span className="text-white/50">
+                  Date: <span className="text-white/70">{new Date(visualizedResult.createdAt).toISOString().split('T')[0].replace(/-/g, '.')}</span>
+                </span>
+                <span className="text-white/20">|</span>
+                <span className="text-white/50">
+                  Sample Rate: <span className="text-white/70">48kHz</span>
+                </span>
+                <span className="text-white/20">|</span>
+                <span className="text-white/50">
+                  Model: <span className="text-white/70">SONA-2.0</span>
+                </span>
+              </div>
+              {/* Second Row: Job ID only */}
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <span className="text-white/50">
+                  Job ID: <span className="text-white/70">{visualizedResult.jobId}</span>
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Prominent Outcome - Below header, matching dashboard style */}
+          {visualizedResult && (
+            <div className="mb-8 text-center">
+              {/* Likelihood tier in brackets (like SpectrogramWaveform) */}
+              <div className="relative inline-flex items-center justify-center mb-3">
+                {/* Left Bracket */}
+                <span 
+                  className="text-4xl md:text-5xl font-extralight font-mono mr-2"
+                  style={{ color: `${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40` }}
+                >
+                  [
+                </span>
+                
+                {/* Likelihood Tier Text */}
+                <span
+                  className="font-mono text-2xl md:text-3xl font-extralight tracking-tight"
+                  style={{ 
+                    color: getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier),
+                    textShadow: `0 0 40px ${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}80, 0 0 80px ${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40`,
+                  }}
+                >
+                  {formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)}
+                </span>
+                
+                {/* Right Bracket */}
+                <span 
+                  className="text-4xl md:text-5xl font-extralight font-mono ml-2"
+                  style={{ color: `${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40` }}
+                >
+                  ]
+                </span>
+              </div>
+              
+              {/* Classification text below (like dashboard) */}
+              <h2 
+                className="font-mono text-xs md:text-sm uppercase tracking-[0.25em] font-medium mt-2"
+                style={{ 
+                  color: getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier),
+                  textShadow: `0 0 20px ${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40`,
+                }}
+              >
+                {visualizedResult.classification}
+              </h2>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Section 1: Biomarker Definitions */}
+        <motion.section
+          className="mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-4 pb-2 border-b border-white/10">
+            Biometric Results and Descriptions
+          </h2>
+          
+          <p className="font-mono text-[8px] text-white/40 mb-4">
+            Note: We analyze over 1,000 voice biomarkers. The markers shown here are a small subset that are easiest to interpret and most influential in your result.
+          </p>
+          
+          <div className="space-y-1">
+            {biomarkers.map((biomarker, index) => (
+              <motion.div
+                key={biomarker.title}
+                className="rounded-lg overflow-hidden"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 + index * 0.05 }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.02)',
+                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                }}
+              >
+                <div className="p-4">
+                  {/* Title Row */}
+                  <div className="flex items-baseline justify-between mb-3">
+                    <div>
+                      <h3 className="font-mono text-sm text-white/90 font-medium">
+                        {biomarker.title}
+                      </h3>
+                    </div>
+                    <div className="text-right">
+                      <span 
+                        className="font-mono text-lg font-semibold"
+                        style={{ 
+                          color: biomarker.zScore !== undefined 
+                            ? (() => {
+                                const absZScore = Math.abs(biomarker.zScore);
+                                if (absZScore < 2.0) return "#10B981"; // Green - normal
+                                if (absZScore < 3.0) return "#F59E0B"; // Orange
+                                return "#EF4444"; // Red
+                              })()
+                            : BRAND_COLOR
+                        }}
+                      >
+                        {biomarker.value}
+                      </span>
+                      <span className="font-mono text-xs text-white/40 ml-1">
+                        {biomarker.unit}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Definition */}
+                  <p className="font-mono text-[11px] text-white/50 leading-relaxed mb-3">
+                    {biomarker.definition}
+                  </p>
+                  
+                  {/* Clinical Context - Only show if not in normal range (z-score >= 2.0) AND context exists */}
+                  {biomarker.zScore !== undefined && Math.abs(biomarker.zScore) >= 2.0 && biomarker.clinicalContext && (
+                    <div 
+                      className="rounded px-3 py-2 mb-2"
+                      style={{ background: 'rgba(30, 86, 49, 0.05)' }}
+                    >
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-white/40 block mb-1">
+                        Clinical Context
+                      </span>
+                      <p className="font-mono text-[11px] text-white/60 leading-relaxed">
+                        {biomarker.clinicalContext}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Normal Range */}
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-white/30">
+                      Normal Range
+                    </span>
+                    <span className="font-mono text-[10px] text-white/50">
+                      {biomarker.normalRange}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Section 1b: Extended Sub-Dimension Metrics (v2 only) */}
+        {extendedMetrics.length > 0 && (
+          <motion.section
+            className="mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-2 pb-2 border-b border-white/10">
+              Sub-Dimension Metrics
+            </h2>
+            <p className="font-mono text-[9px] text-white/30 leading-relaxed mb-4">
+              Each dimension is scored between two anchors. The marker shows where this sample
+              sits; the band around it is the variation across segments of the recording.
+            </p>
+
+            <div className="space-y-0 divide-y divide-white/5">
+              {extendedMetrics.map((metric) => {
+                const pct = Math.max(0, Math.min(100, metric.score_mean * 100));
+                const spread = Math.max(0, Math.min(50, metric.score_std * 100));
+                return (
+                  <div key={metric.metric_id} className="py-3">
+                    <div className="flex items-baseline justify-between mb-2">
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
+                        {metric.label}
+                      </span>
+                      <span className="font-mono text-[10px] text-white/40">
+                        {metric.score_mean.toFixed(2)}
+                        <span className="text-white/25"> ± {metric.score_std.toFixed(2)}</span>
+                      </span>
+                    </div>
+
+                    <div className="relative h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                      {/* Segment-to-segment spread */}
+                      <div
+                        className="absolute inset-y-0 rounded-full"
+                        style={{
+                          left: `${Math.max(0, pct - spread)}%`,
+                          width: `${Math.min(100, spread * 2)}%`,
+                          background: 'rgba(255,255,255,0.18)',
+                        }}
+                      />
+                      {/* Mean marker */}
+                      <div
+                        className="absolute top-1/2 h-3 w-[2px] -translate-y-1/2 rounded-full"
+                        style={{ left: `${pct}%`, backgroundColor: getBiomarkerColor(undefined) }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/30">
+                        {metric.low_anchor}
+                      </span>
+                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/30">
+                        {metric.high_anchor}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Section 2: Signal Quality Report */}
+        {signalQuality && (
+          <motion.section
+            className="mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-4 pb-2 border-b border-white/10">
+              Signal Quality Report
+            </h2>
+            
+            <div className="space-y-0 divide-y divide-white/5">
+              {signalQuality.pesq !== undefined && (
+                <div className="py-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono text-xs text-white/50">PESQ Score</span>
+                    <span className="font-mono text-xs text-white/80">
+                      {signalQuality.pesq.toFixed(2)}
+                    </span>
+                  </div>
+                  {METRIC_DESCRIPTIONS.pesq && (
+                    <p className="font-mono text-[10px] text-white/40 mt-1">
+                      {METRIC_DESCRIPTIONS.pesq}
+                    </p>
+                  )}
+                </div>
+              )}
+              {signalQuality.stoi !== undefined && (
+                <div className="py-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono text-xs text-white/50">STOI Score</span>
+                    <span className="font-mono text-xs text-white/80">
+                      {signalQuality.stoi.toFixed(2)}
+                    </span>
+                  </div>
+                  {METRIC_DESCRIPTIONS.stoi && (
+                    <p className="font-mono text-[10px] text-white/40 mt-1">
+                      {METRIC_DESCRIPTIONS.stoi}
+                    </p>
+                  )}
+                </div>
+              )}
+              {signalQuality.audioClarity !== undefined ? (
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-mono text-xs text-white/50">Audio Clarity</span>
+                  <span className="font-mono text-xs text-white/80">
+                    {signalQuality.audioClarity.toFixed(1)} / 100
+                  </span>
+                </div>
+              ) : signalQuality.snr ? (
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-mono text-xs text-white/50">Signal-to-Noise Ratio (SI-SDR)</span>
+                  <span className="font-mono text-xs text-white/80">
+                    {signalQuality.snr.toFixed(1)}dB
+                  </span>
+                </div>
+              ) : null}
+              {signalQuality.voicePercentage !== undefined && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-mono text-xs text-white/50">Voice Percentage</span>
+                  <span className="font-mono text-xs text-white/80">
+                    {(signalQuality.voicePercentage * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
+              {signalQuality.frequencyResponse && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-mono text-xs text-white/50">Frequency Range Analyzed</span>
+                  <span className="font-mono text-xs text-white/80">
+                    {signalQuality.frequencyResponse}
+                  </span>
+                </div>
+              )}
+              {signalQuality.sampleRate && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-mono text-xs text-white/50">Sample Rate</span>
+                  <span className="font-mono text-xs text-white/80">
+                    {signalQuality.sampleRate}
+                  </span>
+                </div>
+              )}
+              {signalQuality.duration !== undefined && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="font-mono text-xs text-white/50">Capture Duration</span>
+                  <span className="font-mono text-xs text-white/80">
+                    {signalQuality.duration.toFixed(1)} seconds
+                  </span>
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Section 3: Export */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-4 pb-2 border-b border-white/10">
+            Export Report
+          </h2>
+          
+          <button
+            onClick={handleDownloadPDF}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-lg font-mono text-xs uppercase tracking-widest transition-all duration-300 hover:scale-[1.01]"
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              color: 'rgba(255, 255, 255, 0.7)',
+            }}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Download Clinical PDF</span>
+            <Download className="w-3.5 h-3.5 opacity-50" />
+          </button>
+          
+          <p className="font-mono text-[9px] text-white/30 text-center mt-3">
+            Includes full biomarker data, analysis, and explanations.
+          </p>
+        </motion.section>
+      </div>
+    </motion.div>
+  );
+};
+
+export default DetailedAnalysisView;

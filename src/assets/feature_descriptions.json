@@ -1,0 +1,2865 @@
+{
+  "opensmile_egemapsv02_functional.alphaRatioV_sma3nz_stddevNorm": {
+    "feature_group": "alphaRatio",
+    "label": "Voice Brightness Stability",
+    "description": "How consistent the sharpness or brightness of the voice is over time.",
+    "technical_description": "Normalized standard deviation of the Alpha Ratio (energy ratio below/above 1kHz) in voiced segments.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.slopeV500-1500_sma3nz_stddevNorm": {
+    "feature_group": "spectral_slope",
+    "label": "Mid-Range Slope Variation",
+    "description": "Fluctuations in the frequency balance of the mid-frequencies (500-1500Hz).",
+    "technical_description": "Normalized standard deviation of the spectral slope between 500-1500Hz.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F1bandwidth_sma3nz_amean": {
+    "feature_group": "F1",
+    "label": "Average Vowel Clarity",
+    "description": "The width of the first vocal resonance. Wider bandwidths often sound 'muffled', narrower sounds 'clear'.",
+    "technical_description": "Arithmetic mean of the bandwidth of the first formant (F1).",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.F1bandwidth_sma3nz_stddevNorm": {
+    "feature_group": "F1",
+    "label": "Vowel Clarity Consistency",
+    "description": "How much the clarity (bandwidth) of the first vowel resonance changes during speech.",
+    "technical_description": "Normalized standard deviation of F1 bandwidth.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_3.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Mid-Lower Timbre)",
+    "description": "The upper range of mid-lower frequency voice character, which relates to the warmth and depth of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 3.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.min": {
+    "feature_group": "librosa_spectral",
+    "label": "Minimum Noisiness",
+    "description": "The point in the audio where the tone is clearest (least noisy or breathy).",
+    "technical_description": "Minimum value of spectral flatness.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Voice Character)",
+    "description": "The lower range of voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 7.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Voice Character",
+    "description": "The typical value for the voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "Median of MFCC coefficient 7.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Voice Character",
+    "description": "The average sound quality for the voice character and texture, related to the overall character and texture of the voice.",
+    "technical_description": "Mean of MFCC coefficient 7.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (High Brightness)",
+    "description": "The lower range of high-frequency brightness, which relates to the sparkle and clarity of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 10.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Voice Character)",
+    "description": "The upper range of voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 7.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.hammarbergIndexV_sma3nz_stddevNorm": {
+    "feature_group": "hammarbergIndex",
+    "label": "Breathiness Variability",
+    "description": "How much the breathy quality of the voice fluctuates.",
+    "technical_description": "Normalized standard deviation of the Hammarberg Index in voiced segments.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F2amplitudeLogRelF0_sma3nz_stddevNorm": {
+    "feature_group": "F2",
+    "label": "Vowel Brightness Stability",
+    "description": "Variation in the relative strength of the vowel resonance (associated with vowel brightness).",
+    "technical_description": "Normalized standard deviation of F2 amplitude relative to F0.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average High Brightness",
+    "description": "The average sound quality for the high-frequency brightness, related to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Mean of MFCC coefficient 10.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_meanFallingSlope": {
+    "feature_group": "loudness",
+    "label": "Volume Fade Rate",
+    "description": "How quickly the voice gets quieter (fades out) after a peak.",
+    "technical_description": "Mean value of the falling slope of the loudness contour.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.slopeV500-1500_sma3nz_amean": {
+    "feature_group": "spectral_slope",
+    "label": "Mid-Range Energy Balance",
+    "description": "The average energy slope in the 500-1500Hz range. Steeper slopes mean less energy in this range.",
+    "technical_description": "Arithmetic mean of the spectral slope between 500-1500Hz.",
+    "units": "dB/Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_3.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Mid-Lower Timbre",
+    "description": "The average sound quality for the mid-lower frequency voice character, related to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Mean of MFCC coefficient 3.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.rolloff.std": {
+    "feature_group": "librosa_spectral",
+    "label": "Sharpness Consistency",
+    "description": "How much the high-frequency cutoff (sharpness) varies over time.",
+    "technical_description": "Standard deviation of the spectral rolloff frequency.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_G#.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Upper-Mid Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance in the upper-mid frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G#.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Upper-Mid Frequency Range)",
+    "description": "The minimum intensity of resonance in the upper-mid frequency range.",
+    "technical_description": "Minimum value of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical High Brightness",
+    "description": "The typical value for the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Median of MFCC coefficient 10.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (High Brightness)",
+    "description": "The upper range of high-frequency brightness of the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 10.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_meanRisingSlope": {
+    "feature_group": "loudness",
+    "label": "Volume Rise Rate",
+    "description": "How quickly the voice gets louder (attack speed) before a peak.",
+    "technical_description": "Mean value of the rising slope of the loudness contour.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.F1frequency_sma3nz_amean": {
+    "feature_group": "F1",
+    "label": "Average Vowel Openness",
+    "description": "The average frequency of the vowel resonance. Higher values indicate more 'open' vowels (like 'ah').",
+    "technical_description": "Arithmetic mean of the first formant frequency (F1).",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_1.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Energy Stability",
+    "description": "How stable the overall energy and loudness (often related to loudness/depth) is over time.",
+    "technical_description": "Standard deviation of MFCC coefficient 1.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc2V_sma3nz_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality, affecting voice quality.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 2 (OpenSmile calculated).",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.std": {
+    "feature_group": "librosa_spectral",
+    "label": "Brightness Consistency",
+    "description": "How much the perceived brightness (center of mass of the spectrum) fluctuates.",
+    "technical_description": "Standard deviation of the spectral centroid.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_pctlrange0-2": {
+    "feature_group": "loudness",
+    "label": "Loudness Range (Low)",
+    "description": "The variation in loudness within the lower range of the voice's dynamic range.",
+    "technical_description": "Percentile range 0-2 of the loudness contour.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.slopeV0-500_sma3nz_amean": {
+    "feature_group": "spectral_slope",
+    "label": "Bass Energy Slope",
+    "description": "The balance of energy in the lower frequencies (0-500Hz).",
+    "technical_description": "Arithmetic mean of the spectral slope between 0-500Hz.",
+    "units": "dB/Hz"
+  },
+  "librosa_spectral_statistics.bandwidth.std": {
+    "feature_group": "librosa_spectral",
+    "label": "Timbre Width Consistency",
+    "description": "How much the width of the frequency range varies over time.",
+    "technical_description": "Standard deviation of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_spectral_statistics.bandwidth.min": {
+    "feature_group": "librosa_spectral",
+    "label": "Minimum Timbre Width",
+    "description": "The narrowest frequency range detected in the audio.",
+    "technical_description": "Minimum value of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_E.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Mid-High Frequency Range)",
+    "description": "How consistently the voice resonates at the mid-high frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin E.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.alphaRatioV_sma3nz_amean": {
+    "feature_group": "alphaRatio",
+    "label": "Average Voice Brightness",
+    "description": "The ratio of high-frequency energy to low-frequency energy. Higher values sound sharper or brighter.",
+    "technical_description": "Arithmetic mean of the Alpha Ratio in voiced segments.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.logRelF0-H1-A3_sma3nz_stddevNorm": {
+    "feature_group": "logRelF0",
+    "label": "Tone Quality Stability (H1-A3)",
+    "description": "Variation in the balance between the fundamental pitch and the vowel resonance amplitude.",
+    "technical_description": "Normalized standard deviation of logRelF0-H1-A3.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Sharpness)",
+    "description": "The lower range of voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 11.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.std": {
+    "feature_group": "librosa_spectral",
+    "label": "Noise Stability",
+    "description": "How much the audio alternates between clear tone and breathy/noisy sounds.",
+    "technical_description": "Standard deviation of spectral flatness.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.bandwidth.range": {
+    "feature_group": "librosa_spectral",
+    "label": "Timbre Width Range",
+    "description": "The difference between the widest and narrowest frequency spread.",
+    "technical_description": "Range (max - min) of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.loudnessPeaksPerSec": {
+    "feature_group": "loudness",
+    "label": "Loudness Peaks per Second",
+    "description": "How often the volume peaks; can indicate syllabic stress or emphasis.",
+    "technical_description": "Number of loudness peaks detected per second.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.mfcc2_sma3_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality. Affects how the voice sounds.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 2 (OpenSmile).",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_8.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Voice Presence Variation",
+    "description": "The middle-range variation of the voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 8.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.max": {
+    "feature_group": "valence",
+    "label": "Maximum Positivity",
+    "description": "The highest level of positive emotion detected in the voice.",
+    "technical_description": "Maximum value of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_3.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Mid-Lower Timbre",
+    "description": "The typical value for the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Median of MFCC coefficient 3.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_8.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Voice Presence)",
+    "description": "The lower range of voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 8.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F3amplitudeLogRelF0_sma3nz_stddevNorm": {
+    "feature_group": "F3",
+    "label": "Vowel Definition Stability",
+    "description": "Variation in the strength of the vowel resonance, affecting the definition of speech sounds.",
+    "technical_description": "Normalized standard deviation of F3 amplitude relative to F0.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc2_sma3_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality, affecting voice quality.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 2 (OpenSmile).",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.slopeUV0-500_sma3nz_amean": {
+    "feature_group": "spectral_slope",
+    "label": "Unvoiced Bass Slope",
+    "description": "The average frequency balance in low frequencies (0-500Hz) during unspeech sounds (like 's', 't').",
+    "technical_description": "Arithmetic mean of spectral slope (0-500Hz) in unvoiced segments.",
+    "units": "dB/Hz"
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.std": {
+    "feature_group": "dominance",
+    "label": "Dominance Variability",
+    "description": "How much the speaker's assertiveness or dominance fluctuates.",
+    "technical_description": "Standard deviation of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.max": {
+    "feature_group": "librosa_spectral",
+    "label": "Maximum Noisiness",
+    "description": "The peak level of breathiness or noise in the audio.",
+    "technical_description": "Maximum value of spectral flatness.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.range": {
+    "feature_group": "librosa_spectral",
+    "label": "Noisiness Range",
+    "description": "The difference between the clearest tone and the noisiest sound in the file.",
+    "technical_description": "Range (max - min) of spectral flatness.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.bandwidth.iqr": {
+    "feature_group": "librosa_spectral",
+    "label": "Timbre Width Variation",
+    "description": "The typical variation range for the frequency spread of the voice.",
+    "technical_description": "Interquartile range (IQR) of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_8.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Voice Presence",
+    "description": "The typical value for the voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "Median of MFCC coefficient 8.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.rolloff.max": {
+    "feature_group": "librosa_spectral",
+    "label": "Maximum Sharpness",
+    "description": "The point where the voice sounds sharpest or has the most high-frequency energy.",
+    "technical_description": "Maximum value of spectral rolloff.",
+    "units": "Hz"
+  },
+  "librosa_spectral_statistics.rolloff.range": {
+    "feature_group": "librosa_spectral",
+    "label": "Sharpness Range",
+    "description": "The full range of variation in the voice's sharpness or high-frequency cutoff.",
+    "technical_description": "Range (max - min) of spectral rolloff.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.HNRdBACF_sma3nz_stddevNorm": {
+    "feature_group": "HNR",
+    "label": "Voice Quality Stability (HNR)",
+    "description": "Variation in the Harmonic-to-Noise Ratio. A stable voice has low variation here.",
+    "technical_description": "Normalized standard deviation of the HNR (dB).",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.min": {
+    "feature_group": "librosa_spectral",
+    "label": "Minimum Brightness",
+    "description": "The point where the voice sounds darkest or deepest (lowest frequency center).",
+    "technical_description": "Minimum value of spectral centroid.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_11.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Sharpness",
+    "description": "The average sound quality for the voice sharpness and clarity, related to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Mean of MFCC coefficient 11.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Voice Character Stability",
+    "description": "Stability of the voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 7.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Sharpness",
+    "description": "The typical value for the voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Median of MFCC coefficient 11.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.q25": {
+    "feature_group": "librosa_spectral",
+    "label": "Low Brightness",
+    "description": "The lower range of perceived brightness (frequency center).",
+    "technical_description": "25th percentile of spectral centroid.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.slopeUV500-1500_sma3nz_amean": {
+    "feature_group": "spectral_slope",
+    "label": "Unvoiced Mid-Range Slope",
+    "description": "The average frequency balance in mid-frequencies (500-1500Hz) during unspeech sounds.",
+    "technical_description": "Arithmetic mean of spectral slope (500-1500Hz) in unvoiced segments.",
+    "units": "dB/Hz"
+  },
+  "librosa_chroma_statistics.chroma_A.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Upper Frequency Range)",
+    "description": "The typical strength of resonance at the upper frequency range.",
+    "technical_description": "Median value of the Chroma bin A.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_3.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Mid-Lower Timbre",
+    "description": "The peak intensity of the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 3.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.std": {
+    "feature_group": "arousal",
+    "label": "Energy Variability",
+    "description": "How much the speaker's excitement or energy level fluctuates.",
+    "technical_description": "Standard deviation of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Timbre Range",
+    "description": "The full range of variation for the lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_8.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Voice Presence",
+    "description": "The average sound quality for the voice presence and definition, related to the presence and definition of the voice.",
+    "technical_description": "Mean of MFCC coefficient 8.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.spectralFluxV_sma3nz_amean": {
+    "feature_group": "spectralFlux",
+    "label": "Average Voice Flux",
+    "description": "The rate of change in the sound texture. Higher values mean the voice texture is changing rapidly.",
+    "technical_description": "Arithmetic mean of spectral flux in voiced segments.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.MeanVoicedSegmentLengthSec": {
+    "feature_group": "voiced_unvoiced_segmentation",
+    "label": "Average Voiced Duration",
+    "description": "The average length of continuous speech sounds (vowel sounds, humming).",
+    "technical_description": "Mean length of voiced segments in seconds.",
+    "units": "%"
+  },
+  "librosa_chroma_statistics.chroma_G#.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Upper-Mid Frequency Range)",
+    "description": "The typical strength of resonance in the upper-mid frequency range.",
+    "technical_description": "Median value of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.iqr": {
+    "feature_group": "librosa_spectral",
+    "label": "Brightness Variation",
+    "description": "The typical range of variation in the voice's brightness.",
+    "technical_description": "Interquartile range (IQR) of spectral centroid.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_percentile80.0": {
+    "feature_group": "loudness",
+    "label": "High Volume Level",
+    "description": "The volume level that is exceeded only 20% of the time (loud peaks).",
+    "technical_description": "80th percentile of the loudness contour.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.logRelF0-H1-A3_sma3nz_amean": {
+    "feature_group": "logRelF0",
+    "label": "Average Tone Quality",
+    "description": "The average balance between the fundamental pitch and the vowel resonance. Relates to voice quality.",
+    "technical_description": "Arithmetic mean of logRelF0-H1-A3.",
+    "units": "dB"
+  },
+  "librosa_chroma_statistics.chroma_G#.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Upper-Mid Frequency Range)",
+    "description": "The average strength of resonance in the upper-mid frequency range.",
+    "technical_description": "Mean value of the Chroma bin G#.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.max": {
+    "feature_group": "arousal",
+    "label": "Maximum Energy",
+    "description": "The highest level of excitement or energy detected.",
+    "technical_description": "Maximum value of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F3amplitudeLogRelF0_sma3nz_amean": {
+    "feature_group": "F3",
+    "label": "Average Vowel Definition",
+    "description": "The relative strength of the vowel resonance. Important for distinguishing complex sounds.",
+    "technical_description": "Arithmetic mean of F3 amplitude relative to F0.",
+    "units": "Hz"
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.range": {
+    "feature_group": "valence",
+    "label": "Positivity Range",
+    "description": "The difference between the most negative and most positive emotion detected.",
+    "technical_description": "Range (max - min) of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_rhythm_statistics.tempo.mean": {
+    "feature_group": "rhythm",
+    "label": "Average Pacing",
+    "description": "Pacing measures the frequency of articulation pulses (speech timing \"beats\") per minute. Higher values indicate faster speech timing.",
+    "technical_description": "Mean estimated tempo.",
+    "units": "pulses/min"
+  },
+  "opensmile_egemapsv02_functional.F2amplitudeLogRelF0_sma3nz_amean": {
+    "feature_group": "F2",
+    "label": "Average Vowel Brightness",
+    "description": "The relative strength of the vowel resonance, contributing to the 'bright' quality of vowels.",
+    "technical_description": "Arithmetic mean of F2 amplitude relative to F0.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_8.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Voice Presence Stability",
+    "description": "Stability of the voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 8.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.q25": {
+    "feature_group": "librosa_spectral",
+    "label": "Baseline Noisiness",
+    "description": "The lower range of noisiness (closer to clear tone) typical for this file.",
+    "technical_description": "25th percentile of spectral flatness.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Upper Frequency Range)",
+    "description": "The average strength of resonance at the upper frequency range.",
+    "technical_description": "Mean value of the Chroma bin A.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.max": {
+    "feature_group": "dominance",
+    "label": "Maximum Dominance",
+    "description": "The highest level of assertiveness or dominance detected.",
+    "technical_description": "Maximum value of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.range": {
+    "feature_group": "librosa_spectral",
+    "label": "Brightness Range",
+    "description": "The difference between the brightest and darkest sounds in the file.",
+    "technical_description": "Range (max - min) of spectral centroid.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_1.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Energy)",
+    "description": "The lower range of overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 1.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.averagePauseDuration(s)": {
+    "feature_group": "speechrate",
+    "label": "Average Pause Length",
+    "description": "How long the average silence or pause lasts between words.",
+    "technical_description": "Average duration of detected pauses in seconds.",
+    "units": "s"
+  },
+  "librosa_spectral_statistics.rolloff.q25": {
+    "feature_group": "librosa_spectral",
+    "label": "Sharpness Baseline",
+    "description": "The lower range of sharpness (softer sounds) typical for this file.",
+    "technical_description": "25th percentile of spectral rolloff.",
+    "units": "Hz"
+  },
+  "librosa_energy_statistics.rms.q25": {
+    "feature_group": "energy_rms",
+    "label": "Volume Baseline",
+    "description": "The lower range of volume (quieter moments) typical for this file.",
+    "technical_description": "25th percentile of RMS energy.",
+    "units": "dB"
+  },
+  "librosa_spectral_statistics.rolloff.iqr": {
+    "feature_group": "librosa_spectral",
+    "label": "Sharpness Variation",
+    "description": "The typical variation range for the voice's sharpness.",
+    "technical_description": "Interquartile range (IQR) of spectral rolloff.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.equivalentSoundLevel_dBp": {
+    "feature_group": "equivalentSoundLevel",
+    "label": "Average Volume (dB)",
+    "description": "The average equivalent sound level (loudness) in decibels.",
+    "technical_description": "Equivalent continuous sound level in dB.",
+    "units": "dB"
+  },
+  "librosa_energy_statistics.rms.std": {
+    "feature_group": "energy_rms",
+    "label": "Volume Consistency",
+    "description": "How much the volume fluctuates over time.",
+    "technical_description": "Standard deviation of RMS energy.",
+    "units": "dB"
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.range": {
+    "feature_group": "arousal",
+    "label": "Energy Range",
+    "description": "The difference between the lowest and highest energy levels detected.",
+    "technical_description": "Range (max - min) of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_energy_statistics.rms.min": {
+    "feature_group": "energy_rms",
+    "label": "Minimum Volume",
+    "description": "The quietest point in the audio.",
+    "technical_description": "Minimum value of RMS energy.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.F1amplitudeLogRelF0_sma3nz_stddevNorm": {
+    "feature_group": "F1",
+    "label": "Vowel Openness Stability",
+    "description": "Variation in the strength of the vowel resonance.",
+    "technical_description": "Normalized standard deviation of F1 amplitude relative to F0.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_3.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Mid-Lower Timbre)",
+    "description": "The lower range of mid-lower frequency voice character of the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 3.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.hammarbergIndexV_sma3nz_amean": {
+    "feature_group": "hammarbergIndex",
+    "label": "Average Breathiness",
+    "description": "A measure of breathiness. Higher values typically indicate a breathier voice.",
+    "technical_description": "Arithmetic mean of the Hammarberg Index in voiced segments.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.F2bandwidth_sma3nz_amean": {
+    "feature_group": "F2",
+    "label": "Average F2 Width",
+    "description": "The bandwidth of the vowel resonance. Relates to the clarity of vowel articulation.",
+    "technical_description": "Arithmetic mean of the bandwidth of the second formant (F2).",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_12.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum High Sharpness",
+    "description": "The peak intensity of the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 12.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_6.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Upper Timbre",
+    "description": "The lowest intensity of the upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.max": {
+    "feature_group": "librosa_spectral",
+    "label": "Maximum Brightness",
+    "description": "The point where the voice sounds brightest (highest frequency center).",
+    "technical_description": "Maximum value of spectral centroid.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_12.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (High Sharpness)",
+    "description": "The upper range of high-frequency sharpness of the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 12.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.bandwidth.mean": {
+    "feature_group": "librosa_spectral",
+    "label": "Average Timbre Width",
+    "description": "The average frequency spread of the voice, contributing to its richness.",
+    "technical_description": "Mean of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_2.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Timbre Variation",
+    "description": "The middle-range variation of the lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 2.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.slopeV0-500_sma3nz_stddevNorm": {
+    "feature_group": "spectral_slope",
+    "label": "Bass Slope Variability",
+    "description": "Fluctuations in the frequency balance of the lower frequencies.",
+    "technical_description": "Normalized standard deviation of the spectral slope between 0-500Hz.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (High-Mid Frequency Range)",
+    "description": "The typical strength of resonance at the high-mid frequency range.",
+    "technical_description": "Median value of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Lower Timbre",
+    "description": "The lowest intensity of the lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical High Sharpness",
+    "description": "The typical value for the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Median of MFCC coefficient 12.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_3.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid-Lower Timbre Variation",
+    "description": "The middle-range variation of the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 3.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average High Sharpness",
+    "description": "The average sound quality for the high-frequency sharpness, related to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Mean of MFCC coefficient 12.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.StddevVoicedSegmentLengthSec": {
+    "feature_group": "voiced_unvoiced_segmentation",
+    "label": "Voiced Duration Consistency",
+    "description": "How consistent the length of speech sounds (vowels) is.",
+    "technical_description": "Standard deviation of voiced segment length in seconds.",
+    "units": "%"
+  },
+  "librosa_chroma_statistics.chroma_F#.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (High Frequency Range)",
+    "description": "The lower range of resonance intensity at the high-mid frequency range.",
+    "technical_description": "25th percentile of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D#.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Mid Frequency Range)",
+    "description": "How consistently the voice resonates at the mid-low frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.median": {
+    "feature_group": "zcr",
+    "label": "Median Noisiness Rate",
+    "description": "The typical rate of zero-crossings, indicating texture (smooth vs. rough/noisy).",
+    "technical_description": "Median of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_2.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Timbre Stability",
+    "description": "Stability of the lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 2.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.spectralFlux_sma3_stddevNorm": {
+    "feature_group": "spectralFlux",
+    "label": "Flux Variability",
+    "description": "How much the rate of frequency change fluctuates.",
+    "technical_description": "Normalized standard deviation of spectral flux.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Lower Timbre",
+    "description": "The peak intensity of the lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Ultra-High Detail Stability",
+    "description": "Stability of the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 13.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_percentile50.0": {
+    "feature_group": "loudness",
+    "label": "Median Loudness",
+    "description": "The middle loudness value; half the audio is louder, half is quieter.",
+    "technical_description": "50th percentile (median) of the loudness contour.",
+    "units": "dB"
+  },
+  "librosa_chroma_statistics.chroma_E.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Mid-High Frequency Range)",
+    "description": "The average strength of resonance at the mid-high frequency range.",
+    "technical_description": "Mean value of the Chroma bin E.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.iqr": {
+    "feature_group": "arousal",
+    "label": "Energy Variation",
+    "description": "The typical range of variation in the speaker's energy level.",
+    "technical_description": "Interquartile range (IQR) of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "High Sharpness Range",
+    "description": "The full range of variation for the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 12.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Voice Character",
+    "description": "The peak intensity of the voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 7.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.range": {
+    "feature_group": "dominance",
+    "label": "Dominance Range",
+    "description": "The difference between the lowest and highest dominance levels detected.",
+    "technical_description": "Range (max - min) of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_1.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Energy",
+    "description": "The lowest intensity of the overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 1.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.iqr": {
+    "feature_group": "dominance",
+    "label": "Dominance Variation",
+    "description": "The typical range of variation in the speaker's assertiveness.",
+    "technical_description": "Interquartile range (IQR) of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Ultra-High Detail",
+    "description": "The typical value for the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Median of MFCC coefficient 13.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Upper Frequency Range)",
+    "description": "The upper range of resonance intensity at the upper frequency range.",
+    "technical_description": "75th percentile of the Chroma bin A.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Voice Character Variation",
+    "description": "The middle-range variation of the voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 7.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Higher Frequency Range)",
+    "description": "The minimum intensity of the higher frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Higher Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the higher frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (High Sharpness)",
+    "description": "The lower range of high-frequency sharpness of the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 12.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.spectralFlux_sma3_amean": {
+    "feature_group": "spectralFlux",
+    "label": "Average Flux",
+    "description": "The average rate of change in the spectrum. High flux means the sound is changing texture rapidly.",
+    "technical_description": "Arithmetic mean of spectral flux.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_7.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Voice Character",
+    "description": "The lowest intensity of the voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 7.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.shimmerLocaldB_sma3nz_stddevNorm": {
+    "feature_group": "shimmer",
+    "label": "Shimmer Variability",
+    "description": "Fluctuations in the amplitude stability (volume consistency) of the voice.",
+    "technical_description": "Normalized standard deviation of local shimmer (dB).",
+    "units": ""
+  },
+  "librosa_spectral_statistics.bandwidth.q75": {
+    "feature_group": "librosa_spectral",
+    "label": "Wide Timbre Baseline",
+    "description": "The upper range of frequency spread (richness) typical for this file.",
+    "technical_description": "75th percentile of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_D#.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Mid Frequency Range)",
+    "description": "The upper range of resonance intensity at the mid-low frequency range.",
+    "technical_description": "75th percentile of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F#.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (High Frequency Range)",
+    "description": "The upper range of resonance intensity at the high-mid frequency range.",
+    "technical_description": "75th percentile of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_energy_statistics.rms.median": {
+    "feature_group": "energy_rms",
+    "label": "Median Volume",
+    "description": "The typical volume level of the audio.",
+    "technical_description": "Median of RMS energy.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_3.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid-Lower Timbre Stability",
+    "description": "Stability of the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 3.",
+    "units": ""
+  },
+  "librosa_energy_statistics.rms.iqr": {
+    "feature_group": "energy_rms",
+    "label": "Volume Variation",
+    "description": "The typical range of volume fluctuation.",
+    "technical_description": "Interquartile range (IQR) of RMS energy.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_11.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Sharpness Range",
+    "description": "The full range of variation for the voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 11.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D#.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Mid Frequency Range)",
+    "description": "The typical variation range in resonance at the mid-low frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin D#.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.iqr": {
+    "feature_group": "valence",
+    "label": "Positivity Variation",
+    "description": "The typical range of variation in the speaker's positive emotion.",
+    "technical_description": "Interquartile range (IQR) of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_amean": {
+    "feature_group": "loudness",
+    "label": "Average Loudness",
+    "description": "The average loudness level of the audio.",
+    "technical_description": "Arithmetic mean of the loudness contour.",
+    "units": "sones"
+  },
+  "librosa_chroma_statistics.chroma_E.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Mid-High Frequency Range)",
+    "description": "The typical variation range in resonance at the mid-high frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin E.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Ultra-High Detail)",
+    "description": "The lower range of ultra-high frequency detail of the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 13.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.cv": {
+    "feature_group": "valence",
+    "label": "Positivity Dispersion",
+    "description": "The relative variability of positive emotion compared to the average.",
+    "technical_description": "Coefficient of variation (std/mean) of valence.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F1amplitudeLogRelF0_sma3nz_amean": {
+    "feature_group": "F1",
+    "label": "Average Vowel Openness Strength",
+    "description": "The relative strength of the vowel resonance. Relates to the power of open vowels.",
+    "technical_description": "Arithmetic mean of F1 amplitude relative to F0.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_8.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Voice Presence",
+    "description": "The lowest intensity of the voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 8.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.rolloff.q75": {
+    "feature_group": "librosa_spectral",
+    "label": "High Sharpness Level",
+    "description": "The upper range of sharpness typical for this file.",
+    "technical_description": "75th percentile of spectral rolloff.",
+    "units": "Hz"
+  },
+  "parselmouth_praat_speechrate_dictionary.totalNumberPause": {
+    "feature_group": "speechrate",
+    "label": "Pause Count",
+    "description": "The total number of pauses detected in the speech.",
+    "technical_description": "Total number of detected pauses.",
+    "units": "s"
+  },
+  "librosa_mfcc_statistics.mfcc_10.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum High Brightness",
+    "description": "The peak intensity of the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 10.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_1.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Energy",
+    "description": "The typical value for the overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "Median of MFCC coefficient 1.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.cv": {
+    "feature_group": "arousal",
+    "label": "Energy Dispersion",
+    "description": "The relative variability of energy/excitement compared to the average.",
+    "technical_description": "Coefficient of variation (std/mean) of arousal.",
+    "units": ""
+  },
+  "librosa_energy_statistics.rms.q75": {
+    "feature_group": "energy_rms",
+    "label": "High Volume Level",
+    "description": "The upper range of volume typical for this file.",
+    "technical_description": "75th percentile of RMS energy.",
+    "units": "dB"
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.min": {
+    "feature_group": "zcr",
+    "label": "Minimum Noisiness Rate",
+    "description": "The smoothest (least noisy) point in the audio.",
+    "technical_description": "Minimum value of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "librosa_energy_statistics.rms.mean": {
+    "feature_group": "energy_rms",
+    "label": "Average Volume",
+    "description": "The average energy or volume of the audio.",
+    "technical_description": "Mean of RMS energy.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_9.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Brightness Stability",
+    "description": "Stability of the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 9.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.rolloff.min": {
+    "feature_group": "librosa_spectral",
+    "label": "Minimum Sharpness",
+    "description": "The point where the voice sounds softest or dullest.",
+    "technical_description": "Minimum value of spectral rolloff.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_1.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Energy Variation",
+    "description": "The middle-range variation of the overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 1.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.q75": {
+    "feature_group": "zcr",
+    "label": "High Noisiness Baseline",
+    "description": "The upper range of zero-crossing rate (texture roughness) typical for this file.",
+    "technical_description": "75th percentile of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_E.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Mid-High Frequency Range)",
+    "description": "The upper range of resonance intensity at the mid-high frequency range.",
+    "technical_description": "75th percentile of the Chroma bin E.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.mean": {
+    "feature_group": "librosa_spectral",
+    "label": "Average Noisiness",
+    "description": "The average mix of tone vs. noise. Higher values are more breathy or noisy.",
+    "technical_description": "Mean of spectral flatness.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Sharpness)",
+    "description": "The upper range of voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 11.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_8.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Voice Presence)",
+    "description": "The upper range of voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 8.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc1V_sma3nz_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality in speech sounds.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 1 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G#.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Upper-Mid Frequency Range)",
+    "description": "The typical variation range in resonance at the higher frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid Timbre Stability",
+    "description": "Stability of the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 4.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.maxPauseDuration(s)": {
+    "feature_group": "speechrate",
+    "label": "Longest Pause",
+    "description": "The duration of the single longest pause in the speech.",
+    "technical_description": "Maximum duration of a detected pause in seconds.",
+    "units": "s"
+  },
+  "librosa_mfcc_statistics.mfcc_13.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Ultra-High Detail",
+    "description": "The lowest intensity of the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 13.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "High Brightness Range",
+    "description": "The full range of variation for the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 10.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Upper Frequency Range)",
+    "description": "The lower range of resonance intensity at the upper frequency range.",
+    "technical_description": "25th percentile of the Chroma bin A.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Ultra-High Detail",
+    "description": "The average sound quality for the ultra-high frequency detail, related to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Mean of MFCC coefficient 13.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc1_sma3_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality over time.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 1 (OpenSmile).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (High-Mid Frequency Range)",
+    "description": "The average strength of resonance at the high-mid frequency range.",
+    "technical_description": "Mean value of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Low-Mid Frequency Range)",
+    "description": "The lower range of resonance intensity at the low frequency range.",
+    "technical_description": "25th percentile of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Sharpness",
+    "description": "The lowest intensity of the voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 11.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F2frequency_sma3nz_amean": {
+    "feature_group": "F2",
+    "label": "Average Vowel Place",
+    "description": "The average frequency of the vowel resonance. Relates to tongue position (front vs. back vowels).",
+    "technical_description": "Arithmetic mean of the second formant frequency (F2).",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_F.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (High-Mid Frequency Range)",
+    "description": "The upper range of resonance intensity at the high-mid frequency range.",
+    "technical_description": "75th percentile of the Chroma bin F.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.speechRate(totalNumberSyllable / totalFileDuration)": {
+    "feature_group": "speechrate",
+    "label": "Speaking Rate",
+    "description": "The speed of speech, including pauses, measured in syllables per second.",
+    "technical_description": "Total number of syllables divided by total file duration.",
+    "units": "syllables/sec"
+  },
+  "librosa_chroma_statistics.chroma_A.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Upper Frequency Range)",
+    "description": "The minimum intensity of the upper frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin A.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Upper Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the upper frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin A.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.bandwidth.q25": {
+    "feature_group": "librosa_spectral",
+    "label": "Narrow Timbre Baseline",
+    "description": "The lower range of frequency spread (more focused tone) typical for this file.",
+    "technical_description": "25th percentile of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_6.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Timbre Stability",
+    "description": "Stability of the upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.bandwidth.median": {
+    "feature_group": "librosa_spectral",
+    "label": "Median Timbre Width",
+    "description": "The typical frequency spread of the voice.",
+    "technical_description": "Median of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_meanFallingSlope": {
+    "feature_group": "F0",
+    "label": "Pitch Drop Speed",
+    "description": "How quickly the pitch falls (e.g., at the end of a sentence).",
+    "technical_description": "Mean value of the falling slope of the F0 contour.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_F.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (High-Mid Frequency Range)",
+    "description": "The lower range of resonance intensity at the high-mid frequency range.",
+    "technical_description": "25th percentile of the Chroma bin F.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_meanRisingSlope": {
+    "feature_group": "F0",
+    "label": "Pitch Rise Speed",
+    "description": "How quickly the pitch rises (e.g., in a question).",
+    "technical_description": "Mean value of the rising slope of the F0 contour.",
+    "units": "Hz"
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.std": {
+    "feature_group": "zcr",
+    "label": "Noise Stability",
+    "description": "How much the texture (smooth vs. rough) varies over time.",
+    "technical_description": "Standard deviation of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "parselmouth_praat_speechrate_dictionary.totalPauseDuration(s)": {
+    "feature_group": "speechrate",
+    "label": "Total Silence",
+    "description": "The total amount of time spent pausing or silent.",
+    "technical_description": "Sum of all pause durations in seconds.",
+    "units": "s"
+  },
+  "librosa_chroma_statistics.chroma_B.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Highest Frequency Range)",
+    "description": "How consistently the voice resonates at the highest frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_6.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Timbre Range",
+    "description": "The full range of variation for the upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_3.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Mid-Lower Timbre",
+    "description": "The lowest intensity of the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 3.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.cv": {
+    "feature_group": "dominance",
+    "label": "Dominance Dispersion",
+    "description": "The relative variability of dominance compared to the average.",
+    "technical_description": "Coefficient of variation (std/mean) of dominance.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_5.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Mid-Upper Timbre",
+    "description": "The peak intensity of the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 5.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_E.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Mid-High Frequency Range)",
+    "description": "The typical strength of resonance at the mid-high frequency range.",
+    "technical_description": "Median value of the Chroma bin E.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Low Frequency Range)",
+    "description": "The lower range of resonance intensity at the low frequency range.",
+    "technical_description": "25th percentile of the Chroma bin C.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_1.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Energy",
+    "description": "The average sound quality for the overall energy and loudness, related to the overall energy and loudness of the voice.",
+    "technical_description": "Mean of MFCC coefficient 1.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Lower Timbre",
+    "description": "The average sound quality for the lower frequency voice character, related to the depth and lower frequency character of the voice.",
+    "technical_description": "Mean of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_5.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Mid-Upper Timbre",
+    "description": "The lowest intensity of the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 5.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_8.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Voice Presence Range",
+    "description": "The full range of variation for the voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 8.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Sharpness Variation",
+    "description": "The middle-range variation of the voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 11.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_stddevRisingSlope": {
+    "feature_group": "F0",
+    "label": "Pitch Rise Stability",
+    "description": "Consistency in how the pitch rises (e.g., steady vs. erratic rises).",
+    "technical_description": "Standard deviation of the rising slope of the F0 contour.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_D#.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Mid Frequency Range)",
+    "description": "The average strength of resonance at the mid-low frequency range.",
+    "technical_description": "Mean value of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_5.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid-Upper Timbre Variation",
+    "description": "The middle-range variation of the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 5.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.jitterLocal_sma3nz_amean": {
+    "feature_group": "jitter",
+    "label": "Jitter",
+    "description": "Micro-fluctuations in pitch. High values sound raspy, gravelly, or creaky.",
+    "technical_description": "Mean local jitter (period-to-period F0 deviation).",
+    "units": "%"
+  },
+  "librosa_chroma_statistics.chroma_F#.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (High Frequency Range)",
+    "description": "The average strength of resonance at the high-mid frequency range.",
+    "technical_description": "Mean value of the Chroma bin F#.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_stddevFallingSlope": {
+    "feature_group": "F0",
+    "label": "Pitch Drop Stability",
+    "description": "Consistency in how the pitch falls (e.g., steady vs. erratic drops).",
+    "technical_description": "Standard deviation of the falling slope of the F0 contour.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_13.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Ultra-High Detail)",
+    "description": "The upper range of ultra-high frequency detail of the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 13.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.VoicedSegmentsPerSec": {
+    "feature_group": "voiced_unvoiced_segmentation",
+    "label": "Voicing Rate",
+    "description": "How frequent the speech sounds are. Higher values mean faster or more chopped speech.",
+    "technical_description": "Number of voiced segments detected per second.",
+    "units": "%"
+  },
+  "opensmile_egemapsv02_functional.mfcc1V_sma3nz_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality in speech sounds.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 1 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.min": {
+    "feature_group": "dominance",
+    "label": "Minimum Dominance",
+    "description": "The lowest level of assertiveness or dominance detected.",
+    "technical_description": "Minimum value of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.mean": {
+    "feature_group": "zcr",
+    "label": "Average Noisiness Rate",
+    "description": "The average rate of zero-crossings, a measure of how 'noisy' the signal is.",
+    "technical_description": "Mean of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_5.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid-Upper Timbre Range",
+    "description": "The full range of variation for the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 5.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.range": {
+    "feature_group": "zcr",
+    "label": "Noisiness Range",
+    "description": "The difference between the smoothest and noisiest parts of the audio.",
+    "technical_description": "Range (max - min) of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.mfcc3_sma3_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality over time.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 3 (OpenSmile).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G#.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Upper-Mid Frequency Range)",
+    "description": "How consistently the voice resonates at the higher frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Brightness Range",
+    "description": "The full range of variation for the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 9.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_1.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Energy)",
+    "description": "The upper range of overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 1.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (High-Mid Frequency Range)",
+    "description": "How consistently the voice resonates at the high-mid frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Sharpness",
+    "description": "The peak intensity of the voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 11.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F3frequency_sma3nz_amean": {
+    "feature_group": "F3",
+    "label": "Average Vowel Definition",
+    "description": "The average frequency of the vowel resonance. Relates to voice character and identity.",
+    "technical_description": "Arithmetic mean of the third formant frequency (F3).",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_5.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Mid-Upper Timbre)",
+    "description": "The upper range of mid-upper frequency voice character of the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 5.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "High Sharpness Stability",
+    "description": "Stability of the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 12.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.MeanUnvoicedSegmentLength": {
+    "feature_group": "voiced_unvoiced_segmentation",
+    "label": "Average Unvoiced Duration",
+    "description": "The average length of unspeech sounds (silence or hissing sounds).",
+    "technical_description": "Mean length of unvoiced segments in seconds.",
+    "units": "%"
+  },
+  "librosa_chroma_statistics.chroma_D#.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Mid Frequency Range)",
+    "description": "The typical strength of resonance at the mid-low frequency range.",
+    "technical_description": "Median value of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Mid-Low Frequency Range)",
+    "description": "The lower range of resonance intensity at the mid-low frequency range.",
+    "technical_description": "25th percentile of the Chroma bin D.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_percentile20.0": {
+    "feature_group": "loudness",
+    "label": "Low Volume Level",
+    "description": "The volume level that is exceeded 80% of the time (background level).",
+    "technical_description": "20th percentile of the loudness contour.",
+    "units": "dB"
+  },
+  "librosa_chroma_statistics.chroma_D.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Mid-Low Frequency Range)",
+    "description": "The upper range of resonance intensity at the mid-low frequency range.",
+    "technical_description": "75th percentile of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum High Sharpness",
+    "description": "The lowest intensity of the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 12.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Highest Frequency Range)",
+    "description": "The average strength of resonance at the highest frequency range.",
+    "technical_description": "Mean value of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Brightness",
+    "description": "The lowest intensity of the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 9.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Mid Timbre",
+    "description": "The typical value for the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "Median of MFCC coefficient 4.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F2bandwidth_sma3nz_stddevNorm": {
+    "feature_group": "F2",
+    "label": "F2 Width Consistency",
+    "description": "How much the bandwidth of the vowel resonance varies.",
+    "technical_description": "Normalized standard deviation of F2 bandwidth.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum Mid Timbre",
+    "description": "The lowest intensity of the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 4.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.median": {
+    "feature_group": "librosa_spectral",
+    "label": "Median Noisiness",
+    "description": "The typical level of noisiness/breathiness.",
+    "technical_description": "Median of spectral flatness.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_E.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Mid-High Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the mid-high frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin E.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_E.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Mid-High Frequency Range)",
+    "description": "The minimum intensity of the mid-high frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin E.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.q25": {
+    "feature_group": "zcr",
+    "label": "Low Noisiness Baseline",
+    "description": "The lower range of zero-crossing rate typical for this file.",
+    "technical_description": "25th percentile of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.min": {
+    "feature_group": "arousal",
+    "label": "Minimum Energy",
+    "description": "The lowest level of excitement or energy detected.",
+    "technical_description": "Minimum value of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Low Frequency Range)",
+    "description": "The upper range of resonance intensity at the low frequency range.",
+    "technical_description": "75th percentile of the Chroma bin C.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Mid Timbre",
+    "description": "The average sound quality for the mid-frequency voice character, related to the mid-frequency character and body of the voice.",
+    "technical_description": "Mean of MFCC coefficient 4.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Low Frequency Range)",
+    "description": "The typical strength of resonance at the low frequency range.",
+    "technical_description": "Median value of the Chroma bin C.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Brightness",
+    "description": "The average sound quality for the voice brightness, related to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Mean of MFCC coefficient 9.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.flatness.iqr": {
+    "feature_group": "librosa_spectral",
+    "label": "Noisiness Variation",
+    "description": "The typical range of variation in the voice's noisiness.",
+    "technical_description": "Interquartile range (IQR) of spectral flatness.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Highest Frequency Range)",
+    "description": "The lower range of resonance intensity at the highest frequency range.",
+    "technical_description": "25th percentile of the Chroma bin B.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.jitterLocal_sma3nz_stddevNorm": {
+    "feature_group": "jitter",
+    "label": "Voice Roughness Stability",
+    "description": "How much the roughness (jitter) of the voice varies over time.",
+    "technical_description": "Normalized standard deviation of local jitter.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_6.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Upper Timbre",
+    "description": "The typical value for the upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "Median of MFCC coefficient 6.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc4_sma3_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality over time.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 4 (OpenSmile).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Highest Frequency Range)",
+    "description": "The upper range of resonance intensity at the highest frequency range.",
+    "technical_description": "75th percentile of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D#.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Mid Frequency Range)",
+    "description": "The minimum intensity of the mid-low frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Mid-Low Frequency Range)",
+    "description": "The average strength of resonance at the mid-low frequency range.",
+    "technical_description": "Mean value of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_6.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Upper Timbre)",
+    "description": "The upper range of upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D#.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Mid Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the mid-low frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (High-Mid Frequency Range)",
+    "description": "The minimum intensity of the high-mid frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (High-Mid Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the high-mid frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Upper-High Frequency Range)",
+    "description": "The minimum intensity of the upper frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Upper-High Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the upper frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_12.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "High Sharpness Variation",
+    "description": "The middle-range variation of the high-frequency sharpness, which relates to the high-frequency sharpness and detail of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 12.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Brightness Variation",
+    "description": "The middle-range variation of the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 9.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.StddevUnvoicedSegmentLength": {
+    "feature_group": "voiced_unvoiced_segmentation",
+    "label": "Unvoiced Duration Consistency",
+    "description": "How consistent the length of unspeech sounds is.",
+    "technical_description": "Standard deviation of unvoiced segment length in seconds.",
+    "units": "%"
+  },
+  "librosa_spectral_statistics.flatness.q75": {
+    "feature_group": "librosa_spectral",
+    "label": "High Noisiness Baseline",
+    "description": "The upper range of noisiness typical for this file.",
+    "technical_description": "75th percentile of spectral flatness.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Ultra-High Detail Variation",
+    "description": "The middle-range variation of the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 13.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Mid-Low Frequency Range)",
+    "description": "The typical variation range in resonance at the mid-low frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin D.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F3frequency_sma3nz_stddevNorm": {
+    "feature_group": "F3",
+    "label": "Vowel Definition Stability",
+    "description": "How much the frequency of the vowel resonance fluctuates.",
+    "technical_description": "Normalized standard deviation of F3 frequency.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.rolloff.mean": {
+    "feature_group": "librosa_spectral",
+    "label": "Average Sharpness",
+    "description": "The average high-frequency cutoff, indicating how sharp or soft the voice is.",
+    "technical_description": "Mean of spectral rolloff.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.mfcc2V_sma3nz_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality in speech sounds.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 2 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Upper Frequency Range)",
+    "description": "The typical variation range in resonance at the upper frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin A.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc3V_sma3nz_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality in speech sounds.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 3 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.std": {
+    "feature_group": "valence",
+    "label": "Positivity Variability",
+    "description": "How much the speaker's positivity level fluctuates.",
+    "technical_description": "Standard deviation of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.logRelF0-H1-H2_sma3nz_amean": {
+    "feature_group": "logRelF0",
+    "label": "Average Tone Quality (H1-H2)",
+    "description": "The average balance between the first and second harmonic. Affects voice richness.",
+    "technical_description": "Arithmetic mean of logRelF0-H1-H2.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_6.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Upper Timbre)",
+    "description": "The lower range of upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Low-Mid Frequency Range)",
+    "description": "The upper range of resonance intensity at the low frequency range.",
+    "technical_description": "75th percentile of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Mid Timbre)",
+    "description": "The upper range of mid-frequency voice character of the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 4.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_percentile20.0": {
+    "feature_group": "F0",
+    "label": "Low Pitch Level",
+    "description": "The pitch level that is exceeded 80% of the time (baseline pitch).",
+    "technical_description": "20th percentile of the F0 contour.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_F#.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (High Frequency Range)",
+    "description": "The typical strength of resonance at the high-mid frequency range.",
+    "technical_description": "Median value of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid Timbre Variation",
+    "description": "The middle-range variation of the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 4.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Lower Timbre)",
+    "description": "The lower range of lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "High Brightness Stability",
+    "description": "Stability of the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 10.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Low Frequency Range)",
+    "description": "The typical variation range in resonance at the low frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin C.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.logRelF0-H1-H2_sma3nz_stddevNorm": {
+    "feature_group": "logRelF0",
+    "label": "Tone Quality Stability (H1-H2)",
+    "description": "Variation in the balance between the first and second harmonic.",
+    "technical_description": "Normalized standard deviation of logRelF0-H1-H2.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Mid-Low Frequency Range)",
+    "description": "The typical strength of resonance at the mid-low frequency range.",
+    "technical_description": "Median value of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_6.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Upper Timbre",
+    "description": "The average sound quality for the upper frequency voice character, related to the upper frequency character and clarity of the voice.",
+    "technical_description": "Mean of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_1.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Energy Range",
+    "description": "The full range of variation for the overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 1.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Upper-High Frequency Range)",
+    "description": "How consistently the voice resonates at the upper frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.max": {
+    "feature_group": "zcr",
+    "label": "Maximum Noisiness Rate",
+    "description": "The roughest/noisiest point in the audio.",
+    "technical_description": "Maximum value of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_6.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Timbre Variation",
+    "description": "The middle-range variation of the upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D#.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Mid Frequency Range)",
+    "description": "The lower range of resonance intensity at the mid-low frequency range.",
+    "technical_description": "25th percentile of the Chroma bin D#.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_amean": {
+    "feature_group": "F0",
+    "label": "Average Pitch",
+    "description": "The average highness or lowness of the voice.",
+    "technical_description": "Arithmetic mean of F0 (fundamental frequency) converted to semitones.",
+    "units": "semitones"
+  },
+  "librosa_chroma_statistics.chroma_F.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (High-Mid Frequency Range)",
+    "description": "The typical variation range in resonance at the high-mid frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Upper-High Frequency Range)",
+    "description": "The lower range of resonance intensity at the upper frequency range.",
+    "technical_description": "25th percentile of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.iqr": {
+    "feature_group": "librosa_mfcc",
+    "label": "High Brightness Variation",
+    "description": "The middle-range variation of the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Interquartile range (IQR) of MFCC coefficient 10.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.alphaRatioUV_sma3nz_amean": {
+    "feature_group": "alphaRatio",
+    "label": "Unvoiced Brightness",
+    "description": "The brightness/sharpness of unvoiced sounds (like 's', 't').",
+    "technical_description": "Arithmetic mean of the Alpha Ratio in unvoiced segments.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_3.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid-Lower Timbre Range",
+    "description": "The full range of variation for the mid-lower frequency voice character, which relates to the mid-lower frequency character and warmth of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 3.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Mid-Low Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the mid-low frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_11.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Sharpness Stability",
+    "description": "Stability of the voice sharpness and clarity, which relates to the sharpness and high-frequency clarity of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 11.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Mid-Low Frequency Range)",
+    "description": "The minimum intensity of the mid-low frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_E.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Mid-High Frequency Range)",
+    "description": "The lower range of resonance intensity at the mid-high frequency range.",
+    "technical_description": "25th percentile of the Chroma bin E.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.hammarbergIndexUV_sma3nz_amean": {
+    "feature_group": "hammarbergIndex",
+    "label": "Unvoiced Breathiness",
+    "description": "The breathiness index calculated for unspeech sounds.",
+    "technical_description": "Arithmetic mean of the Hammarberg Index in unvoiced segments.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_8.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Voice Presence",
+    "description": "The peak intensity of the voice presence and definition, which relates to voice quality of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 8.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.totalFileDuration(s)": {
+    "feature_group": "speechrate",
+    "label": "Total Duration",
+    "description": "The total length of the audio file.",
+    "technical_description": "Total duration of the file in seconds.",
+    "units": "s"
+  },
+  "librosa_chroma_statistics.chroma_C.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Low Frequency Range)",
+    "description": "The average strength of resonance at the low frequency range.",
+    "technical_description": "Mean value of the Chroma bin C.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc3V_sma3nz_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality in speech sounds.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 3 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Highest Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the highest frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Highest Frequency Range)",
+    "description": "The minimum intensity of the highest frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin B.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F2frequency_sma3nz_stddevNorm": {
+    "feature_group": "F2",
+    "label": "Vowel Place Stability",
+    "description": "How much the vowel resonance frequency fluctuates (tongue movement).",
+    "technical_description": "Normalized standard deviation of F2 frequency.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc4V_sma3nz_stddevNorm": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Tone Consistency",
+    "description": "Stability of the tone quality in speech sounds.",
+    "technical_description": "Normalized standard deviation of MFCC coefficient 4 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc4_sma3_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality, affecting voice quality.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 4 (OpenSmile).",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.shimmerLocaldB_sma3nz_amean": {
+    "feature_group": "shimmer",
+    "label": "Shimmer",
+    "description": "Micro-fluctuations in volume. High shimmer can sound breathy or unstable.",
+    "technical_description": "Arithmetic mean of local shimmer (amplitude deviation) in dB.",
+    "units": "dB"
+  },
+  "librosa_mfcc_statistics.mfcc_7.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Voice Character Range",
+    "description": "The full range of variation for the voice character and texture, which relates to the overall character and texture of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 7.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_6.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Upper Timbre",
+    "description": "The peak intensity of the upper frequency voice character, which relates to the upper frequency character and clarity of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 6.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Brightness",
+    "description": "The typical value for the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Median of MFCC coefficient 9.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.mfcc3_sma3_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality, affecting voice quality.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 3 (OpenSmile).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Low Frequency Range)",
+    "description": "The minimum intensity of the low frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin C.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Low Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the low frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin C.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid Timbre Range",
+    "description": "The full range of variation for the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 4.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_percentile50.0": {
+    "feature_group": "F0",
+    "label": "Median Pitch",
+    "description": "The middle pitch value; half the speech is higher, half is lower.",
+    "technical_description": "50th percentile (median) of the F0 contour.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_G.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Higher Frequency Range)",
+    "description": "The lower range of resonance intensity at the higher frequency range.",
+    "technical_description": "25th percentile of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Highest Frequency Range)",
+    "description": "The typical strength of resonance at the highest frequency range.",
+    "technical_description": "Median value of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (Low-Mid Frequency Range)",
+    "description": "The minimum intensity of the low frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (Low-Mid Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the low frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Brightness",
+    "description": "The peak intensity of the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 9.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.minPauseDuration(s)": {
+    "feature_group": "speechrate",
+    "label": "Shortest Pause",
+    "description": "The duration of the single shortest pause in the speech.",
+    "technical_description": "Minimum duration of a detected pause in seconds.",
+    "units": "s"
+  },
+  "librosa_chroma_statistics.chroma_C.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Low Frequency Range)",
+    "description": "The maximum intensity of the low frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin C.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Low-Mid Frequency Range)",
+    "description": "The maximum intensity of the low frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Mid-Low Frequency Range)",
+    "description": "The maximum intensity of the mid-low frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D#.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Mid Frequency Range)",
+    "description": "The maximum intensity of the mid-low frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin D#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_E.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Mid-High Frequency Range)",
+    "description": "The maximum intensity of the mid-high frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin E.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (High-Mid Frequency Range)",
+    "description": "The maximum intensity of the high-mid frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin F.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F#.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (High Frequency Range)",
+    "description": "The maximum intensity of the high-mid frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Higher Frequency Range)",
+    "description": "The maximum intensity of the higher frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G#.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Upper-Mid Frequency Range)",
+    "description": "The maximum intensity of the higher frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Upper Frequency Range)",
+    "description": "The maximum intensity of the upper frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin A.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Upper-High Frequency Range)",
+    "description": "The maximum intensity of the upper frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.max": {
+    "feature_group": "chroma",
+    "label": "Max Resonance (Highest Frequency Range)",
+    "description": "The maximum intensity of the highest frequency range detected.",
+    "technical_description": "Maximum value of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Upper-High Frequency Range)",
+    "description": "The typical variation range in resonance at the upper frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_5.mean": {
+    "feature_group": "librosa_mfcc",
+    "label": "Average Mid-Upper Timbre",
+    "description": "The average sound quality for the mid-upper frequency voice character, related to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Mean of MFCC coefficient 5.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_B.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Highest Frequency Range)",
+    "description": "The typical variation range in resonance at the highest frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin B.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_10.min": {
+    "feature_group": "librosa_mfcc",
+    "label": "Minimum High Brightness",
+    "description": "The lowest intensity of the high-frequency brightness, which relates to the high-frequency brightness and sparkle of the voice.",
+    "technical_description": "Minimum value of MFCC coefficient 10.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_pctlrange0-2": {
+    "feature_group": "F0",
+    "label": "Pitch Range (Low)",
+    "description": "The range of pitch covering the lower end of the voice.",
+    "technical_description": "Percentile range 0-2 of the F0 contour.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.mfcc1_sma3_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality, affecting voice quality.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 1 (OpenSmile).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_D.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Mid-Low Frequency Range)",
+    "description": "How consistently the voice resonates at the mid-low frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin D.",
+    "units": ""
+  },
+  "librosa_rhythm_statistics.beat_count.mean": {
+    "feature_group": "rhythm",
+    "label": "Average Beat Count",
+    "description": "The average number of rhythmic beats detected.",
+    "technical_description": "Mean beat count.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Mid Timbre",
+    "description": "The peak intensity of the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 4.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.totalNumberSyllable": {
+    "feature_group": "speechrate",
+    "label": "Syllable Count",
+    "description": "The total number of syllables counted in the speech.",
+    "technical_description": "Total number of detected syllables.",
+    "units": "syllables/sec"
+  },
+  "librosa_chroma_statistics.chroma_F#.min": {
+    "feature_group": "chroma",
+    "label": "Min Resonance (High Frequency Range)",
+    "description": "The minimum intensity of the high-mid frequency range detected.",
+    "technical_description": "Minimum value of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F#.range": {
+    "feature_group": "chroma",
+    "label": "Resonance Range (High Frequency Range)",
+    "description": "The difference between the strongest and weakest resonance at the high-mid frequency range.",
+    "technical_description": "Range (max - min) of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_9.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Brightness)",
+    "description": "The lower range of voice brightness of the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 9.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.phonationTime(s)": {
+    "feature_group": "speechrate",
+    "label": "Phonation Time",
+    "description": "The total duration of actual speech (excluding pauses).",
+    "technical_description": "Total time spent speaking in seconds.",
+    "units": "s"
+  },
+  "opensmile_egemapsv02_functional.F1frequency_sma3nz_stddevNorm": {
+    "feature_group": "F1",
+    "label": "Vowel Openness Stability",
+    "description": "How much the vowel resonance frequency varies (jaw movement consistency).",
+    "technical_description": "Normalized standard deviation of F1 frequency.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.median": {
+    "feature_group": "librosa_spectral",
+    "label": "Median Brightness",
+    "description": "The typical brightness level of the voice.",
+    "technical_description": "Median of spectral centroid.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_F#.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (High Frequency Range)",
+    "description": "How consistently the voice resonates at the high-mid frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin F#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.range": {
+    "feature_group": "librosa_mfcc",
+    "label": "Ultra-High Detail Range",
+    "description": "The full range of variation for the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Range (max - min) of MFCC coefficient 13.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Lower Timbre",
+    "description": "The typical value for the lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "Median of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Upper-High Frequency Range)",
+    "description": "The upper range of resonance intensity at the upper frequency range.",
+    "technical_description": "75th percentile of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.zero_crossing_rate.iqr": {
+    "feature_group": "zcr",
+    "label": "Noisiness Variation",
+    "description": "The typical variation range in the voice's noisiness.",
+    "technical_description": "Interquartile range (IQR) of Zero Crossing Rate.",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_9.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Brightness)",
+    "description": "The upper range of voice brightness of the voice brightness, which relates to the brightness and high-frequency energy of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 9.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Upper Frequency Range)",
+    "description": "How consistently the voice resonates at the upper frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin A.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_stddevNorm": {
+    "feature_group": "F0",
+    "label": "Pitch Variability",
+    "description": "How much the pitch fluctuates (monotone vs. expressive).",
+    "technical_description": "Normalized standard deviation of F0.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_5.median": {
+    "feature_group": "librosa_mfcc",
+    "label": "Typical Mid-Upper Timbre",
+    "description": "The typical value for the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Median of MFCC coefficient 5.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_4.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Mid Timbre)",
+    "description": "The lower range of mid-frequency voice character of the mid-frequency voice character, which relates to the mid-frequency character and body of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 4.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.mean": {
+    "feature_group": "dominance",
+    "label": "Average Dominance",
+    "description": "The average level of assertiveness or dominance detected.",
+    "technical_description": "Mean of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_5.std": {
+    "feature_group": "librosa_mfcc",
+    "label": "Mid-Upper Timbre Stability",
+    "description": "Stability of the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "Standard deviation of MFCC coefficient 5.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F0semitoneFrom27.5Hz_sma3nz_percentile80.0": {
+    "feature_group": "F0",
+    "label": "High Pitch Level",
+    "description": "The pitch level that is exceeded only 20% of the time (peak pitch).",
+    "technical_description": "80th percentile of the F0 contour.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.mfcc4V_sma3nz_amean": {
+    "feature_group": "mfcc_opensmile",
+    "label": "Average Tone",
+    "description": "The average sound quality for the tone quality in speech sounds.",
+    "technical_description": "Arithmetic mean of MFCC coefficient 4 (OpenSmile, Voiced).",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Low-Mid Frequency Range)",
+    "description": "The typical strength of resonance at the low frequency range.",
+    "technical_description": "Median value of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G#.q25": {
+    "feature_group": "chroma",
+    "label": "Min Resonance Baseline (Upper-Mid Frequency Range)",
+    "description": "The lower range of resonance intensity at the higher frequency range.",
+    "technical_description": "25th percentile of the Chroma bin G#.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.mean": {
+    "feature_group": "arousal",
+    "label": "Average Energy",
+    "description": "The average level of excitement or energy detected.",
+    "technical_description": "Mean of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.dominance.median": {
+    "feature_group": "dominance",
+    "label": "Median Dominance",
+    "description": "The typical level of assertiveness or dominance.",
+    "technical_description": "Median of dominance predicted by WavLM VAD.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.spectralFluxUV_sma3nz_amean": {
+    "feature_group": "spectralFlux",
+    "label": "Unvoiced Flux",
+    "description": "The rate of frequency change during unspeech sounds.",
+    "technical_description": "Arithmetic mean of spectral flux in unvoiced segments.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Low-Mid Frequency Range)",
+    "description": "The average strength of resonance at the low frequency range.",
+    "technical_description": "Mean value of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_A#.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Upper-High Frequency Range)",
+    "description": "The average strength of resonance at the upper frequency range.",
+    "technical_description": "Mean value of the Chroma bin A#.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.rolloff.median": {
+    "feature_group": "librosa_spectral",
+    "label": "Median Sharpness",
+    "description": "The typical sharpness or high-frequency cutoff of the voice.",
+    "technical_description": "Median of spectral rolloff.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_C.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Low Frequency Range)",
+    "description": "How consistently the voice resonates at the low frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin C.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_stddevRisingSlope": {
+    "feature_group": "loudness",
+    "label": "Volume Attack Stability",
+    "description": "Consistency in how sharply the volume increases.",
+    "technical_description": "Standard deviation of the rising slope of the loudness contour.",
+    "units": "dB"
+  },
+  "librosa_chroma_statistics.chroma_A#.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Upper-High Frequency Range)",
+    "description": "The typical strength of resonance at the upper frequency range.",
+    "technical_description": "Median value of the Chroma bin A#.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.arousal.median": {
+    "feature_group": "arousal",
+    "label": "Median Energy",
+    "description": "The typical level of excitement or energy.",
+    "technical_description": "Median of arousal predicted by WavLM VAD.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_F#.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (High Frequency Range)",
+    "description": "The typical variation range in resonance at the high-mid frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin F#.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.ASD(phonationTime / totalNumberSyllable)": {
+    "feature_group": "speechrate",
+    "label": "Avg Syllable Duration",
+    "description": "The average time it takes to speak one syllable.",
+    "technical_description": "Phonation time divided by total number of syllables.",
+    "units": "syllables/sec"
+  },
+  "opensmile_egemapsv02_functional.F3bandwidth_sma3nz_stddevNorm": {
+    "feature_group": "F3",
+    "label": "F3 Width Consistency",
+    "description": "How much the bandwidth of the vowel resonance varies.",
+    "technical_description": "Normalized standard deviation of F3 bandwidth.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.F3bandwidth_sma3nz_amean": {
+    "feature_group": "F3",
+    "label": "Average F3 Width",
+    "description": "The bandwidth of the vowel resonance. Relates to voice timbre.",
+    "technical_description": "Arithmetic mean of the bandwidth of the third formant (F3).",
+    "units": "Hz"
+  },
+  "librosa_mfcc_statistics.mfcc_5.q25": {
+    "feature_group": "librosa_mfcc",
+    "label": "Lower Range (Mid-Upper Timbre)",
+    "description": "The lower range of mid-upper frequency voice character of the mid-upper frequency voice character, which relates to the mid-upper frequency character and presence of the voice.",
+    "technical_description": "25th percentile of MFCC coefficient 5.",
+    "units": ""
+  },
+  "parselmouth_praat_speechrate_dictionary.articulationRate(totalNumberSyllable / phonationTime)": {
+    "feature_group": "speechrate",
+    "label": "Articulation Rate",
+    "description": "The speed of speech excluding pauses (how fast words are actually spoken).",
+    "technical_description": "Total number of syllables divided by phonation time.",
+    "units": "syllables/sec"
+  },
+  "librosa_spectral_statistics.centroid.mean": {
+    "feature_group": "librosa_spectral",
+    "label": "Average Brightness",
+    "description": "The average brightness or center of mass of the voice's spectrum.",
+    "technical_description": "Mean of spectral centroid.",
+    "units": "Hz"
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_stddevNorm": {
+    "feature_group": "loudness",
+    "label": "Volume Variability",
+    "description": "How much the loudness changes over time (dynamic range).",
+    "technical_description": "Normalized standard deviation of loudness.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Higher Frequency Range)",
+    "description": "The upper range of resonance intensity at the higher frequency range.",
+    "technical_description": "75th percentile of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Higher Frequency Range)",
+    "description": "The typical variation range in resonance at the higher frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G#.q75": {
+    "feature_group": "chroma",
+    "label": "Max Resonance Baseline (Upper-Mid Frequency Range)",
+    "description": "The upper range of resonance intensity at the higher frequency range.",
+    "technical_description": "75th percentile of the Chroma bin G#.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_1.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Energy",
+    "description": "The peak intensity of the overall energy and loudness, which relates to voice quality of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 1.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Higher Frequency Range)",
+    "description": "How consistently the voice resonates at the higher frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_13.max": {
+    "feature_group": "librosa_mfcc",
+    "label": "Maximum Ultra-High Detail",
+    "description": "The peak intensity of the ultra-high frequency detail, which relates to the ultra-high frequency detail and precision of the voice.",
+    "technical_description": "Maximum value of MFCC coefficient 13.",
+    "units": ""
+  },
+  "librosa_mfcc_statistics.mfcc_2.q75": {
+    "feature_group": "librosa_mfcc",
+    "label": "Upper Range (Lower Timbre)",
+    "description": "The upper range of lower frequency voice character, which relates to the depth and lower frequency character of the voice.",
+    "technical_description": "75th percentile of MFCC coefficient 2.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_C#.std": {
+    "feature_group": "chroma",
+    "label": "Resonance Stability (Low-Mid Frequency Range)",
+    "description": "How consistently the voice resonates at the low frequency range.",
+    "technical_description": "Standard deviation of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_chroma_statistics.chroma_G.mean": {
+    "feature_group": "chroma",
+    "label": "Average Resonance (Higher Frequency Range)",
+    "description": "The average strength of resonance at the higher frequency range.",
+    "technical_description": "Mean value of the Chroma bin G.",
+    "units": ""
+  },
+  "opensmile_egemapsv02_functional.loudness_sma3_stddevFallingSlope": {
+    "feature_group": "loudness",
+    "label": "Volume Decay Stability",
+    "description": "Consistency in how smoothly the volume fades.",
+    "technical_description": "Standard deviation of the falling slope of the loudness contour.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.HNRdBACF_sma3nz_amean": {
+    "feature_group": "HNR",
+    "label": "Average Voice Quality (HNR)",
+    "description": "Harmonic-to-Noise Ratio. Higher values mean a clearer, less noisy voice.",
+    "technical_description": "Arithmetic mean of the HNR (dB).",
+    "units": "dB"
+  },
+  "librosa_chroma_statistics.chroma_C#.iqr": {
+    "feature_group": "chroma",
+    "label": "Resonance Variation (Low-Mid Frequency Range)",
+    "description": "The typical variation range in resonance at the low frequency range.",
+    "technical_description": "Interquartile range (IQR) of the Chroma bin C#.",
+    "units": ""
+  },
+  "librosa_spectral_statistics.centroid.q75": {
+    "feature_group": "librosa_spectral",
+    "label": "High Low Brightness",
+    "description": "The upper range of brightness typical for this file.",
+    "technical_description": "75th percentile of spectral centroid.",
+    "units": "Hz"
+  },
+  "librosa_spectral_statistics.bandwidth.max": {
+    "feature_group": "librosa_spectral",
+    "label": "Maximum Timbre Width",
+    "description": "The widest frequency spread detected in the audio.",
+    "technical_description": "Maximum value of spectral bandwidth.",
+    "units": "Hz"
+  },
+  "librosa_chroma_statistics.chroma_G.median": {
+    "feature_group": "chroma",
+    "label": "Median Resonance (Higher Frequency Range)",
+    "description": "The typical strength of resonance at the higher frequency range.",
+    "technical_description": "Median value of the Chroma bin G.",
+    "units": ""
+  },
+  "librosa_energy_statistics.rms.range": {
+    "feature_group": "energy_rms",
+    "label": "Volume Range",
+    "description": "The difference between the quietest and loudest parts of the audio.",
+    "technical_description": "Range (max - min) of RMS energy.",
+    "units": "dB"
+  },
+  "librosa_energy_statistics.rms.max": {
+    "feature_group": "energy_rms",
+    "label": "Maximum Volume",
+    "description": "The loudest point in the audio.",
+    "technical_description": "Maximum value of RMS energy.",
+    "units": "dB"
+  },
+  "opensmile_egemapsv02_functional.spectralFluxV_sma3nz_stddevNorm": {
+    "feature_group": "spectralFlux",
+    "label": "Voice Flux Consistency",
+    "description": "How much the rate of frequency change varies in speech sounds.",
+    "technical_description": "Normalized standard deviation of spectral flux in voiced segments.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.median": {
+    "feature_group": "valence",
+    "label": "Median Positivity",
+    "description": "The typical level of positive emotion.",
+    "technical_description": "Median of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.mean": {
+    "feature_group": "valence",
+    "label": "Average Positivity",
+    "description": "The average level of positive emotion detected.",
+    "technical_description": "Mean of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "valence_arousal_dominance_statistics_wavlm_vad_odyssey2024.valence.min": {
+    "feature_group": "valence",
+    "label": "Minimum Positivity",
+    "description": "The lowest level of positive emotion detected.",
+    "technical_description": "Minimum value of valence predicted by WavLM VAD.",
+    "units": ""
+  },
+  "pesq_mean": {
+    "feature_group": "audio_quality",
+    "label": "Mean PESQ Score",
+    "description": "Average Perceptual Evaluation of Speech Quality score, measuring overall speech quality perception.",
+    "technical_description": "Mean PESQ (Perceptual Evaluation of Speech Quality) score.",
+    "units": ""
+  },
+  "stoi_mean": {
+    "feature_group": "audio_quality",
+    "label": "Mean STOI Score",
+    "description": "Average Short-Time Objective Intelligibility score, measuring how intelligible the speech is.",
+    "technical_description": "Mean STOI (Short-Time Objective Intelligibility) score.",
+    "units": ""
+  },
+  "si_sdr_mean": {
+    "feature_group": "audio_quality",
+    "label": "Mean SI-SDR Score",
+    "description": "Average Scale-Invariant Signal-to-Distortion Ratio, measuring audio quality relative to distortion.",
+    "technical_description": "Mean SI-SDR (Scale-Invariant Signal-to-Distortion Ratio) score.",
+    "units": "dB"
+  },
+  "voice_percentage_mean": {
+    "feature_group": "audio_quality",
+    "label": "Mean Voice Percentage",
+    "description": "Average fraction of audio that contains speech (0-1 scale).",
+    "technical_description": "Mean voice percentage (fraction of audio that is speech, 0-1).",
+    "units": ""
+  },
+  "duration_seconds": {
+    "feature_group": "audio_quality",
+    "label": "Audio Duration",
+    "description": "Total duration of the audio file in seconds.",
+    "technical_description": "Total duration of the audio file in seconds.",
+    "units": "s"
+  }
+}
