@@ -14,6 +14,10 @@ import { asset } from "@/lib/asset";
 const RECORDING_MIME_TYPE = "audio/webm;codecs=opus";
 const RECORDING_SAMPLE_RATE = 48000;
 const RECORDING_DURATION_SECONDS = 15;
+// How many questions the user is asked. Everything downstream — the initial
+// draw from the pool, the re-ask cursor, the per-question audio buffers and the
+// "N of M" label — derives from this, so changing it here changes all of them.
+const QUESTION_COUNT = 2;
 const MIN_SPEECH_SECONDS = 10;
 const SPEECH_GAIN_THRESHOLD = 0.15;
 const QUESTION_BACKGROUNDS = [
@@ -99,11 +103,13 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   const navigate = useNavigate();
   const { pathwayConfig, setAudioBlob, pathway, userProfile, setApiStatus, setApiResult, setVisualizedResult, language } = useAssessment();
 
-  // Question pool: draw 3 to start; a fresh unused one is pulled in if a take
-  // doesn't capture enough speech and that question needs to be re-asked.
+  // Question pool: draw QUESTION_COUNT to start; a fresh unused one is pulled in
+  // if a take doesn't capture enough speech and that question needs re-asking.
   const questionPoolRef = useRef<string[]>(getQuestionPool(language));
-  const poolCursorRef = useRef(3);
-  const [QUESTIONS, setQuestions] = useState<string[]>(() => questionPoolRef.current.slice(0, 3));
+  const poolCursorRef = useRef(QUESTION_COUNT);
+  const [QUESTIONS, setQuestions] = useState<string[]>(() =>
+    questionPoolRef.current.slice(0, QUESTION_COUNT)
+  );
 
   const getNextPoolQuestion = useCallback(() => {
     if (poolCursorRef.current >= questionPoolRef.current.length) {
@@ -136,8 +142,10 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   const audioStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
-  // Per-question accumulated audio buffers
-  const questionAudioBuffersRef = useRef<AudioBuffer[][]>([[], [], []]);
+  // Per-question accumulated audio buffers, one slot per asked question.
+  const questionAudioBuffersRef = useRef<AudioBuffer[][]>(
+    Array.from({ length: QUESTION_COUNT }, () => [])
+  );
   // All questions final audio buffers
   const allQuestionsAudioRef = useRef<AudioBuffer[]>([]);
   
