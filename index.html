@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Sona-2 Web-Demo</title>
-    <meta name="description" content="AI powered acoustic assessment">
-    <meta name="author" content="Lovable" />
-    
+    <title>Sona-2 Voice Assessment · Amplifier Health</title>
+    <meta name="description" content="Fifteen seconds of speech gives a read on how you are doing. Voice assessment by Amplifier Health." />
+    <meta name="author" content="Amplifier Health" />
+    <link rel="canonical" href="https://try.amplifierhealth.com/" />
+
     <!-- Meta Pixel Code -->
     <script>
       !function(f,b,e,v,n,t,s)
@@ -23,21 +23,34 @@
     </script>
     <!-- End Meta Pixel Code -->
 
-    <!-- TODO: Update og:title to match your application name -->
-    
-    
+    <!--
+      Link previews. Slack, iMessage, LinkedIn and X all read these tags, not
+      DNS, so a stale og:image is what makes a correctly-served page unfurl
+      under the scaffolding tool's brand rather than this one. That is what
+      these tags used to point at, and why the fix is here and not in the zone
+      file.
+
+      og:image must be an absolute URL on a public host: relative paths resolve
+      against the scraper, not the page, and the preview silently falls back to
+      nothing.
+    -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:site_name" content="Amplifier Health" />
+    <meta property="og:url" content="https://try.amplifierhealth.com/" />
+    <meta property="og:title" content="Sona-2 Voice Assessment" />
+    <meta property="og:description" content="Fifteen seconds of speech gives a read on how you are doing. Voice assessment by Amplifier Health." />
+    <meta property="og:image" content="https://try.amplifierhealth.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Amplifier — Sona-2 Voice Assessment" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-    <meta property="og:title" content="Sona-2 Web-Demo">
-  <meta name="twitter:title" content="Sona-2 Web-Demo">
-  <meta property="og:description" content="AI powered acoustic assessment">
-  <meta name="twitter:description" content="AI powered acoustic assessment">
-  <link rel="icon" type="image/png" href="https://storage.googleapis.com/gpt-engineer-file-uploads/1uE3gyuyZMNA9kelJid3ffQTtwf1/uploads/1768443094090-Amplifier - Icon  (blue).png">
-</head>
+    <meta name="twitter:title" content="Sona-2 Voice Assessment" />
+    <meta name="twitter:description" content="Fifteen seconds of speech gives a read on how you are doing. Voice assessment by Amplifier Health." />
+    <meta name="twitter:image" content="https://try.amplifierhealth.com/og-image.png" />
+
+    <link rel="icon" type="image/svg+xml" href="/brand/amplifier-logo-black.svg" />
+  </head>
 
   <body>
     <!-- Meta Pixel noscript fallback (must be in <body>, not <head>) -->
