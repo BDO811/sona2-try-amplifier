@@ -545,7 +545,7 @@ function calculateWellnessScore(signals: V2Signal[], likelihoodTier: string): nu
   return Math.max(1, Math.min(99, Math.round((1 - burden) * 100)));
 }
 
-function getV2Classification(likelihoodTier: string, pathway: AssessmentPathway): string {
+export function getV2Classification(likelihoodTier: string, pathway: AssessmentPathway): string {
   const name =
     pathway === "BRAIN_AGE"
       ? "COGNITIVE"
@@ -559,17 +559,13 @@ function getV2Classification(likelihoodTier: string, pathway: AssessmentPathway)
               ? "ATHLETIC"
               : "WELLNESS";
 
-  switch (likelihoodTier) {
-    case "NO_RISK":
-      return `OPTIMAL ${name} FUNCTION`;
-    case "LOW":
-      return `STABLE ${name} VARIANCE`;
-    case "MODERATE":
-    case "HIGH":
-      return `ELEVATED ${name} RISK`;
-    default:
-      return `INCONCLUSIVE ${name} ASSESSMENT`;
-  }
+  // The headline names what was measured, not a verdict on it. It used to
+  // vary by tier - OPTIMAL ... FUNCTION, STABLE ... VARIANCE, ELEVATED ... RISK
+  // - which put a risk judgement in the largest type on the screen. Severity is
+  // already carried by the tier word above this line and by the per-signal
+  // bands below it, both of which come from the API rather than from wording
+  // chosen here.
+  return `${name} SIGNALS`;
 }
 
 function buildFallbackSubtext(signals: V2Signal[], flaggedCount: number): string {

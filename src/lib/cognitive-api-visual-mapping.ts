@@ -620,21 +620,9 @@ function getClassificationFromLikelihoodTier(tier: string, pathway: AssessmentPa
     : pathway === "WELLNESS" ? "WELLNESS"
     : "BIOMETRIC";
   
-  const upperTier = tier.toUpperCase();
-  
-  if (upperTier === "NO_RISK") {
-    return `OPTIMAL ${pathwayName} FUNCTION`;
-  } else if (upperTier === "LOW") {
-    return `STABLE ${pathwayName} VARIANCE`;
-  } else if (upperTier === "MODERATE") {
-    return `ELEVATED ${pathwayName} RISK`;
-  } else if (upperTier === "HIGH") {
-    return `ELEVATED ${pathwayName} RISK`;
-  } else if (upperTier === "INCONCLUSIVE") {
-    return `INCONCLUSIVE ${pathwayName} ASSESSMENT`;
-  }
-  
-  return `ELEVATED ${pathwayName} RISK`; // Default
+  // Matches the v2 headline: name what was measured, not a verdict on it. Kept
+  // in step deliberately, so the legacy path cannot reintroduce risk wording.
+  return `${pathwayName} SIGNALS`;
 }
 
 /**

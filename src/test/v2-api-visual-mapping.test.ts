@@ -46,7 +46,16 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
   it("derives the tier from the summary's overall level", () => {
     // overall_level on this sample is "moderate"
     expect(visualized.likelihoodTier).toBe("MODERATE");
-    expect(visualized.classification).toBe("ELEVATED WELLNESS RISK");
+  });
+
+  it("names what was measured in the headline, without a risk verdict", () => {
+    // The headline used to read ELEVATED WELLNESS RISK on this sample. Severity
+    // belongs to the tier word and the per-signal bands, both of which come
+    // from the API, not to wording chosen in the mapper.
+    expect(visualized.classification).toBe("WELLNESS SIGNALS");
+    for (const word of ["ELEVATED", "RISK", "OPTIMAL", "STABLE"]) {
+      expect(visualized.classification).not.toContain(word);
+    }
   });
 
   it("maps all six pulse signals into biomarkers, most severe first", () => {

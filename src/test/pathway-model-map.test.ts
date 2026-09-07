@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { getModelForPathway, DEFAULT_MODEL } from "@/lib/pathway-model-map";
 import { HEALTH_FOCUS_TO_PATHWAY } from "@/context/AssessmentContext";
 import { getStageContent } from "@/lib/analysis-stage-content";
+import { getV2Classification as classificationFor } from "@/lib/v2-api-visual-mapping";
 
 /**
  * The full chain the user's pick travels:
@@ -75,6 +76,23 @@ describe("the two live assessments", () => {
     expect(signs).toContain("HEAD IMPACT");
     expect(signs).toContain("COGNITIVE LOAD");
     expect(signs).toContain("CARDIOVASCULAR STRAIN");
+  });
+
+  it("headlines each assessment by what it measures, at every tier", () => {
+    // The headline is tier-independent by design: it names the assessment, and
+    // severity is carried by the tier word and the per-signal bands instead.
+    for (const [pathway, expected] of [
+      ["WELLNESS", "WELLNESS SIGNALS"],
+      ["SPORTS", "ATHLETIC SIGNALS"],
+    ] as const) {
+      for (const tier of ["NO_RISK", "LOW", "MODERATE", "HIGH", "INCONCLUSIVE"]) {
+        const headline = classificationFor(tier, pathway);
+        expect(headline).toBe(expected);
+        for (const word of ["ELEVATED", "RISK", "OPTIMAL", "STABLE", "FUNCTION", "VARIANCE"]) {
+          expect(headline).not.toContain(word);
+        }
+      }
+    }
   });
 
   it("gives Wellness pulse's signs and none of the athletic ones", () => {

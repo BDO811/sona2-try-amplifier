@@ -272,12 +272,34 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
 
         {/* Hero: Raw Signal Spectrogram - displays likelihood tier text */}
         <div className="relative px-4 py-4 md:py-5 border-b border-white/5">
-          <SpectrogramWaveform 
+          {/*
+            Labels the tier word underneath it. Deliberately the same type scale
+            as the classification line below the spectrogram, so the two read as
+            a matched pair bracketing the result rather than as a heading and a
+            caption.
+          */}
+          <motion.div
+            className={`text-center font-mono uppercase tracking-[0.25em] mb-1 ${
+              isSeniorMode
+                ? 'text-lg md:text-xl font-bold'
+                : isHighVis
+                  ? 'text-sm md:text-base font-semibold'
+                  : 'text-xs md:text-sm font-medium'
+            }`}
+            style={{ color: 'rgba(255, 255, 255, 0.45)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showContent ? 1 : 0 }}
+            transition={{ delay: 1.3, duration: 0.5 }}
+          >
+            Assessment
+          </motion.div>
+
+          <SpectrogramWaveform
             displayText={formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)}
-            statusColor={dataStatusColor} 
-            showContent={showContent} 
+            statusColor={dataStatusColor}
+            showContent={showContent}
           />
-          
+
           {/* Verdict Classification - data-driven color */}
           <motion.div
             className="text-center mt-2"
