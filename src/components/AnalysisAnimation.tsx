@@ -10,6 +10,8 @@ import {
   tailStage,
   waitingStagePosition,
 } from "@/lib/analysis-pacing";
+import { detailAt, getStageContent } from "@/lib/analysis-stage-content";
+import { getModelForPathway } from "@/lib/pathway-model-map";
 
 // 6 Archetypes with their corresponding shapes
 export type ArchetypeType = 
@@ -385,14 +387,8 @@ function getMarkPath(shape: "star" | "triangle" | "square" | "diamond", size: nu
   }
 }
 
-const STAGE_CONFIG = [
-  { text: "ISOLATING VOCAL SIGNAL...", detail: "NOISE REDUCTION" },
-  { text: "SCANNING METABOLIC FLATNESS...", detail: "[01] FATIGUE DETECTION" },
-  { text: "ANALYZING RESPIRATORY RESONANCE...", detail: "[02] OXYGEN LATENCY" },
-  { text: "MEASURING ACOUSTIC STAMINA...", detail: "[03] VOCAL POWER" },
-  { text: "CORRELATING WELLNESS BIOMARKERS...", detail: "VOCAL BIOMARKER ANALYSIS" },
-  { text: "COMPILING SCREENING REPORT...", detail: "BINARY CLASSIFICATION" },
-];
+// Stage copy lives in @/lib/analysis-stage-content, keyed to the v2 model the
+// pathway selected, so each stage names what the API actually reports.
 
 export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationProps) => {
   const { pathwayConfig, pathwayDisplayTitle, apiStatus, pathway, userProfile, audioBlob, language } = useAssessment();
@@ -402,6 +398,7 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
   const EXPECTED_ANALYSIS = isSeniorMode ? BASE_EXPECTED_ANALYSIS * 1.5 : BASE_EXPECTED_ANALYSIS;
   const FINAL_TAIL = isSeniorMode ? BASE_FINAL_TAIL * 1.5 : BASE_FINAL_TAIL;
   const [stage, setStage] = useState(0);
+  const [detailIndex, setDetailIndex] = useState(0);
   const [stageProgress, setStageProgress] = useState(0);
   const [pulseScale, setPulseScale] = useState(1);
   const [flashOpacity, setFlashOpacity] = useState(0);
@@ -423,6 +420,12 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
    * zero at that moment and throw the stage counter back to the beginning.
    */
   const startTimeRef = useRef<number | null>(null);
+
+  // Stage copy for the model this pathway runs against. Held in a ref too, so
+  // the animation loop can read it without being a dependency of the effect.
+  const stageContent = useMemo(() => getStageContent(getModelForPathway(pathway)), [pathway]);
+  const stageContentRef = useRef(stageContent);
+  stageContentRef.current = stageContent;
   
   // If pathway is disabled, show error and complete immediately
   useEffect(() => {
@@ -554,6 +557,11 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
 
       setStage(currentStage);
       setStageProgress(newStageProgress);
+
+      // Rotate the detail line so there is something new to read every couple
+      // of seconds instead of one label held for the whole stage.
+      const details = stageContentRef.current[currentStage]?.details ?? [];
+      setDetailIndex(detailAt(details, stageElapsed).index);
 
       // Update target positions with viscous Brownian motion
       const targets = getTargetFormation(currentStage);
@@ -721,7 +729,13 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
   // Flash color tracks the archetype, toned to the same ceiling as everything else
   const flashColor = rgbCss(archetypeRgb);
   
-  const currentConfig = STAGE_CONFIG[stage] || STAGE_CONFIG[5];
+  const currentConfig = stageContent[stage] ?? stageContent[stageContent.length - 1];
+  // Guard the modulo: a stage change lands before the loop's next frame, so the
+  // index can briefly point past a shorter list.
+  const safeDetailIndex =
+    currentConfig.details.length > 0 ? detailIndex % currentConfig.details.length : 0;
+  const detailNumber = String(safeDetailIndex + 1).padStart(2, "0");
+  const detailLabel = currentConfig.details[safeDetailIndex] ?? "";
   const isDeveloperMode = isDeveloperModeEnabled();
 
   // Developer-only: click animation to download captured audio
@@ -964,15 +978,25 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
           >
             {currentConfig.text}
           </span>
-          <motion.div
-            className="mt-2 font-mono text-[20px] tracking-[0.2em] uppercase"
-            style={{ color: stageColorSoft }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.5, delay: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          >
-            {currentConfig.detail}
-          </motion.div>
+          {/*
+            Keyed on the detail as well as the stage so each rotation crossfades.
+            Keyed on the stage alone it would swap the text with no transition.
+            The fade is quicker than the headline's: this line changes every
+            DETAIL_ROTATE_MS and a 1.5s fade would still be running.
+          */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${stage}-${safeDetailIndex}`}
+              className="mt-2 font-mono text-[20px] tracking-[0.2em] uppercase"
+              style={{ color: stageColorSoft }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            >
+              [{detailNumber}] {detailLabel}
+            </motion.div>
+          </AnimatePresence>
         </motion.div>
       </AnimatePresence>
 
