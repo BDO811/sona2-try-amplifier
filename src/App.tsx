@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AssessmentProvider } from "@/context/AssessmentContext";
 import Index from "./pages/Index";
 import DetailedAnalysisView from "./pages/DetailedAnalysisView";
+import LongitudinalView from "./pages/LongitudinalView";
 import Dashboard from "./pages/Dashboard";
 import ApiDebugView from "./pages/ApiDebugView";
 import AnalysisFailed from "./pages/AnalysisFailed";
@@ -32,6 +33,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/detailed-analysis" element={<DetailedAnalysisView />} />
+            <Route path="/history" element={<LongitudinalView />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/api-debug" element={<ApiDebugView />} />
             <Route path="/analysis-failed" element={<AnalysisFailed onRestart={() => window.location.href = "/"} />} />

@@ -9,7 +9,9 @@ import { PartnerHandoffModal } from "./PartnerHandoffModal";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
 import { BiometricLabGrid } from "./report/BiometricLabGrid";
 import { SignalPanel } from "./report/SignalPanel";
+import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
+import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { getProtocolId, getStatusColorFromLikelihoodTier, getWellnessStatusColor, isWellnessPositive } from "@/lib/assessment-display-utils";
 import { t } from "@/lib/i18n";
@@ -52,6 +54,11 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   const [currentDate, setCurrentDate] = useState("");
   const [showHandoffModal, setShowHandoffModal] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
+
+  // Persists this result against the user's email, then loads their history so
+  // a returning member can see what moved. Called above the early return below,
+  // because a hook behind a conditional return is a hook order violation.
+  const voiceHistory = useVoiceHistory({ save: true });
 
   // Require visualized result - no fallback to hardcoded data
   if (!visualizedResult) {
@@ -167,6 +174,10 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
       markAssessmentComplete(pathway);
     }
     navigate('/detailed-analysis');
+  };
+
+  const handleViewHistory = () => {
+    navigate('/history');
   };
 
   const handleHandoffConfirm = () => {
@@ -339,6 +350,19 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           </div>
         )}
 
+        {/* Returning member: what moved since their previous visit */}
+        {voiceHistory.isReturning && voiceHistory.signals.length > 0 && (
+          <div className="px-4 py-3 border-b border-white/5">
+            <SinceLastVisitPanel
+              signals={voiceHistory.signals}
+              sessionCount={voiceHistory.sessions.length}
+              showContent={showContent}
+              isSeniorMode={isSeniorMode}
+              onViewHistory={handleViewHistory}
+            />
+          </div>
+        )}
+
         {/* Biometric Lab Grid */}
         <div className="px-4 py-3 border-b border-white/5">
           <motion.h3
@@ -387,17 +411,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
                   border: '1px solid rgba(245, 158, 11, 0.5)',
                 }}
               >
-                <div className="flex items-start gap-4">
-                  <div 
-                    className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: 'rgba(245, 158, 11, 0.2)',
-                      border: '1px solid rgba(245, 158, 11, 0.3)',
-                    }}
-                  >
-                    <AlertTriangle className="w-5 h-5 text-amber-400" />
-                  </div>
-                  
+                <div className="flex items-start">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-mono text-xs md:text-sm uppercase tracking-widest font-semibold mb-2 text-amber-400">
                       AUDIO QUALITY INSUFFICIENT
@@ -436,21 +450,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
                   border: '1px solid rgba(239, 68, 68, 0.5)',
                 }}
               >
-                <div className="flex items-start gap-4">
-                  <div 
-                    className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: requestSent ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                      border: requestSent ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(239, 68, 68, 0.3)',
-                    }}
-                  >
-                    {requestSent ? (
-                      <CheckCircle className="w-5 h-5 text-emerald-400" />
-                    ) : (
-                      <AlertTriangle className="w-5 h-5 text-red-400" />
-                    )}
-                  </div>
-                  
+                <div className="flex items-start">
                   <div className="flex-1 min-w-0">
                     <h3 className={`font-mono text-xs md:text-sm uppercase tracking-widest font-semibold mb-2 ${requestSent ? 'text-emerald-400' : 'text-red-400'}`}>
                       {requestSent ? "REQUEST CONFIRMED" : riskMessage.headline}
