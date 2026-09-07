@@ -3,7 +3,14 @@ import { useSearchParams } from "react-router-dom";
 import { VisualizedResult } from "@/lib/cognitive-api-visual-mapping";
 import { Language } from "@/lib/i18n";
 
-export type AssessmentPathway = "BRAIN_AGE" | "LONGEVITY" | "MENTAL_HEALTH" | "FERTILITY" | "WELLNESS" | null;
+export type AssessmentPathway =
+  | "BRAIN_AGE"
+  | "LONGEVITY"
+  | "MENTAL_HEALTH"
+  | "FERTILITY"
+  | "WELLNESS"
+  | "SPORTS"
+  | null;
 
 export interface PathwayConfig {
   id: AssessmentPathway;
@@ -69,6 +76,20 @@ export const PATHWAY_CONFIGS: Record<NonNullable<AssessmentPathway>, PathwayConf
       topLeft: { label: "METABOLIC", value: "SCAN" },
       topRight: { label: "RESPIRATORY", value: "DETECT" },
       bottomLeft: { label: "STAMINA", value: "MEASURE" },
+      bottomRight: { label: "SAMPLE", value: SAMPLE_RATE_LABEL },
+    },
+  },
+  // Athletic readiness, run against the apex model: head impact, cognitive
+  // load, cardiovascular strain, plus the shared load signs.
+  SPORTS: {
+    id: "SPORTS",
+    title: "Check your Athletic Readiness.",
+    color: BRAND_COLOR,
+    colorHSL: BRAND_COLOR_HSL,
+    metadata: {
+      topLeft: { label: "LOAD", value: "SCAN" },
+      topRight: { label: "RECOVERY", value: "DETECT" },
+      bottomLeft: { label: "STRAIN", value: "MEASURE" },
       bottomRight: { label: "SAMPLE", value: SAMPLE_RATE_LABEL },
     },
   },
@@ -139,6 +160,7 @@ const HEALTH_FOCUS_TO_PATHWAY: Record<string, AssessmentPathway> = {
   mood: "MENTAL_HEALTH",
   reproductive: "FERTILITY",
   wellness: "WELLNESS",
+  sports: "SPORTS",
 };
 
 export const AssessmentProvider = ({ children }: { children: ReactNode }) => {

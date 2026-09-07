@@ -31,7 +31,8 @@ const DetailedAnalysisView = () => {
     : pathway === "MENTAL_HEALTH" ? "Mental Health"
     : pathway === "FERTILITY" ? "Fertility"
     : pathway === "WELLNESS" ? "Wellness"
-    : "Cognitive";
+    : pathway === "SPORTS" ? "Sports"
+    : "Wellness";
   const signalQuality = visualizedResult?.signalQuality;
   const extendedMetrics = visualizedResult?.extendedMetrics || [];
 

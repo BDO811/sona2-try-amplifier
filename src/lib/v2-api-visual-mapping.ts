@@ -555,7 +555,9 @@ function getV2Classification(likelihoodTier: string, pathway: AssessmentPathway)
           ? "AFFECTIVE"
           : pathway === "FERTILITY"
             ? "HORMONAL"
-            : "WELLNESS";
+            : pathway === "SPORTS"
+              ? "ATHLETIC"
+              : "WELLNESS";
 
   switch (likelihoodTier) {
     case "NO_RISK":

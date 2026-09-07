@@ -27,6 +27,14 @@ export type AmplifierModelName =
  * tide     elevated-blood-pressure, metabolic-load, dehydration, iron-deficiency, fatigue, dry-mouth
  * aria     elevated-androgens, iron-deficiency, dehydration, mood-disruption, fatigue, anxiety,
  *          elevated-blood-pressure
+ * apex     head-impact, cognitive-load, fatigue, dehydration, stress, anxiety,
+ *          cardiovascular-strain
+ *
+ * Note on overlap: a model is a curated bundle of signs, not a separate engine.
+ * Signs shared between two models return the same score for the same audio —
+ * verified against the live API, where one clip scored fatigue 0.390 and
+ * anxiety 0.570 under both pulse and apex. Two assessments therefore differ by
+ * which signs they report, not by rescoring the shared ones.
  */
 const PATHWAY_TO_MODEL: Record<NonNullable<AssessmentPathway>, AmplifierModelName> = {
   // Brain Health — Focus & Memory
@@ -39,6 +47,8 @@ const PATHWAY_TO_MODEL: Record<NonNullable<AssessmentPathway>, AmplifierModelNam
   FERTILITY: "aria",
   // General wellness screening
   WELLNESS: "pulse",
+  // Athletic readiness — training load, recovery and impact
+  SPORTS: "apex",
 };
 
 export const DEFAULT_MODEL: AmplifierModelName = "pulse";

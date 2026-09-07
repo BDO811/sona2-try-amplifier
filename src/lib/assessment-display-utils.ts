@@ -6,6 +6,7 @@ export function getProtocolId(pathway: AssessmentPathway): string {
   if (pathway === "MENTAL_HEALTH") return "AFFECTIVE-01";
   if (pathway === "FERTILITY") return "HORMONAL-01";
   if (pathway === "WELLNESS") return "WELLNESS-01";
+  if (pathway === "SPORTS") return "ATHLETIC-01";
   return "BIOMETRIC-01";
 }
 

@@ -962,6 +962,36 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         </svg>
       </motion.div>
 
+      {/*
+        Detail line, sitting directly under the graphic rather than down with
+        the headline. Positioned off the viewport centre like the stage counter
+        above it — the counter is at -230px, the graphic is 300px tall, so +168
+        clears its lower edge and keeps the trio reading as one column.
+
+        Keyed on the detail as well as the stage so each rotation crossfades;
+        keyed on the stage alone the text would swap with no transition. The
+        fade is quicker than the headline's, because this line changes every
+        DETAIL_ROTATE_MS and a 1.5s fade would still be running.
+      */}
+      <div
+        className="absolute left-1/2 text-center pointer-events-none"
+        style={{ top: "50%", transform: "translate(-50%, 168px)" }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`${stage}-${safeDetailIndex}`}
+            className="font-mono text-[20px] tracking-[0.2em] uppercase whitespace-nowrap"
+            style={{ color: stageColorSoft }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+          >
+            [{detailNumber}] {detailLabel}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
       {/* Stage text - smooth 1s fade transitions */}
       <AnimatePresence mode="sync">
         <motion.div
@@ -978,25 +1008,6 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
           >
             {currentConfig.text}
           </span>
-          {/*
-            Keyed on the detail as well as the stage so each rotation crossfades.
-            Keyed on the stage alone it would swap the text with no transition.
-            The fade is quicker than the headline's: this line changes every
-            DETAIL_ROTATE_MS and a 1.5s fade would still be running.
-          */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${stage}-${safeDetailIndex}`}
-              className="mt-2 font-mono text-[20px] tracking-[0.2em] uppercase"
-              style={{ color: stageColorSoft }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-            >
-              [{detailNumber}] {detailLabel}
-            </motion.div>
-          </AnimatePresence>
         </motion.div>
       </AnimatePresence>
 

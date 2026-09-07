@@ -12,7 +12,7 @@ import { asset } from "@/lib/asset";
 export interface TriageData {
   biologicalSex: "male" | "female";
   ageRange: "under30" | "30-45" | "46-60" | "60+";
-  healthFocus: "longevity" | "mood";
+  healthFocus: "wellness" | "sports";
   fullName: string;
   email: string;
   phone: string;
@@ -27,35 +27,39 @@ interface HealthFocusOption {
 }
 
 /**
- * The health-focus cards. Only Mental State and Longevity are offered; the
- * cognitive and hormonal pathways are not surfaced in this build.
+ * The health-focus cards. Two are offered, each running a different v2 model:
  *
- * Longevity is relabelled for under-30s, where "cellular aging" is not the
- * framing that lands.
+ *   Wellness  ->  pulse   mood disruption, anxiety, stress, fatigue,
+ *                         dehydration, elevated blood pressure
+ *   Sports    ->  apex    head impact, cognitive load, cardiovascular strain,
+ *                         plus fatigue, dehydration, stress and anxiety
+ *
+ * The pathway picks the model, and the model decides which signs come back.
+ * Signs the two share are scored identically for the same audio, so the
+ * assessments differ by what they report rather than by rescoring.
  */
 const getDynamicPathways = (
-  age: TriageData["ageRange"] | undefined
+  _age: TriageData["ageRange"] | undefined
 ): HealthFocusOption[] => {
-  const mental: HealthFocusOption = {
-    id: "mood",
+  const wellness: HealthFocusOption = {
+    id: "wellness",
     icon: Heart,
-    label: "Mental State",
-    subtitle: "Stress & Mood",
+    label: "Wellness",
+    subtitle: "Mood & Vitality",
   };
 
-  const longevity: HealthFocusOption = {
-    id: "longevity",
+  const sports: HealthFocusOption = {
+    id: "sports",
     icon: Zap,
-    ...(age === "under30"
-      ? { label: "Performance", subtitle: "Metabolic Peak" }
-      : { label: "Longevity", subtitle: "Cellular Aging" }),
+    label: "Sports",
+    subtitle: "Load & Recovery",
   };
 
   // Only offer a focus the analysis step will actually accept. Without this
   // filter a disabled pathway still rendered a card, and picking it failed the
   // run with a bare "ANALYSIS FAILED" after the user had already recorded.
-  const enabled = [mental, longevity].filter((p) => isPathwayEnabled(p.id));
-  return enabled.length > 0 ? enabled : [mental];
+  const enabled = [wellness, sports].filter((p) => isPathwayEnabled(p.id));
+  return enabled.length > 0 ? enabled : [wellness];
 };
 
 interface TriageFlowProps {

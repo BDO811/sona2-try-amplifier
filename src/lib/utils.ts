@@ -16,12 +16,14 @@ const PATHWAY_FEATURE_FLAGS: Record<string, string | undefined> = {
   longevity: import.meta.env.VITE_WELLNESS_LONGEVITY_ENABLED,
   reproductive: import.meta.env.VITE_WELLNESS_FERTILITY_ENABLED,
   wellness: "true", // Always enabled for this instance
+  sports: "true", // Always enabled for this instance
   // AssessmentPathway values (used in AudioVisualizer, AnalysisAnimation)
   BRAIN_AGE: import.meta.env.VITE_COGNITIVE_BRAIN_HEALTH_ENABLED,
   MENTAL_HEALTH: import.meta.env.VITE_COGNITIVE_MENTAL_HEALTH_ENABLED,
   LONGEVITY: import.meta.env.VITE_WELLNESS_LONGEVITY_ENABLED,
   FERTILITY: import.meta.env.VITE_WELLNESS_FERTILITY_ENABLED,
   WELLNESS: "true", // Always enabled for this instance
+  SPORTS: "true", // Always enabled for this instance
 };
 
 /**

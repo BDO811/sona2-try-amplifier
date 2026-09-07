@@ -12,7 +12,7 @@ import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
-import { getProtocolId, getStatusColorFromLikelihoodTier, getWellnessStatusColor, isWellnessPositive } from "@/lib/assessment-display-utils";
+import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { t } from "@/lib/i18n";
 
 interface HealthProfileProps {
@@ -70,10 +70,11 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   const revealSignals = visualizedResult.signals ?? [];
   const hasDetailedReport = (visualizedResult.biomarkers?.length ?? 0) > 0;
   
-  // For WELLNESS pathway: use binary color system (Cyan=Negative, Amber=Positive)
-  const isWellness = pathway === "WELLNESS";
-  const wellnessPositive = isWellness ? isWellnessPositive(likelihoodTier) : false;
-  const dataStatusColor = isWellness ? getWellnessStatusColor(likelihoodTier) : getStatusColorFromLikelihoodTier(likelihoodTier);
+  // Both assessments use the same tier presentation. The WELLNESS pathway used
+  // to switch to a binary positive/negative headline coloured cyan #22d3ee, a
+  // retired palette; routing the Wellness card here would have brought it back
+  // and made the two assessments look unrelated to each other.
+  const dataStatusColor = getStatusColorFromLikelihoodTier(likelihoodTier);
   
   // Use dynamic display title or fall back to pathway config
   const assessmentTitle = pathwayDisplayTitle || (pathwayConfig?.title || "Assessment");
@@ -231,7 +232,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           <span className={`font-mono uppercase tracking-widest ${
             isHighVis ? 'text-[10px] md:text-xs font-medium text-white/80' : 'text-[9px] md:text-[10px] text-white/60'
           }`}>
-            {isWellness ? t("screeningResult", language) : assessmentTitle} {isWellness ? '' : 'Assessment'}
+            {assessmentTitle} Assessment
           </span>
           <span className={isHighVis ? 'text-white/40' : 'text-white/20'}>|</span>
           <span className={`font-mono uppercase tracking-widest ${
@@ -262,10 +263,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
         {/* Hero: Raw Signal Spectrogram - displays likelihood tier text */}
         <div className="relative px-4 py-4 md:py-5 border-b border-white/5">
           <SpectrogramWaveform 
-            displayText={isWellness
-              ? (wellnessPositive ? t("positiveHeadline", language) : t("negativeHeadline", language))
-              : formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)
-            }
+            displayText={formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)}
             statusColor={dataStatusColor} 
             showContent={showContent} 
           />
@@ -286,10 +284,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
                 textShadow: `0 0 20px ${dataStatusColor}40`,
               }}
             >
-              {isWellness
-                ? (wellnessPositive ? t("positiveResult", language) : t("negativeResult", language))
-                : classification
-              }
+              {classification}
             </h2>
             <p className={`font-mono uppercase tracking-widest mt-0.5 ${
               isSeniorMode ? 'text-sm font-medium text-white/60' : isHighVis ? 'text-[10px] font-medium text-white/50' : 'text-[9px] text-white/30'
