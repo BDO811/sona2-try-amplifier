@@ -58,6 +58,23 @@ describe("getStageContent", () => {
     expect(tide).not.toContain("MOOD DISRUPTION");
   });
 
+  it("names the sub-dimensions each model actually returns", () => {
+    // Calling both models on identical audio showed extended_metrics are not
+    // shared: apex returns anhedonia and no anxious mood, pulse the reverse.
+    const pulse = getStageContent("pulse")[4].details;
+    const apex = getStageContent("apex")[4].details;
+
+    expect(pulse).toContain("ANXIOUS MOOD");
+    expect(pulse).toContain("STRESS RESILIENCE");
+    expect(pulse).toContain("EMOTIONAL VALENCE");
+    expect(pulse).not.toContain("ANHEDONIA");
+
+    expect(apex).toContain("ANHEDONIA");
+    expect(apex).not.toContain("ANXIOUS MOOD");
+    expect(apex).not.toContain("STRESS RESILIENCE");
+    expect(apex).not.toContain("EMOTIONAL VALENCE");
+  });
+
   it("gives the elastic stage the longest list", () => {
     // Stage 5 absorbs a slow job's overrun, so it needs the most to say.
     for (const model of ALL_MODELS) {

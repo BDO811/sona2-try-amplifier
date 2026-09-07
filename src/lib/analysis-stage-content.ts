@@ -138,20 +138,58 @@ const VOICE_QUALITY_DETAILS = [
 ];
 
 /**
- * result.extended_metrics. The longest list, for the stage that absorbs the
- * wait.
+ * result.extended_metrics, per model. The longest list, for the stage that
+ * absorbs the wait.
  *
- * Ordered by confidence. The first thirteen are the metrics a real captured
- * pulse job returned (see fixtures-v2-pulse-response.json), with the API's own
- * labels; the rest are documented known metric IDs that job did not include.
- * Reading order therefore starts with what the API demonstrably reports.
+ * These DO differ by model, which an earlier version of this file got wrong.
+ * The claim then was that the set travels across models, inferred from a pulse
+ * job alone. Calling both models on identical audio disproved it: pulse
+ * returned 13 sub-dimensions and apex returned 10, and the two are not nested.
+ * apex reports anhedonia, which pulse does not; pulse reports anxious mood,
+ * tension, stress resilience and emotional valence, none of which apex returns.
  *
- * These are not split per model: pulse is a general wellness pipeline and still
- * returns the behavioural sub-dimensions, so the set travels across models.
+ * Each list below is the metric IDs that model actually returned, in the order
+ * it returned them, with the API's own labels. A model without an observed
+ * payload falls back to the pulse list and is marked as such.
  */
-const EXTENDED_METRIC_DETAILS = [
-  "ANXIOUS MOOD",
-  "TENSION",
+const EXTENDED_METRICS_BY_MODEL: Partial<Record<AmplifierModelName, string[]>> = {
+  // Observed 2026-09-07, 13 metrics.
+  pulse: [
+    "ANXIOUS MOOD",
+    "TENSION",
+    "SLEEP DISTURBANCE",
+    "FATIGUE",
+    "CONCENTRATION",
+    "PSYCHOMOTOR STATE",
+    "ENERGY LEVEL",
+    "MOTIVATION",
+    "BURNOUT",
+    "STRESS RESILIENCE",
+    "EMOTIONAL VALENCE",
+    "AROUSAL",
+    "SENSE OF DOMINANCE",
+  ],
+  // Observed 2026-09-07, 10 metrics. Leads with anhedonia, which pulse omits.
+  apex: [
+    "ANHEDONIA",
+    "SLEEP DISTURBANCE",
+    "FATIGUE",
+    "CONCENTRATION",
+    "PSYCHOMOTOR STATE",
+    "ENERGY LEVEL",
+    "MOTIVATION",
+    "BURNOUT",
+    "AROUSAL",
+    "SENSE OF DOMINANCE",
+  ],
+};
+
+/**
+ * Fallback for models whose extended_metrics have not been captured yet. Uses
+ * the documented known IDs rather than another model's observed list, so it
+ * cannot silently assert something a model does not report.
+ */
+const EXTENDED_METRIC_FALLBACK = [
   "SLEEP DISTURBANCE",
   "FATIGUE",
   "CONCENTRATION",
@@ -159,17 +197,7 @@ const EXTENDED_METRIC_DETAILS = [
   "ENERGY LEVEL",
   "MOTIVATION",
   "BURNOUT",
-  "STRESS RESILIENCE",
-  "EMOTIONAL VALENCE",
   "AROUSAL",
-  "SENSE OF DOMINANCE",
-  "WORRY & RUMINATION",
-  "OVERWHELM",
-  "RESTLESSNESS & AGITATION",
-  "IRRITABILITY",
-  "APPREHENSION & FEAR",
-  "SENSE OF CONTROL",
-  "OUTLOOK",
 ];
 
 /** result.summary. */
@@ -191,7 +219,10 @@ export function getStageContent(model: AmplifierModelName): StageContent[] {
     { text: "MAPPING ACOUSTIC FEATURES...", details: PROSODY_DETAILS },
     { text: "ANALYZING VOICE QUALITY...", details: VOICE_QUALITY_DETAILS },
     { text: "SCORING BIOMARKER SIGNALS...", details: MODEL_SIGN_LABELS[model] },
-    { text: "RESOLVING SUB-DIMENSIONS...", details: EXTENDED_METRIC_DETAILS },
+    {
+      text: "RESOLVING SUB-DIMENSIONS...",
+      details: EXTENDED_METRICS_BY_MODEL[model] ?? EXTENDED_METRIC_FALLBACK,
+    },
     { text: "COMPILING SCREENING REPORT...", details: SUMMARY_DETAILS },
   ];
 }
