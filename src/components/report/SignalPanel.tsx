@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
+import { bandColor, bandFill, bandForLevel } from "@/lib/signal-band";
 
 interface SignalPanelProps {
   signals: SignalSummary[];
@@ -9,25 +10,13 @@ interface SignalPanelProps {
 }
 
 /**
- * Colour per v2 severity level. Matches the thresholds used by
- * BiometricLabGrid so a signal and a lab metric of equivalent severity read
- * the same across the report.
- */
-const LEVEL_COLOR: Record<string, string> = {
-  none: "#10B981",
-  low: "#10B981",
-  consider: "#F59E0B",
-  moderate: "#F59E0B",
-  elevated: "#EF4444",
-  inconclusive: "#6B7280",
-};
-
-const levelColor = (level: string): string =>
-  LEVEL_COLOR[(level || "").toLowerCase()] ?? "#6B7280";
-
-/**
  * The per-sign read from a v2 model job: one row per sign the model measures,
- * ranked most-severe first, with the model's own 0-1 score as a bar.
+ * ranked most-severe first, each reported as a band.
+ *
+ * Both the word and the bar come from the band, so they cannot disagree. The
+ * raw 0-1 score is deliberately not drawn: it is a per-sign probability, not a
+ * common scale, so comparing bar lengths across rows invited a false reading.
+ * See lib/signal-band.ts.
  */
 export const SignalPanel = ({
   signals,
@@ -42,8 +31,9 @@ export const SignalPanel = ({
   return (
     <div className="flex flex-col gap-px bg-white/5 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
-        const color = levelColor(signal.level);
-        const pct = Math.round((Number.isFinite(signal.score) ? signal.score : 0) * 100);
+        const band = bandForLevel(signal.level);
+        const color = bandColor(band);
+        const pct = bandFill(band);
 
         return (
           <motion.div
@@ -73,7 +63,7 @@ export const SignalPanel = ({
                 }`}
                 style={{ color }}
               >
-                {signal.flagged ? signal.level : "not flagged"}
+                {band}
               </span>
             </div>
 
