@@ -298,7 +298,10 @@ const generateGrid = (count: number, size: number) => {
 
 // Each of the 6 stages gets its own color and its own particle-mark shape,
 // so the graphic reads as 6 distinct moments rather than one repeating loop.
-const STAGE_COLORS = ["#1E9E5A", "#2E90FF", "#FF3B30", "#9C56FF", "#FFA630", "#F5C518"];
+// These are deliberately dark and saturated: the screen sits on beige #DBCCB1,
+// and a mid-tone or bright hue (the old orange and yellow especially) sank into
+// that background instead of reading against it.
+const STAGE_COLORS = ["#1E5631", "#123A75", "#8E1220", "#4A1C82", "#8A3B08", "#0E4C57"];
 const STAGE_SHAPES: Array<"circle" | "star" | "triangle" | "square" | "diamond"> = [
   "circle",
   "star",
@@ -307,6 +310,41 @@ const STAGE_SHAPES: Array<"circle" | "star" | "triangle" | "square" | "diamond">
   "diamond",
   "circle",
 ];
+
+interface Rgb {
+  r: number;
+  g: number;
+  b: number;
+}
+
+function hexToRgb(hex: string): Rgb {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : { r: 30, g: 86, b: 49 }; // fall back to the brand dark green
+}
+
+/**
+ * Beige #DBCCB1 is a light surface, so anything above roughly 40% luminance
+ * stops reading as ink and starts blending in. The archetype palette is neon by
+ * design (#00FF94, #FFB800), which is why the final stage used to wash out.
+ * Scale any color down to that ceiling, preserving its hue, so every stage stays
+ * bold and dark against the background.
+ */
+const MAX_LUMINANCE_ON_BEIGE = 0.42;
+function inkOnBeige({ r, g, b }: Rgb): Rgb {
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  if (luminance <= MAX_LUMINANCE_ON_BEIGE) return { r, g, b };
+  const scale = MAX_LUMINANCE_ON_BEIGE / luminance;
+  return {
+    r: Math.round(r * scale),
+    g: Math.round(g * scale),
+    b: Math.round(b * scale),
+  };
+}
+
+const rgbCss = ({ r, g, b }: Rgb) => `rgb(${r}, ${g}, ${b})`;
+const rgbaCss = ({ r, g, b }: Rgb, alpha: number) => `rgba(${r}, ${g}, ${b}, ${alpha})`;
 
 /** SVG path for a small particle-mark shape, centered at the origin. Circles are drawn separately as <circle>. */
 function getMarkPath(shape: "star" | "triangle" | "square" | "diamond", size: number): string {
@@ -387,9 +425,6 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
   
   // Use dynamic display title or fall back to pathway config
   const analysisTitle = pathwayDisplayTitle || (pathwayConfig?.title || "Analysis");
-  
-  // Pathway accent color for tinting
-  const accentColor = pathwayConfig?.color || "#1E5631";
   
   // Randomly select archetype on mount
   const selectedArchetype = useMemo(() => {
@@ -605,36 +640,32 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
     return lines;
   }, [stage, particles]);
 
-  // Helper to parse hex color to RGB
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : { r: 34, g: 211, b: 238 }; // fallback to cyan
-  };
+  // One color drives the whole screen. Each stage gets its own entry from
+  // STAGE_COLORS, interpolating into the revealed archetype color during the
+  // final stage, and every particle and every piece of text reads off it — so
+  // when the graphic changes color, the type changes with it.
+  const archetypeRgb = useMemo(() => inkOnBeige(hexToRgb(selectedArchetype.color)), [selectedArchetype.color]);
+  const stageColorRgb = useMemo(() => hexToRgb(STAGE_COLORS[stage] ?? STAGE_COLORS[0]), [stage]);
 
-  // Particle color: each stage gets its own distinct color (STAGE_COLORS),
-  // interpolating into the revealed archetype color during the final stage.
-  const archetypeRgb = hexToRgb(selectedArchetype.color);
-  const stageColorRgb = hexToRgb(STAGE_COLORS[stage] ?? STAGE_COLORS[0]);
-
-  const particleColor = useMemo(() => {
-    if (stage < 5) {
-      return `rgba(${stageColorRgb.r}, ${stageColorRgb.g}, ${stageColorRgb.b}, 0.6)`;
-    }
-    // Final stage: interpolate from this stage's own color to the archetype color
-    const t = stageProgress; // 0 to 1 over the stage
-    const r = Math.round(stageColorRgb.r + (archetypeRgb.r - stageColorRgb.r) * t);
-    const g = Math.round(stageColorRgb.g + (archetypeRgb.g - stageColorRgb.g) * t);
-    const b = Math.round(stageColorRgb.b + (archetypeRgb.b - stageColorRgb.b) * t);
-    const opacity = 0.6 + t * 0.35; // Brighten as it locks in
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  const stageRgb = useMemo(() => {
+    if (stage < 5) return stageColorRgb;
+    const t = stageProgress; // 0 to 1 over the final stage
+    return inkOnBeige({
+      r: Math.round(stageColorRgb.r + (archetypeRgb.r - stageColorRgb.r) * t),
+      g: Math.round(stageColorRgb.g + (archetypeRgb.g - stageColorRgb.g) * t),
+      b: Math.round(stageColorRgb.b + (archetypeRgb.b - stageColorRgb.b) * t),
+    });
   }, [stage, stageProgress, archetypeRgb, stageColorRgb]);
 
-  // Flash color should be the archetype color
-  const flashColor = selectedArchetype.color;
+  // Particles are drawn at full opacity. They used to sit at 0.6 alpha with a
+  // brightness boost, which lifted them toward the beige and made the graphic
+  // look like a faint smudge.
+  const particleColor = rgbCss(stageRgb);
+  const stageColor = rgbCss(stageRgb);
+  const stageColorSoft = rgbaCss(stageRgb, 0.62);
+
+  // Flash color tracks the archetype, toned to the same ceiling as everything else
+  const flashColor = rgbCss(archetypeRgb);
   
   const currentConfig = STAGE_CONFIG[stage] || STAGE_CONFIG[5];
   const isDeveloperMode = isDeveloperModeEnabled();
@@ -692,7 +723,7 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       {/* Assessment Title - Top Center */}
       <motion.div
         className="absolute top-8 left-1/2 transform -translate-x-1/2 font-mono text-[20px] uppercase tracking-[0.25em] text-center"
-        style={{ color: `${accentColor}99` }}
+        style={{ color: stageColorSoft }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.8 }}
         transition={{ duration: 1, delay: 0.5 }}
@@ -705,17 +736,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         <motion.div 
           key={`tl-${stage}`}
           className="absolute top-8 left-8 font-mono text-[20px] uppercase tracking-wider"
-          style={{ 
-            color: 'rgba(0, 0, 0, 0.6)',
-            textShadow: `0 0 10px ${accentColor}40`
-          }}
+          style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
         >
-          <div>{metadata.topLeft.label}: <span style={{ color: `${accentColor}CC` }}>{metadata.topLeft.value}</span></div>
-          <div className="mt-1 text-black/50">{flickerValues.freq}Hz</div>
+          <div>{metadata.topLeft.label}: <span style={{ color: stageColor }}>{metadata.topLeft.value}</span></div>
+          <div className="mt-1" style={{ color: stageColorSoft }}>{flickerValues.freq}Hz</div>
         </motion.div>
       </AnimatePresence>
 
@@ -724,17 +752,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         <motion.div 
           key={`tr-${stage}`}
           className="absolute top-8 right-8 font-mono text-[20px] uppercase tracking-wider text-right"
-          style={{ 
-            color: 'rgba(0, 0, 0, 0.6)',
-            textShadow: `0 0 10px ${accentColor}40`
-          }}
+          style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: 0.1 }}
         >
-          <div>{metadata.topRight.label}: <span style={{ color: `${accentColor}CC` }}>{metadata.topRight.value}</span></div>
-          <div className="mt-1 text-black/50">{flickerValues.jitter.toFixed(2)}%</div>
+          <div>{metadata.topRight.label}: <span style={{ color: stageColor }}>{metadata.topRight.value}</span></div>
+          <div className="mt-1" style={{ color: stageColorSoft }}>{flickerValues.jitter.toFixed(2)}%</div>
         </motion.div>
       </AnimatePresence>
 
@@ -743,17 +768,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         <motion.div 
           key={`bl-${stage}`}
           className="absolute bottom-24 left-8 font-mono text-[20px] uppercase tracking-wider"
-          style={{ 
-            color: 'rgba(0, 0, 0, 0.6)',
-            textShadow: `0 0 10px ${accentColor}40`
-          }}
+          style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: 0.2 }}
         >
-          <div>{metadata.bottomLeft.label}: <span style={{ color: `${accentColor}CC` }}>{metadata.bottomLeft.value}</span></div>
-          <div className="mt-1 text-black/50">STAGE {stage + 1}/6</div>
+          <div>{metadata.bottomLeft.label}: <span style={{ color: stageColor }}>{metadata.bottomLeft.value}</span></div>
+          <div className="mt-1" style={{ color: stageColorSoft }}>STAGE {stage + 1}/6</div>
         </motion.div>
       </AnimatePresence>
 
@@ -762,17 +784,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         <motion.div 
           key={`br-${stage}`}
           className="absolute bottom-24 right-8 font-mono text-[20px] uppercase tracking-wider text-right"
-          style={{ 
-            color: 'rgba(0, 0, 0, 0.6)',
-            textShadow: `0 0 10px ${accentColor}40`
-          }}
+          style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: 0.15 }}
         >
-          <div>{metadata.bottomRight.label}: <span style={{ color: `${accentColor}CC` }}>{metadata.bottomRight.value}</span></div>
-          <div className="mt-1 text-black/50">{Math.min(Math.floor((elapsedTime / TIMEOUT_DURATION) * 100), 99)}%</div>
+          <div>{metadata.bottomRight.label}: <span style={{ color: stageColor }}>{metadata.bottomRight.value}</span></div>
+          <div className="mt-1" style={{ color: stageColorSoft }}>{Math.min(Math.floor((elapsedTime / TIMEOUT_DURATION) * 100), 99)}%</div>
         </motion.div>
       </AnimatePresence>
 
@@ -782,9 +801,9 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         style={{
           top: '50%',
           transform: 'translate(-50%, -230px)',
-          borderColor: `${accentColor}40`,
-          backgroundColor: `${accentColor}14`,
-          color: accentColor,
+          borderColor: rgbaCss(stageRgb, 0.45),
+          backgroundColor: rgbaCss(stageRgb, 0.12),
+          color: stageColor,
         }}
       >
         {stage + 1}<span className="opacity-50">/6</span>
@@ -844,7 +863,9 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
             const shape = STAGE_SHAPES[stage] ?? "circle";
             const baseSize = stage === 5 && stageProgress > 0.8 ? 1.9 : 1.6;
             const size = shape === "circle" || shape === "triangle" ? baseSize * 1.5 : baseSize;
-            const glowFilter = `brightness(1.35) drop-shadow(0 0 ${stage === 5 ? 5 + stageProgress * 5 : 4}px ${particleColor})`;
+            // No brightness boost here. On a light background it lifted the
+            // particles toward the beige; a same-color shadow adds weight instead.
+            const glowFilter = `drop-shadow(0 0 ${stage === 5 ? 3 + stageProgress * 3 : 2.5}px ${rgbaCss(stageRgb, 0.55)})`;
 
             if (shape === "circle") {
               return particles.map((p) => (
@@ -879,20 +900,21 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
           key={stage}
           className="absolute bottom-36 left-0 right-0 text-center"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.7 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
         >
-          <span 
+          <span
             className="font-mono text-[24px] tracking-[0.25em] uppercase"
-            style={{ color: accentColor }}
+            style={{ color: stageColor }}
           >
             {currentConfig.text}
           </span>
-          <motion.div 
-            className="mt-2 font-mono text-[20px] tracking-[0.2em] uppercase text-black/50"
+          <motion.div
+            className="mt-2 font-mono text-[20px] tracking-[0.2em] uppercase"
+            style={{ color: stageColorSoft }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 1.5, delay: 0.5, ease: [0.4, 0, 0.2, 1] }}
           >
             {currentConfig.detail}
@@ -907,12 +929,12 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
             <motion.div
               key={i}
               className="w-1.5 h-1.5 rounded-full"
-              style={{ 
-                backgroundColor: stage >= i ? accentColor : 'rgba(0, 0, 0, 0.2)'
+              style={{
+                backgroundColor: stage >= i ? stageColor : rgbaCss(stageRgb, 0.25)
               }}
               initial={{ opacity: 0.2 }}
               animate={{
-                opacity: stage > i ? 0.8 : stage === i ? [0.4, 0.7, 0.4] : 0.2,
+                opacity: stage > i ? 1 : stage === i ? [0.55, 1, 0.55] : 0.3,
                 scale: stage === i ? [1, 1.2, 1] : 1,
               }}
               transition={{
