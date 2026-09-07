@@ -4,6 +4,12 @@ import { useAssessment, getIsSeniorMode } from "@/context/AssessmentContext";
 import { isAssessmentPathwayEnabled, isDeveloperModeEnabled } from "@/lib/utils";
 import { getAudioFormat, getAudioFileExtension } from "@/lib/audio-utils";
 import { t } from "@/lib/i18n";
+import {
+  BASE_EXPECTED_ANALYSIS,
+  BASE_FINAL_TAIL,
+  tailStage,
+  waitingStagePosition,
+} from "@/lib/analysis-pacing";
 
 // 6 Archetypes with their corresponding shapes
 export type ArchetypeType = 
@@ -100,11 +106,11 @@ interface AnalysisAnimationProps {
   onFailed?: () => void;
 }
 
-// Base durations (will be multiplied for senior mode)
-const BASE_ANALYSIS_DURATION = 24000; // 24 seconds total
 const TIMEOUT_DURATION = 120000; // 120 seconds timeout for API response
 const PARTICLE_COUNT = 150;
-const BASE_STAGE_DURATION = 4000; // 4 seconds per stage
+
+// Stage pacing lives in @/lib/analysis-pacing, where it can be simulated
+// against the job durations actually measured in production.
 
 interface Particle {
   id: number;
@@ -393,15 +399,30 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
   const isSeniorMode = getIsSeniorMode(userProfile.ageRange);
   
   // Senior mode: 50% slower animations
-  const ANALYSIS_DURATION = isSeniorMode ? BASE_ANALYSIS_DURATION * 1.5 : BASE_ANALYSIS_DURATION;
-  const STAGE_DURATION = isSeniorMode ? BASE_STAGE_DURATION * 1.5 : BASE_STAGE_DURATION;
+  const EXPECTED_ANALYSIS = isSeniorMode ? BASE_EXPECTED_ANALYSIS * 1.5 : BASE_EXPECTED_ANALYSIS;
+  const FINAL_TAIL = isSeniorMode ? BASE_FINAL_TAIL * 1.5 : BASE_FINAL_TAIL;
   const [stage, setStage] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [stageProgress, setStageProgress] = useState(0);
   const [pulseScale, setPulseScale] = useState(1);
   const [flashOpacity, setFlashOpacity] = useState(0);
   const [flickerValues, setFlickerValues] = useState({ freq: 124, jitter: 0.04, shimmer: 2.1 });
   const [elapsedTime, setElapsedTime] = useState(0);
+
+  // When the API result landed, and which stage was showing at that moment, so
+  // the tail can be spread over the stages that remain. Refs rather than state:
+  // the animation loop reads them every frame and must not restart on a change.
+  const resultAtRef = useRef<number | null>(null);
+  const stageAtResultRef = useRef(0);
+  const lastStageRef = useRef(0);
+  const stageEnteredAtRef = useRef(0);
+
+  /**
+   * Start of the run, held across effect re-runs. The animation effect depends
+   * on apiStatus, so it tears down and restarts every time the status moves
+   * (processing, then done). A startTime local to the effect would reset to
+   * zero at that moment and throw the stage counter back to the beginning.
+   */
+  const startTimeRef = useRef<number | null>(null);
   
   // If pathway is disabled, show error and complete immediately
   useEffect(() => {
@@ -486,27 +507,51 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
 
   // Main animation loop - continues until API returns or timeout
   useEffect(() => {
-    const startTime = Date.now();
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+    const startTime = startTimeRef.current;
     let animationFrame: number;
     let isComplete = false;
-    
+
     const animate = () => {
       if (isComplete) return;
-      
+
       const elapsed = Date.now() - startTime;
       
       // Update elapsed time for timeout progress display
       setElapsedTime(elapsed);
       
-      // Calculate animation progress - run through the 6 stages exactly once,
-      // then hold at the final stage (no looping) until the real API responds.
-      const animationElapsed = Math.min(elapsed, ANALYSIS_DURATION);
-      const newProgress = Math.min(animationElapsed / ANALYSIS_DURATION, 1);
-      const currentStage = Math.min(Math.floor(animationElapsed / STAGE_DURATION), 5);
-      const stageElapsed = animationElapsed - (currentStage * STAGE_DURATION);
-      const newStageProgress = Math.min(stageElapsed / STAGE_DURATION, 1);
-      
-      setProgress(newProgress);
+      // While waiting, walk stages 1-5 on the decelerating curve. Once the
+      // result lands, spend FINAL_TAIL walking whatever stages are left — which
+      // is normally just stage 6, since a real job almost always outlasts the
+      // curve's handover point. Passing through the remainder rather than
+      // jumping keeps the counter monotonic if the job comes back early.
+      const resultAt = resultAtRef.current;
+      let currentStage: number;
+      let newStageProgress: number;
+      let tailDone = false;
+
+      if (resultAt === null) {
+        const position = waitingStagePosition(elapsed, EXPECTED_ANALYSIS);
+        currentStage = Math.floor(position);
+        newStageProgress = position - currentStage;
+      } else {
+        const tail = tailStage(Date.now() - resultAt, stageAtResultRef.current, FINAL_TAIL);
+        currentStage = tail.stage;
+        tailDone = tail.done;
+        newStageProgress = 1;
+      }
+
+      if (currentStage !== lastStageRef.current) {
+        lastStageRef.current = currentStage;
+        stageEnteredAtRef.current = elapsed;
+      }
+
+      // The particle morph wants real time on the current stage, not a curve
+      // position that clamps once stage 5 starts absorbing the wait.
+      const stageElapsed = elapsed - stageEnteredAtRef.current;
+
       setStage(currentStage);
       setStageProgress(newStageProgress);
 
@@ -570,8 +615,17 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         setPulseScale(1 + pulsePhase * 0.05);
       }
 
-      // Check API status - transition when API is done or failed
-      if (apiStatus === "done") {
+      // The result landing starts the tail rather than ending the screen. Note
+      // the stage it landed on, so the remaining stages can be spread across
+      // FINAL_TAIL and the run always ends the same 4s after the answer.
+      if (apiStatus === "done" && resultAtRef.current === null) {
+        resultAtRef.current = Date.now();
+        // The stage on screen, not one recomputed here, so the tail always
+        // starts from what the user is actually looking at.
+        stageAtResultRef.current = lastStageRef.current;
+      }
+
+      if (tailDone) {
         isComplete = true;
         setFlashOpacity(1);
         setTimeout(() => {
