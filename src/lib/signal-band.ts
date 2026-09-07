@@ -88,3 +88,34 @@ export function bandRank(band: SignalBand): number {
   const index = BAND_ORDER.indexOf(band);
   return index === -1 ? -1 : index;
 }
+
+export type ResultAction = "NONE" | "MONITOR" | "ESCALATE" | "INCONCLUSIVE";
+
+/**
+ * Collapse the API's recommended_action to the three this screen reports.
+ *
+ * The API computes recommended_action itself across the whole signal set, using
+ * a documented table: nothing at low or above -> none; 1+ low -> monitor;
+ * 1+ consider -> consider; 1+ moderate or 2+ consider -> review; 1+ elevated ->
+ * escalate, which takes precedence over everything else. That derivation is not
+ * repeated here — the API's value is read and collapsed, so this cannot drift
+ * from the vendor's logic if the table changes.
+ *
+ * consider and review both fold into MONITOR. review losing its distinct
+ * meaning is the real cost of collapsing five values into three.
+ *
+ * inconclusive stays separate rather than folding into NONE: it means the audio
+ * could not be read, which is not the same as nothing being found.
+ */
+const ACTION_COLLAPSE: Record<string, ResultAction> = {
+  none: "NONE",
+  monitor: "MONITOR",
+  consider: "MONITOR",
+  review: "MONITOR",
+  escalate: "ESCALATE",
+  inconclusive: "INCONCLUSIVE",
+};
+
+export function collapseAction(apiAction: string | null | undefined): ResultAction {
+  return ACTION_COLLAPSE[(apiAction || "").toLowerCase()] ?? "INCONCLUSIVE";
+}

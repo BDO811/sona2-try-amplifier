@@ -13,6 +13,7 @@ import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
+import { collapseAction } from "@/lib/signal-band";
 import { t } from "@/lib/i18n";
 
 interface HealthProfileProps {
@@ -82,19 +83,28 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   // Inconclusive state - show recapture option
   const isInconclusiveState = likelihoodTier.toUpperCase() === "INCONCLUSIVE";
 
-  // Copy for the non-referral footer card. Never claim "optimal range" unless
-  // nothing was actually flagged — the reveal above may say otherwise.
-  const flaggedCount = visualizedResult.flaggedCount;
+  // Copy for the footer card, driven by the API's own recommended_action rather
+  // than the flag count alone. The API derives that action across the whole
+  // signal set — one elevated signal outranks several weak ones — so a count
+  // cannot reproduce it. Collapsed to three outcomes; see lib/signal-band.ts.
+  const flaggedCount = visualizedResult.flaggedCount ?? 0;
+  const totalSignals = visualizedResult.totalSignals ?? flaggedCount;
+  const resultAction = collapseAction(visualizedResult.recommendedAction);
   const monitoringCard =
-    flaggedCount && flaggedCount > 0
+    resultAction === "ESCALATE"
       ? {
-          headline: "Continued Monitoring",
-          body: `${flaggedCount} of ${visualizedResult.totalSignals ?? flaggedCount} voice signals came back elevated. Re-screen to see whether the pattern holds.`,
+          headline: "Significant Indicator",
+          body: `${flaggedCount} of ${totalSignals} voice signals came back elevated, including one at the highest level. Re-screen to see whether it holds.`,
         }
-      : {
-          headline: "Standard Monitoring",
-          body: "Your biomarkers are within optimal range",
-        };
+      : resultAction === "MONITOR"
+        ? {
+            headline: "Continued Monitoring",
+            body: `${flaggedCount} of ${totalSignals} voice signals came back elevated. Re-screen to see whether the pattern holds.`,
+          }
+        : {
+            headline: "Standard Monitoring",
+            body: "Nothing came back elevated in this recording. Re-screen anytime to track changes.",
+          };
 
   // Initialize date from visualized result or current date
   useEffect(() => {

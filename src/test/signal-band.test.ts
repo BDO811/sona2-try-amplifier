@@ -5,6 +5,7 @@ import {
   bandFill,
   bandForLevel,
   bandRank,
+  collapseAction,
   type SignalBand,
 } from "@/lib/signal-band";
 
@@ -97,6 +98,46 @@ describe("bandColor", () => {
     for (const band of [...BAND_ORDER, "INCONCLUSIVE" as SignalBand]) {
       expect(retired).not.toContain(bandColor(band).toLowerCase());
     }
+  });
+});
+
+describe("collapseAction", () => {
+  it("collapses the API's five actions onto three", () => {
+    expect(collapseAction("none")).toBe("NONE");
+    expect(collapseAction("monitor")).toBe("MONITOR");
+    expect(collapseAction("consider")).toBe("MONITOR");
+    expect(collapseAction("review")).toBe("MONITOR");
+    expect(collapseAction("escalate")).toBe("ESCALATE");
+  });
+
+  it("keeps inconclusive out of the three", () => {
+    // Audio that could not be read is not the same as nothing being found.
+    expect(collapseAction("inconclusive")).toBe("INCONCLUSIVE");
+    expect(collapseAction("inconclusive")).not.toBe("NONE");
+  });
+
+  it("is case insensitive", () => {
+    expect(collapseAction("ESCALATE")).toBe("ESCALATE");
+    expect(collapseAction("Review")).toBe("MONITOR");
+  });
+
+  it("treats an unknown or missing action as inconclusive, never as none", () => {
+    for (const value of ["", null, undefined, "urgent"]) {
+      expect(collapseAction(value)).toBe("INCONCLUSIVE");
+    }
+  });
+
+  it("never downgrades escalate", () => {
+    // The API documents escalate as taking precedence over every other
+    // condition, so it must survive the collapse intact.
+    expect(collapseAction("escalate")).toBe("ESCALATE");
+  });
+
+  it("matches the action both live models returned", () => {
+    // pulse and apex both returned "review" on the speech sample and
+    // "inconclusive" on the no-speech sample.
+    expect(collapseAction("review")).toBe("MONITOR");
+    expect(collapseAction("inconclusive")).toBe("INCONCLUSIVE");
   });
 });
 
