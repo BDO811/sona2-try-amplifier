@@ -27,6 +27,7 @@
  */
 
 import { AssessmentPathway } from "@/context/AssessmentContext";
+import { headlineFor } from "@/lib/result-headline";
 import {
   VisualizedResult,
   LabMetric,
@@ -463,7 +464,11 @@ export function transformV2ResultToVisualization(
   const flaggedCount = summary?.flagged_count ?? signals.filter((s) => s.flagged).length;
 
   const score = calculateWellnessScore(signals, likelihoodTier);
-  const classification = getV2Classification(likelihoodTier, pathway);
+  const classification = getV2Classification(
+    likelihoodTier,
+    pathway,
+    signals.map((s) => s.level || "")
+  );
 
   const clinicalSubtext =
     summary?.description?.summary ||
@@ -545,27 +550,36 @@ function calculateWellnessScore(signals: V2Signal[], likelihoodTier: string): nu
   return Math.max(1, Math.min(99, Math.round((1 - burden) * 100)));
 }
 
-export function getV2Classification(likelihoodTier: string, pathway: AssessmentPathway): string {
-  const name =
-    pathway === "BRAIN_AGE"
-      ? "COGNITIVE"
-      : pathway === "LONGEVITY"
-        ? "RESPIRATORY"
-        : pathway === "MENTAL_HEALTH"
-          ? "AFFECTIVE"
-          : pathway === "FERTILITY"
-            ? "HORMONAL"
-            : pathway === "SPORTS"
-              ? "ATHLETIC"
-              : "WELLNESS";
+function pathwayDomainName(pathway: AssessmentPathway): string {
+  return pathway === "BRAIN_AGE"
+    ? "COGNITIVE"
+    : pathway === "LONGEVITY"
+      ? "RESPIRATORY"
+      : pathway === "MENTAL_HEALTH"
+        ? "AFFECTIVE"
+        : pathway === "FERTILITY"
+          ? "HORMONAL"
+          : pathway === "SPORTS"
+            ? "ATHLETIC"
+            : "WELLNESS";
+}
 
-  // The headline names what was measured, not a verdict on it. It used to
-  // vary by tier - OPTIMAL ... FUNCTION, STABLE ... VARIANCE, ELEVATED ... RISK
-  // - which put a risk judgement in the largest type on the screen. Severity is
-  // already carried by the tier word above this line and by the per-signal
-  // bands below it, both of which come from the API rather than from wording
-  // chosen here.
-  return `${name} SIGNALS`;
+/**
+ * The headline leads with what is holding up rather than what is wrong, graded
+ * from the signals themselves. See lib/result-headline.ts for the ladder and
+ * for why OPTIMAL is withheld when signals are flagged high.
+ *
+ * `levels` are the raw API levels. Passing none falls back to naming the
+ * assessment, which is the only honest headline without signal data.
+ */
+export function getV2Classification(
+  likelihoodTier: string,
+  pathway: AssessmentPathway,
+  levels: string[] = []
+): string {
+  const name = pathwayDomainName(pathway);
+  if (levels.length === 0) return `${name} SIGNALS`;
+  return headlineFor({ name, levels });
 }
 
 function buildFallbackSubtext(signals: V2Signal[], flaggedCount: number): string {

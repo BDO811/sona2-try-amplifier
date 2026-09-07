@@ -48,11 +48,12 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     expect(visualized.likelihoodTier).toBe("MODERATE");
   });
 
-  it("names what was measured in the headline, without a risk verdict", () => {
-    // The headline used to read ELEVATED WELLNESS RISK on this sample. Severity
-    // belongs to the tier word and the per-signal bands, both of which come
-    // from the API, not to wording chosen in the mapper.
-    expect(visualized.classification).toBe("WELLNESS SIGNALS");
+  it("leads the headline with what is holding up, without a risk verdict", () => {
+    // This sample has one signal reading low and five flagged, two of them at
+    // moderate. The headline used to read ELEVATED WELLNESS RISK; it now names
+    // the one signal that is holding, and withholds OPTIMAL because signals are
+    // flagged high directly beneath it.
+    expect(visualized.classification).toBe("STEADY WELLNESS BASELINE");
     for (const word of ["ELEVATED", "RISK", "OPTIMAL", "STABLE"]) {
       expect(visualized.classification).not.toContain(word);
     }
