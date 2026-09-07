@@ -3,9 +3,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArchetypeData } from "./AnalysisAnimation";
 import { useAssessment, AssessmentPathway, BRAND_COLOR, getIsHighVis, getIsSeniorMode } from "@/context/AssessmentContext";
-import { AlertTriangle, Bell, Calendar, CheckCircle, RefreshCw } from "lucide-react";
+import { Bell, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { PartnerHandoffModal } from "./PartnerHandoffModal";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
 import { BiometricLabGrid } from "./report/BiometricLabGrid";
 import { SignalPanel } from "./report/SignalPanel";
@@ -52,8 +51,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   const [showContent, setShowContent] = useState(false);
   const [displayScore, setDisplayScore] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
-  const [showHandoffModal, setShowHandoffModal] = useState(false);
-  const [requestSent, setRequestSent] = useState(false);
 
   // Persists this result against the user's email, then loads their history so
   // a returning member can see what moved. Called above the early return below,
@@ -80,18 +77,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   
   // Use dynamic display title or fall back to pathway config
   const assessmentTitle = pathwayDisplayTitle || (pathwayConfig?.title || "Assessment");
-  
-  // Risk state. The v2 API publishes its own recommended_action, so honour that
-  // rather than inferring from the tier alone — a "moderate" result carrying a
-  // "review" action still warrants the follow-up card.
-  const recommendedAction = (visualizedResult.recommendedAction || "").toLowerCase();
-  const isRiskState =
-    likelihoodTier.toUpperCase() === "HIGH" ||
-    recommendedAction === "review" ||
-    recommendedAction === "escalate";
-  const riskMessage = isRiskState && visualizedResult.clinicalSubtext 
-    ? { headline: "CLINICAL REVIEW RECOMMENDED", body: visualizedResult.clinicalSubtext }
-    : null;
   
   // Inconclusive state - show recapture option
   const isInconclusiveState = likelihoodTier.toUpperCase() === "INCONCLUSIVE";
@@ -165,10 +150,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
     return null;
   }
 
-  const handleConnect = () => {
-    setShowHandoffModal(true);
-  };
-
   const handleViewDetailedAnalysis = () => {
     if (pathway) {
       markAssessmentComplete(pathway);
@@ -178,11 +159,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
 
   const handleViewHistory = () => {
     navigate('/history');
-  };
-
-  const handleHandoffConfirm = () => {
-    setShowHandoffModal(false);
-    setRequestSent(true);
   };
 
   const handleSetReminder = () => {
@@ -441,55 +417,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
                   </div>
                 </div>
               </div>
-            ) : isRiskState && riskMessage ? (
-              // Risk State: Urgent Clinical Card
-              <div 
-                className="relative overflow-hidden rounded-lg p-5 md:p-6"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(239, 68, 68, 0.04) 100%)',
-                  border: '1px solid rgba(239, 68, 68, 0.5)',
-                }}
-              >
-                <div className="flex items-start">
-                  <div className="flex-1 min-w-0">
-                    <h3 className={`font-mono text-xs md:text-sm uppercase tracking-widest font-semibold mb-2 ${requestSent ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {requestSent ? "REQUEST CONFIRMED" : riskMessage.headline}
-                    </h3>
-                    <p className="font-mono text-[10px] md:text-xs text-white/50 leading-relaxed mb-4">
-                      {requestSent 
-                        ? "A Care Coordinator from Harmonic Health will contact you within 24 hours."
-                        : riskMessage.body
-                      }
-                    </p>
-                    
-                     {/* Primary CTA - Largest element for senior mode */}
-                    <button
-                      onClick={handleConnect}
-                      disabled={requestSent}
-                      className={`w-full rounded-lg font-mono uppercase tracking-widest font-semibold transition-all duration-300 disabled:cursor-not-allowed ${
-                        isSeniorMode ? 'py-5 text-base' : 'py-3 text-xs'
-                      }`}
-                      style={{
-                        background: requestSent 
-                          ? 'rgba(16, 185, 129, 0.2)' 
-                          : 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)',
-                        color: requestSent ? 'rgb(52, 211, 153)' : 'white',
-                        boxShadow: requestSent ? 'none' : '0 4px 20px rgba(239, 68, 68, 0.3)',
-                        border: requestSent ? '1px solid rgba(16, 185, 129, 0.4)' : 'none',
-                      }}
-                    >
-                      {requestSent ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <CheckCircle className={isSeniorMode ? 'w-5 h-5' : 'w-4 h-4'} />
-                          Request Sent
-                        </span>
-                      ) : (
-                        "Connect with Care"
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
             ) : (
               // Healthy State: Monitoring Card - uses BRAND color for UI elements
               <div 
@@ -579,15 +506,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
         </div>
       </motion.div>
 
-      {/* Partner Handoff Modal */}
-      <PartnerHandoffModal
-        isOpen={showHandoffModal}
-        onClose={() => setShowHandoffModal(false)}
-        onConfirm={handleHandoffConfirm}
-        pathway={pathway}
-        score={currentScore}
-        ageRange={userProfile.ageRange}
-      />
     </motion.div>
   );
 };
