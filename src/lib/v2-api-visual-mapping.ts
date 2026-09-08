@@ -484,7 +484,7 @@ export function transformV2ResultToVisualization(
   const score = calculateWellnessScore(shownSignals, likelihoodTier);
   // Graded from the displayed bands for the same reason the count is.
   const signalLevels = shownSignals.map((sig, i) =>
-    displayBands[i] === "NORMAL" ? "low" : sig.level || ""
+    displayBands[i] === "CLEAR" ? "low" : sig.level || ""
   );
   const classification = getV2Classification(likelihoodTier, pathway, signalLevels);
   const headlineRung = signalLevels.length > 0 ? rungFor({ levels: signalLevels }) : undefined;

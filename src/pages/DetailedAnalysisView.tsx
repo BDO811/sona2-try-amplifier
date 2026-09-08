@@ -67,9 +67,9 @@ const DetailedAnalysisView = () => {
     if (level) return bandColor(bandOfLevel(level), "light");
     if (zScore === undefined) return BRAND_COLOR;
     const absZScore = Math.abs(zScore);
-    if (absZScore < 2.0) return bandColor("NORMAL", "light");
-    if (absZScore < 3.0) return bandColor("MODERATE", "light");
-    return bandColor("ELEVATED", "light");
+    if (absZScore < 2.0) return bandColor("CLEAR", "light");
+    if (absZScore < 3.0) return bandColor("LOADED", "light");
+    return bandColor("REDLINE", "light");
   };
 
   const handleDownloadPDF = () => {

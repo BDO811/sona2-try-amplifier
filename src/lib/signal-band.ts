@@ -119,19 +119,35 @@ export function levelTreatment(level: SignalLevel): UiTreatment {
  * inconclusive stays outside the scale. It describes the recording, not a
  * position on it.
  */
-export type DisplayBand = "NORMAL" | "LOW" | "MODERATE" | "ELEVATED" | "INCONCLUSIVE";
+export type DisplayBand = "CLEAR" | "WATCH" | "LOADED" | "REDLINE" | "INCONCLUSIVE";
 
+/**
+ * The merge, then the naming.
+ *
+ * Merge:  none + low -> one band, consider / moderate / elevated each their own.
+ * Naming: athletic rather than clinical, since this is a Sports readout.
+ *
+ *   none, low  ->  CLEAR    not flagged
+ *   consider   ->  WATCH    flagged
+ *   moderate   ->  LOADED   flagged
+ *   elevated   ->  REDLINE  flagged
+ *
+ * The merge still lands exactly on the API's `flagged` boundary: CLEAR is
+ * precisely the two levels the API does not flag. Renaming does cost the
+ * one-to-one traceability back to the documented level words, so levelLabel()
+ * is kept below and is what a staff-facing view should use.
+ */
 const LEVEL_TO_BAND: Record<SignalLevel, DisplayBand> = {
-  none: "NORMAL",
-  low: "NORMAL",
-  consider: "LOW",
-  moderate: "MODERATE",
-  elevated: "ELEVATED",
+  none: "CLEAR",
+  low: "CLEAR",
+  consider: "WATCH",
+  moderate: "LOADED",
+  elevated: "REDLINE",
   inconclusive: "INCONCLUSIVE",
 };
 
 /** The four graded bands, in order. */
-export const BAND_ORDER: DisplayBand[] = ["NORMAL", "LOW", "MODERATE", "ELEVATED"];
+export const BAND_ORDER: DisplayBand[] = ["CLEAR", "WATCH", "LOADED", "REDLINE"];
 
 export function bandOf(level: SignalLevel): DisplayBand {
   return LEVEL_TO_BAND[level];
@@ -154,10 +170,10 @@ export function bandRank(band: DisplayBand): number {
  * light value measured above 4.5:1 against the beige page.
  */
 const BAND_COLOR: Record<DisplayBand, { dark: string; light: string }> = {
-  NORMAL: { dark: "#4CAF6E", light: "#1E5631" },
-  LOW: { dark: "#F5EF79", light: "#6D5200" },
-  MODERATE: { dark: "#FFC163", light: "#8A3B08" },
-  ELEVATED: { dark: "#FF6173", light: "#8E1220" },
+  CLEAR: { dark: "#4CAF6E", light: "#1E5631" },
+  WATCH: { dark: "#F5EF79", light: "#6D5200" },
+  LOADED: { dark: "#FFC163", light: "#8A3B08" },
+  REDLINE: { dark: "#FF6173", light: "#8E1220" },
   INCONCLUSIVE: { dark: "#CECECE", light: "#565656" },
 };
 
@@ -165,13 +181,13 @@ const BAND_COLOR: Record<DisplayBand, { dark: string; light: string }> = {
  * Signs that only ever display as flagged at the top of the scale.
  *
  * head-impact is the case: a head trauma reading is a serious claim, so it is
- * shown as ELEVATED or not at all. Anything below that displays NORMAL.
+ * shown as REDLINE or not at all. Anything below that displays CLEAR.
  *
- * INCONCLUSIVE is never rewritten to NORMAL. Unreadable audio is not evidence
+ * INCONCLUSIVE is never rewritten to CLEAR. Unreadable audio is not evidence
  * that nothing was found, and claiming otherwise would be the one genuinely
  * misleading outcome here.
  */
-const FLAG_ONLY_WHEN_ELEVATED = new Set(["head-impact"]);
+const FLAG_ONLY_WHEN_REDLINE = new Set(["head-impact"]);
 
 /**
  * The band to display for a given sign, applying any per-sign override.
@@ -186,15 +202,15 @@ export function bandForSignal(
 ): DisplayBand {
   const band = bandOfLevel(level);
   if (band === "INCONCLUSIVE") return band;
-  if (FLAG_ONLY_WHEN_ELEVATED.has((name || "").toLowerCase())) {
-    return band === "ELEVATED" ? "ELEVATED" : "NORMAL";
+  if (FLAG_ONLY_WHEN_REDLINE.has((name || "").toLowerCase())) {
+    return band === "REDLINE" ? "REDLINE" : "CLEAR";
   }
   return band;
 }
 
-/** True when a displayed band counts as a flag. NORMAL is the only one that does not. */
+/** True when a displayed band counts as a flag. CLEAR is the only one that does not. */
 export function isFlaggedBand(band: DisplayBand): boolean {
-  return band === "LOW" || band === "MODERATE" || band === "ELEVATED";
+  return band === "WATCH" || band === "LOADED" || band === "REDLINE";
 }
 
 export function bandColor(band: DisplayBand, surface: Surface = "dark"): string {
