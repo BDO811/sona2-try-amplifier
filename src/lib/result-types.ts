@@ -28,6 +28,11 @@ export interface BiomarkerDefinition {
   normalRange: string;
   /** Raw v2 level, so a screen can band it without matching back by name. */
   level?: string;
+  /**
+   * A pseudo z-score derived from `level`, not a statistic the API returns.
+   * Still gates the clinical-context block on the detail page. Under review.
+   */
+  zScore?: number;
 }
 
 /** v2 `extended_metrics[]` entry — a bipolar sub-dimension score. */
@@ -79,6 +84,13 @@ export interface VisualizedResult {
     suffix: string;
   };
 
+  /**
+   * Still rendered, still under review. `robustness` currently carries
+   * audio_clarity/100 under a different name, and `frequencyResponse` is the
+   * Nyquist of the capture rate rather than anything the API reports.
+   */
+  robustness?: number;
+
   signalQuality?: {
     /** v2 `audio_quality.audio_clarity`, 0-100. */
     audioClarity?: number;
@@ -86,6 +98,8 @@ export interface VisualizedResult {
     voicePercentage?: number;
     sampleRate: string;
     duration: number;
+    /** Derived, not reported. Under review. */
+    frequencyResponse?: string;
     /** Codes from `audio_quality.issues`, empty when the recording was clean. */
     issues?: string[];
   };

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
+import { SignalSummary } from "@/lib/result-types";
 import { bandForSignal, bandLabelForSignal, bandScaleOptions } from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 

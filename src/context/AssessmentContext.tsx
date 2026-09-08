@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import { VisualizedResult } from "@/lib/cognitive-api-visual-mapping";
+import { VisualizedResult } from "@/lib/result-types";
 import { Language } from "@/lib/i18n";
 
 export type AssessmentPathway =

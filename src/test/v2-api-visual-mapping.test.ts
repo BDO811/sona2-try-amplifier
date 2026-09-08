@@ -126,23 +126,14 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     });
   });
 
-  it("derives the score from actual signal strength, not the tier alone", () => {
-    // max signal 0.5555 (anxiety), mean 0.3350 -> burden 0.4676 -> 53
-    expect(visualized.score).toBe(53);
-    // a tier-only mapping would have produced a flat 50
-    expect(visualized.score).not.toBe(50);
-  });
-
   it("maps audio quality into signal quality", () => {
     // v2 reports voice_percentage as 0-100; the report screens multiply by 100,
     // so the mapper must hand them the 0-1 fraction (96.5% must not render 9650%).
     expect(visualized.signalQuality?.voicePercentage).toBeCloseTo(0.965, 4);
-    // audio_clarity is a 0-100 score, NOT a dB SI-SDR — it must not land in snr.
     expect(visualized.signalQuality?.audioClarity).toBe(96.4);
-    expect(visualized.signalQuality?.snr).toBe(0);
     expect(visualized.signalQuality?.sampleRate).toBe("48kHz");
     expect(visualized.signalQuality?.duration).toBeCloseTo(36.506, 2);
-    expect(visualized.flaggingExplanation).toBeUndefined(); // issues[] is empty
+    expect(visualized.signalQuality?.issues).toEqual([]);
   });
 });
 
@@ -202,8 +193,9 @@ describe("inconclusive / low-quality audio", () => {
       "WELLNESS"
     );
     expect(v.likelihoodTier).toBe("INCONCLUSIVE");
-    expect(v.score).toBe(50);
     expect(v.biomarkers).toHaveLength(0);
-    expect(v.flaggingExplanation).toBe("low_voice_percentage");
+    // The failure screen names the reason from these codes, so they must survive
+    // the transform rather than being flattened into a sentence.
+    expect(v.signalQuality?.issues).toEqual(["low_voice_percentage"]);
   });
 });

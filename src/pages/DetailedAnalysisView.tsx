@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { ChevronLeft, FileText, Download } from "lucide-react";
 import { useAssessment, BRAND_COLOR } from "@/context/AssessmentContext";
 import { toast } from "sonner";
-import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
+import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/result-types";
 import { jsPDF } from "jspdf";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { bandColor, bandForSignal, bandLabelForSignal, bandOfLevel, bandScaleOptions } from "@/lib/signal-band";
@@ -12,10 +12,6 @@ import { RUNG_SCALE } from "@/lib/result-headline";
 import { OptionScale } from "@/components/report/OptionScale";
 
 // Descriptions for audio quality metrics (matching AnalysisFailed page)
-const METRIC_DESCRIPTIONS = {
-  pesq: "Average Perceptual Evaluation of Speech Quality score, measuring overall speech quality perception.",
-  stoi: "Average Short-Time Objective Intelligibility score, measuring how intelligible the speech is.",
-};
 
 const DetailedAnalysisView = () => {
   const navigate = useNavigate();
@@ -311,16 +307,8 @@ const DetailedAnalysisView = () => {
 
       const signalQualityData: Array<[string, string, string?]> = []; // [label, value, description?]
       
-      if (signalQuality?.pesq !== undefined) {
-        signalQualityData.push(["PESQ Score", signalQuality.pesq.toFixed(2), METRIC_DESCRIPTIONS.pesq]);
-      }
-      if (signalQuality?.stoi !== undefined) {
-        signalQualityData.push(["STOI Score", signalQuality.stoi.toFixed(2), METRIC_DESCRIPTIONS.stoi]);
-      }
       if (signalQuality?.audioClarity !== undefined) {
         signalQualityData.push(["Audio Clarity", `${signalQuality.audioClarity.toFixed(1)} / 100`]);
-      } else if (signalQuality?.snr) {
-        signalQualityData.push(["Signal-to-Noise Ratio (SI-SDR)", `${signalQuality.snr.toFixed(1)}dB`]);
       }
       if (signalQuality?.voicePercentage !== undefined) {
         signalQualityData.push(["Voice Percentage", `${(signalQuality.voicePercentage * 100).toFixed(1)}%`]);
@@ -741,51 +729,14 @@ const DetailedAnalysisView = () => {
             </h2>
             
             <div className="space-y-0 divide-y divide-white/5">
-              {signalQuality.pesq !== undefined && (
-                <div className="py-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-xs text-white">PESQ Score</span>
-                    <span className="font-mono text-xs text-white">
-                      {signalQuality.pesq.toFixed(2)}
-                    </span>
-                  </div>
-                  {METRIC_DESCRIPTIONS.pesq && (
-                    <p className="font-mono text-[10px] text-white mt-1">
-                      {METRIC_DESCRIPTIONS.pesq}
-                    </p>
-                  )}
-                </div>
-              )}
-              {signalQuality.stoi !== undefined && (
-                <div className="py-3">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-xs text-white">STOI Score</span>
-                    <span className="font-mono text-xs text-white">
-                      {signalQuality.stoi.toFixed(2)}
-                    </span>
-                  </div>
-                  {METRIC_DESCRIPTIONS.stoi && (
-                    <p className="font-mono text-[10px] text-white mt-1">
-                      {METRIC_DESCRIPTIONS.stoi}
-                    </p>
-                  )}
-                </div>
-              )}
-              {signalQuality.audioClarity !== undefined ? (
+              {signalQuality.audioClarity !== undefined && (
                 <div className="flex items-center justify-between py-3">
                   <span className="font-mono text-xs text-white">Audio Clarity</span>
                   <span className="font-mono text-xs text-white">
                     {signalQuality.audioClarity.toFixed(1)} / 100
                   </span>
                 </div>
-              ) : signalQuality.snr ? (
-                <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white">Signal-to-Noise Ratio (SI-SDR)</span>
-                  <span className="font-mono text-xs text-white">
-                    {signalQuality.snr.toFixed(1)}dB
-                  </span>
-                </div>
-              ) : null}
+              )}
               {signalQuality.voicePercentage !== undefined && (
                 <div className="flex items-center justify-between py-3">
                   <span className="font-mono text-xs text-white">Voice Percentage</span>

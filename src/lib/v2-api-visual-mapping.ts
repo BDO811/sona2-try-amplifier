@@ -5,7 +5,7 @@
  *
  * The legacy L5 v1 API (`/api/v1/{type}/analyze-audio-sync`) returned
  * `result.explanations.feature_explanations.features` — a z-score table that
- * `cognitive-api-visual-mapping.ts` knows how to render.
+ * the report screens know how to render (see result-types.ts).
  *
  * The v2 API (`/v2/models/{model}/analyze` → `/v2/jobs/{id}`) returns a
  * completely different, richer shape:
@@ -34,7 +34,7 @@ import {
   VisualizedResult,
   LabMetric,
   BiomarkerDefinition,
-} from "@/lib/cognitive-api-visual-mapping";
+} from "@/lib/result-types";
 
 // ============================================================================
 // v2 response types
@@ -480,8 +480,6 @@ export function transformV2ResultToVisualization(
   */
   const displayBands = shownSignals.map((sig) => bandForSignal(sig.name, sig.level));
   const flaggedCount = displayBands.filter(isFlaggedBand).length;
-
-  const score = calculateWellnessScore(shownSignals, likelihoodTier);
   // Graded from the displayed bands for the same reason the count is.
   const signalLevels = shownSignals.map((sig, i) =>
     displayBands[i] === "NORMAL" ? "low" : sig.level || ""
@@ -501,7 +499,6 @@ export function transformV2ResultToVisualization(
     status: job.status,
     likelihoodTier,
     pathway: pathway || "WELLNESS",
-    score,
     classification,
     headlineRung,
     labMetrics,
@@ -524,22 +521,18 @@ export function transformV2ResultToVisualization(
       value: String(flaggedCount),
       suffix: shownSignals.length ? ` / ${shownSignals.length}` : "",
     },
-    confidence: Math.round(
-      typeof audioClarity === "number" ? Math.max(0, Math.min(100, audioClarity)) : 90
-    ),
     robustness: typeof audioClarity === "number" ? audioClarity / 100 : undefined,
-    flaggingExplanation: issues.length ? issues.join(" · ") : undefined,
     signalQuality: {
       // v2 has no SI-SDR figure. It reports `audio_clarity` on a 0-100 scale,
       // which is a different quantity — surfaced separately as audioClarity so
       // it is never mislabelled as a dB signal-to-noise ratio.
-      snr: 0,
       audioClarity,
       frequencyResponse: job.audio_sample_rate
         ? `${Math.round(job.audio_sample_rate / 2000)}kHz`
         : "24kHz",
       sampleRate,
       duration: job.audio_duration_seconds || 0,
+      issues,
       // v2 reports voice_percentage as 0-100; the report screens expect the
       // 0-1 fraction the legacy v1 field used.
       voicePercentage: typeof voicePercentage === "number" ? voicePercentage / 100 : undefined,
@@ -547,25 +540,6 @@ export function transformV2ResultToVisualization(
   };
 }
 
-/**
- * Wellness score, 0-100, where higher is better. Driven by the actual signal
- * scores rather than by the tier alone, so two "moderate" results with clearly
- * different signal strength do not display an identical number.
- */
-function calculateWellnessScore(signals: V2Signal[], likelihoodTier: string): number {
-  if (likelihoodTier === "INCONCLUSIVE") return 50;
-  const scored = signals.filter((s) => Number.isFinite(s.score));
-  if (!scored.length) {
-    const fallback: Record<string, number> = { NO_RISK: 95, LOW: 75, MODERATE: 50, HIGH: 25 };
-    return fallback[likelihoodTier] ?? 50;
-  }
-  // Weight the worst signal against the mean so a single strong signal is not
-  // washed out by five quiet ones, then invert (high signal = low wellness).
-  const max = Math.max(...scored.map((s) => s.score));
-  const mean = scored.reduce((sum, s) => sum + s.score, 0) / scored.length;
-  const burden = max * 0.6 + mean * 0.4;
-  return Math.max(1, Math.min(99, Math.round((1 - burden) * 100)));
-}
 
 function pathwayDomainName(pathway: AssessmentPathway): string {
   return pathway === "BRAIN_AGE"

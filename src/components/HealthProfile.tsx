@@ -11,7 +11,7 @@ import { SignalPanel } from "./report/SignalPanel";
 import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
-import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
+import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { actionLabel, actionOf } from "@/lib/signal-band";
 import { RUNG_SCALE } from "@/lib/result-headline";
@@ -52,7 +52,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   const isHighVis = getIsHighVis(userProfile.ageRange);
   const isSeniorMode = getIsSeniorMode(userProfile.ageRange);
   const [showContent, setShowContent] = useState(false);
-  const [displayScore, setDisplayScore] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
 
   // Persists this result against the user's email, then loads their history so
@@ -65,7 +64,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
     return null;
   }
 
-  const currentScore = visualizedResult.score;
   const classification = visualizedResult.classification;
   const likelihoodTier = visualizedResult.likelihoodTier;
   const protocolId = getProtocolId(pathway);
@@ -135,29 +133,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
     return () => clearTimeout(showTimer);
   }, [archetype]);
 
-  // Count-up animation for score
-  useEffect(() => {
-    if (!showContent) return;
-    
-    const duration = 1800;
-    const startTime = Date.now();
-    const startDelay = 400;
-
-    const timeout = setTimeout(() => {
-      const animate = () => {
-        const elapsed = Date.now() - startTime - startDelay;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 4);
-        setDisplayScore(Math.round(eased * currentScore));
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-      requestAnimationFrame(animate);
-    }, startDelay);
-
-    return () => clearTimeout(timeout);
-  }, [showContent, currentScore]);
   
   if (!archetype) {
     return null;
