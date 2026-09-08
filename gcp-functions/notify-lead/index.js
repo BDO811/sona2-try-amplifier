@@ -2,7 +2,18 @@ const { Firestore } = require("@google-cloud/firestore");
 
 const firestore = new Firestore();
 
-const ALLOWED_HEALTH_FOCUS = ["cognitive", "longevity", "mood", "reproductive", "wellness"];
+// The two focuses the live build offers are "wellness" and "sports". "sports"
+// was missing, so every Sports submission was rejected with a 400 before the
+// lead was stored or the email sent. The retired ids stay accepted so a client
+// that has not picked up a new bundle yet still records.
+const ALLOWED_HEALTH_FOCUS = [
+  "wellness",
+  "sports",
+  "cognitive",
+  "longevity",
+  "mood",
+  "reproductive",
+];
 const ALLOWED_BIOLOGICAL_SEX = ["male", "female"];
 const ALLOWED_AGE_RANGE = ["under30", "30-45", "46-60", "60+"];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

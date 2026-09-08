@@ -8,6 +8,7 @@ import { useAssessment, getIsSeniorMode } from "@/context/AssessmentContext";
 import { isDeveloperModeEnabled, isPathwayEnabled } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 import { asset } from "@/lib/asset";
+import { notifyLead } from "@/lib/notify-lead-client";
 
 export interface TriageData {
   biologicalSex: "male" | "female";
@@ -182,31 +183,18 @@ export const TriageFlow = ({ onComplete, onStepChange, externalStep }: TriageFlo
     };
     
 
-    // Save to Firestore and email amit@amplifierhealth.com on every submission
-    if (import.meta.env.VITE_NOTIFY_LEAD_URL) {
-      fetch(import.meta.env.VITE_NOTIFY_LEAD_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: finalData.fullName,
-          email: finalData.email,
-          phone: finalData.phone,
-          healthFocus: finalData.healthFocus,
-          biologicalSex: finalData.biologicalSex,
-          ageRange: finalData.ageRange,
-          language,
-          consentGiven: finalData.consentGiven,
-        }),
-      }).then(async (response) => {
-        if (!response.ok) {
-          console.error('Failed to save lead to Firestore / send notification email:', await response.text());
-        } else {
-          console.log('Lead saved to Firestore and notification email sent');
-        }
-      }).catch((error) => {
-        console.error('Failed to save lead to Firestore / send notification email:', error);
-      });
-    }
+    // Save to Firestore and email on every submission. Fire and forget: a
+    // notification failure must never block someone starting their recording.
+    notifyLead({
+      fullName: finalData.fullName,
+      email: finalData.email,
+      phone: finalData.phone,
+      healthFocus: finalData.healthFocus,
+      biologicalSex: finalData.biologicalSex,
+      ageRange: finalData.ageRange,
+      language,
+      consentGiven: finalData.consentGiven,
+    });
 
     if (typeof window !== 'undefined' && (window as any).fbq) {
       (window as any).fbq('track', 'CompleteRegistration', {
