@@ -9,6 +9,7 @@ import DetailedAnalysisView from "./pages/DetailedAnalysisView";
 import LongitudinalView from "./pages/LongitudinalView";
 import Dashboard from "./pages/Dashboard";
 import ApiDebugView from "./pages/ApiDebugView";
+import PanelPreview from "./pages/PanelPreview";
 import AnalysisFailed from "./pages/AnalysisFailed";
 import RecordingNotSupported from "./pages/RecordingNotSupported";
 import NotFound from "./pages/NotFound";
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/history" element={<LongitudinalView />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/api-debug" element={<ApiDebugView />} />
+            <Route path="/panel-preview" element={<PanelPreview />} />
             <Route path="/analysis-failed" element={<AnalysisFailed onRestart={() => window.location.href = "/"} />} />
             <Route path="/recording-not-supported" element={<RecordingNotSupported onBack={() => window.location.href = "/"} />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

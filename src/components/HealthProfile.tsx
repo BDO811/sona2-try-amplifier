@@ -7,6 +7,7 @@ import { Bell, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
 import { BiometricLabGrid } from "./report/BiometricLabGrid";
+import { SubDimensionPanel } from "./report/SubDimensionPanel";
 import { SignalPanel } from "./report/SignalPanel";
 import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
@@ -348,6 +349,39 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             </motion.h3>
             <SignalPanel
               signals={revealSignals}
+              showContent={showContent}
+              isHighVis={isHighVis}
+              isSeniorMode={isSeniorMode}
+            />
+          </div>
+        )}
+
+        {/* Sub-dimensions from result.extended_metrics — direction, not severity */}
+        {(visualizedResult.extendedMetrics?.length ?? 0) > 0 && (
+          <div className="px-4 py-3 border-b border-[#231200]/10">
+            <motion.h3
+              className={`font-mono uppercase tracking-widest mb-1 ${
+                isHighVis ? 'text-[10px] md:text-xs font-semibold text-[#231200]' : 'text-[9px] font-medium text-[#231200]'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showContent ? 1 : 0 }}
+              transition={{ delay: 1.18 }}
+            >
+              Sub-Dimensions
+            </motion.h3>
+            <motion.p
+              className={`font-mono text-[#2E2E2E] mb-2.5 ${
+                isHighVis ? 'text-[9px] md:text-[10px]' : isSeniorMode ? 'text-[10px]' : 'text-[8px]'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showContent ? 1 : 0 }}
+              transition={{ delay: 1.19 }}
+            >
+              Each of these sits between two ends rather than against a threshold, so none of
+              them is flagged. They describe how the recording read, not what it found.
+            </motion.p>
+            <SubDimensionPanel
+              metrics={visualizedResult.extendedMetrics}
               showContent={showContent}
               isHighVis={isHighVis}
               isSeniorMode={isSeniorMode}
