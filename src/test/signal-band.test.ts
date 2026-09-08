@@ -135,18 +135,18 @@ describe("levelColor", () => {
 });
 
 describe("the merged display bands", () => {
-  it("merges none and low into CLEAR and renames the rest", () => {
-    expect(bandOf("none")).toBe("CLEAR");
-    expect(bandOf("low")).toBe("CLEAR");
-    expect(bandOf("consider")).toBe("WATCH");
-    expect(bandOf("moderate")).toBe("LOADED");
-    expect(bandOf("elevated")).toBe("REDLINE");
+  it("merges none and low into NORMAL and renames the rest", () => {
+    expect(bandOf("none")).toBe("NORMAL");
+    expect(bandOf("low")).toBe("NORMAL");
+    expect(bandOf("consider")).toBe("LOW");
+    expect(bandOf("moderate")).toBe("MODERATE");
+    expect(bandOf("elevated")).toBe("ELEVATED");
   });
 
   it("lands the merge exactly on the API's flagged boundary", () => {
     // NORMAL is precisely the unflagged levels, so one word covers both.
     for (const level of LEVEL_ORDER) {
-      expect(bandOf(level) === "CLEAR").toBe(!isFlaggedLevel(level));
+      expect(bandOf(level) === "NORMAL").toBe(!isFlaggedLevel(level));
     }
   });
 
@@ -157,17 +157,17 @@ describe("the merged display bands", () => {
 
   it("offers the four graded bands in order", () => {
     expect(bandScaleOptions().map((o) => o.key)).toEqual([
-      "CLEAR",
-      "WATCH",
-      "LOADED",
-      "REDLINE",
+      "NORMAL",
+      "LOW",
+      "MODERATE",
+      "ELEVATED",
     ]);
   });
 
   it("gives LOW and MODERATE different colours despite one shared treatment", () => {
     // The docs group consider and moderate under Caution, but they display as
     // two named bands here, so a shared colour would make them look identical.
-    expect(bandColor("WATCH", "light")).not.toBe(bandColor("LOADED", "light"));
+    expect(bandColor("LOW", "light")).not.toBe(bandColor("MODERATE", "light"));
   });
 
   it("uses no lime green or retired colour on either ground", () => {
@@ -230,24 +230,24 @@ describe("the calibration the docs describe", () => {
       { label: "Head Impact", level: "low" },
     ];
     expect(run.map((s) => bandOf(levelOf(s.level)))).toEqual([
-      "LOADED",
-      "LOADED",
-      "LOADED",
-      "WATCH",
-      "WATCH",
-      "WATCH",
-      "CLEAR",
+      "MODERATE",
+      "MODERATE",
+      "MODERATE",
+      "LOW",
+      "LOW",
+      "LOW",
+      "NORMAL",
     ]);
   });
 });
 
 describe("bandForSignal", () => {
-  it("shows head impact only at REDLINE", () => {
+  it("shows head impact only at ELEVATED", () => {
     // A head trauma reading is a serious claim, so it displays ELEVATED or not
     // at all. Everything below reads NORMAL.
-    expect(bandForSignal("head-impact", "elevated")).toBe("REDLINE");
+    expect(bandForSignal("head-impact", "elevated")).toBe("ELEVATED");
     for (const level of ["moderate", "consider", "low", "none"]) {
-      expect(bandForSignal("head-impact", level)).toBe("CLEAR");
+      expect(bandForSignal("head-impact", level)).toBe("NORMAL");
     }
   });
 
@@ -258,9 +258,9 @@ describe("bandForSignal", () => {
 
   it("leaves every other sign on its own band", () => {
     for (const name of ["anxiety", "fatigue", "cardiovascular-strain", "dehydration"]) {
-      expect(bandForSignal(name, "moderate")).toBe("LOADED");
-      expect(bandForSignal(name, "consider")).toBe("WATCH");
-      expect(bandForSignal(name, "low")).toBe("CLEAR");
+      expect(bandForSignal(name, "moderate")).toBe("MODERATE");
+      expect(bandForSignal(name, "consider")).toBe("LOW");
+      expect(bandForSignal(name, "low")).toBe("NORMAL");
     }
   });
 
@@ -268,6 +268,6 @@ describe("bandForSignal", () => {
     // head-impact at moderate displays NORMAL, so it must not count as a flag.
     expect(isFlaggedBand(bandForSignal("head-impact", "moderate"))).toBe(false);
     expect(isFlaggedBand(bandForSignal("anxiety", "consider"))).toBe(true);
-    expect(isFlaggedBand("CLEAR")).toBe(false);
+    expect(isFlaggedBand("NORMAL")).toBe(false);
   });
 });
