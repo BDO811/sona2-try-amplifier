@@ -87,7 +87,16 @@ describe("the two live assessments", () => {
       ["WELLNESS", "WELLNESS PROFILE"],
       ["SPORTS", "ATHLETIC PROFILE"],
     ] as const) {
-      for (const tier of ["NO_RISK", "LOW", "MODERATE", "HIGH", "INCONCLUSIVE"]) {
+      // The six levels the API documents. NO_RISK and HIGH used to appear here
+      // via a translation layer that has been removed.
+      for (const tier of [
+        "NONE",
+        "LOW",
+        "CONSIDER",
+        "MODERATE",
+        "ELEVATED",
+        "INCONCLUSIVE",
+      ]) {
         const headline = classificationFor(tier, pathway);
         expect(headline).toBe(expected);
         for (const word of ["ELEVATED", "RISK", "OPTIMAL", "STABLE", "FUNCTION", "VARIANCE"]) {

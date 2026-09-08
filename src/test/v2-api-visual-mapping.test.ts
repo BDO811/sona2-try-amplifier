@@ -2,9 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   isV2Result,
   transformV2ResultToVisualization,
-  v2LevelToLikelihoodTier,
   V2JobDetail,
 } from "@/lib/v2-api-visual-mapping";
+import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
+import { getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
+import { bandColor, bandOfLevel } from "@/lib/signal-band";
 
 // A real, unedited response from the deployed analyzeAudio Cloud Function
 // (Amplifier v2 API, model "pulse") captured 2026-09-05 against a 36s sample.
@@ -23,14 +25,62 @@ describe("v2 result detection", () => {
   });
 });
 
-describe("v2 level → likelihood tier", () => {
-  it("maps every documented level", () => {
-    expect(v2LevelToLikelihoodTier("none")).toBe("NO_RISK");
-    expect(v2LevelToLikelihoodTier("low")).toBe("LOW");
-    expect(v2LevelToLikelihoodTier("consider")).toBe("MODERATE");
-    expect(v2LevelToLikelihoodTier("moderate")).toBe("MODERATE");
-    expect(v2LevelToLikelihoodTier("elevated")).toBe("HIGH");
-    expect(v2LevelToLikelihoodTier("inconclusive")).toBe("INCONCLUSIVE");
+describe("overall_level carried through as the tier", () => {
+  const tierFor = (level: string) =>
+    transformV2ResultToVisualization(
+      {
+        job_id: "j",
+        status: "done",
+        created_at: "2026-09-08T00:00:00Z",
+        result: {
+          summary: { overall_level: level, flagged_signs: [], primary_signals: [] },
+          signals: [],
+          extended_metrics: [],
+          audio_quality: { voice_percentage: 90, audio_clarity: 90, issues: [] },
+        },
+      } as never,
+      "WELLNESS"
+    ).likelihoodTier;
+
+  it("keeps all six documented levels distinct", () => {
+    // consider and moderate used to both arrive as MODERATE.
+    const tiers = ["none", "low", "consider", "moderate", "elevated", "inconclusive"].map(tierFor);
+    expect(tiers).toEqual([
+      "NONE",
+      "LOW",
+      "CONSIDER",
+      "MODERATE",
+      "ELEVATED",
+      "INCONCLUSIVE",
+    ]);
+    expect(new Set(tiers).size).toBe(6);
+  });
+
+  it("invents no level the API does not return", () => {
+    // NO_RISK and HIGH were not levels, so bandOfLevel could not recognise
+    // them: `none` and `elevated` both coloured as inconclusive grey.
+    for (const tier of ["none", "low", "consider", "moderate", "elevated"].map(tierFor)) {
+      expect(bandOfLevel(tier)).not.toBe("INCONCLUSIVE");
+    }
+    expect(getStatusColorFromLikelihoodTier(tierFor("none"))).toBe(bandColor("NORMAL", "light"));
+    expect(getStatusColorFromLikelihoodTier(tierFor("elevated"))).toBe(
+      bandColor("ELEVATED", "light")
+    );
+    expect(getStatusColorFromLikelihoodTier(tierFor("consider"))).not.toBe(
+      getStatusColorFromLikelihoodTier(tierFor("moderate"))
+    );
+  });
+
+  it("gives each level its own display wording", () => {
+    const words = ["none", "low", "consider", "moderate", "elevated", "inconclusive"]
+      .map(tierFor)
+      .map(formatLikelihoodTierForDisplay);
+    expect(new Set(words).size).toBe(6);
+    expect(formatLikelihoodTierForDisplay(tierFor("moderate"))).toBe("Continue to Monitor");
+  });
+
+  it("reads inconclusive when the summary has no level at all", () => {
+    expect(tierFor("")).toBe("INCONCLUSIVE");
   });
 });
 
@@ -169,7 +219,7 @@ describe("condition jobs (singular signal, no summary)", () => {
 
   it("handles the singular signal shape", () => {
     const v = transformV2ResultToVisualization(conditionJob, "WELLNESS");
-    expect(v.likelihoodTier).toBe("HIGH");
+    expect(v.likelihoodTier).toBe("ELEVATED");
     expect(v.biomarkers).toHaveLength(1);
     expect(v.labMetrics).toHaveLength(1);
     expect(v.flaggedCount).toBe(1);

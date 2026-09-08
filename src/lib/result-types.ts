@@ -105,19 +105,21 @@ export interface VisualizedResult {
 /**
  * Display wording for `summary.overall_level`.
  *
- * The keys are the six levels the v2 API documents. Anything else returns the
- * input unchanged rather than inventing a label for a level this build has not
- * seen.
+ * One entry per documented level, all six distinct. The NO_RISK and HIGH keys
+ * that used to sit here were from a translation layer that has been removed:
+ * they are not levels the API returns, and mapping onto them collapsed consider
+ * and moderate into a single outcome.
+ *
+ * Anything unrecognised returns the input unchanged rather than inventing a
+ * label for a level this build has not seen.
  */
 export function formatLikelihoodTierForDisplay(tier: string): string {
   const map: Record<string, string> = {
     NONE: "Nothing Detected",
-    NO_RISK: "Nothing Detected",
     LOW: "Normal",
     CONSIDER: "Worth Considering",
     MODERATE: "Continue to Monitor",
     ELEVATED: "Review Recommended",
-    HIGH: "Review Recommended",
     INCONCLUSIVE: "Inconclusive",
   };
   return map[tier.toUpperCase()] || tier;

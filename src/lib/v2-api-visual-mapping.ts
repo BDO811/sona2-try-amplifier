@@ -294,32 +294,6 @@ const FEATURE_SHORT_LABEL: Record<string, string> = {
 // Level helpers
 // ============================================================================
 
-/** v2 `level` → the likelihood tier the report components already understand. */
-export function v2LevelToLikelihoodTier(level: string | undefined): string {
-  switch ((level || "").toLowerCase()) {
-    case "none":
-      return "NO_RISK";
-    case "low":
-      return "LOW";
-    case "consider":
-    case "moderate":
-      return "MODERATE";
-    case "elevated":
-      return "HIGH";
-    case "inconclusive":
-      return "INCONCLUSIVE";
-    default:
-      return "INCONCLUSIVE";
-  }
-}
-
-/**
- * Pseudo z-score used purely to drive the existing colour logic in
- * BiometricLabGrid / DetailedAnalysisView (< 2 green, < 3 amber, else red).
- * v2 does not publish z-scores, so this encodes severity, not standard
- * deviations, and is never surfaced as a number to the user.
- */
-
 const LEVEL_RANK: Record<string, number> = {
   none: 0,
   low: 1,
@@ -442,7 +416,17 @@ export function transformV2ResultToVisualization(
 
   const summary = result.summary;
   const overallLevel = summary?.overall_level || worstLevel(signals);
-  const likelihoodTier = v2LevelToLikelihoodTier(overallLevel);
+  /*
+    summary.overall_level, carried through as the API reports it rather than
+    translated into a risk vocabulary.
+
+    It used to pass through v2LevelToLikelihoodTier, which mapped the six
+    documented levels onto NO_RISK / LOW / MODERATE / HIGH / INCONCLUSIVE. That
+    collapsed consider and moderate into one value, and because NO_RISK and HIGH
+    are not levels levelOf() recognises, both fell back to inconclusive: a clean
+    result and the most severe result each rendered in the inconclusive grey.
+  */
+  const likelihoodTier = (overallLevel || "inconclusive").toUpperCase();
 
   const audioQuality = result.audio_quality || {};
   const voicePercentage = audioQuality.voice_percentage;
