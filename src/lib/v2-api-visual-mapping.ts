@@ -414,6 +414,7 @@ export function mapSignalsToBiomarkers(signals: V2Signal[]): BiomarkerDefinition
       clinicalContext,
       normalRange: "Below flagging threshold",
       zScore: levelToColorScore(s.level),
+      level: s.level,
     };
   });
 }

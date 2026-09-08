@@ -7,6 +7,9 @@ import { toast } from "sonner";
 import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { jsPDF } from "jspdf";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
+import { bandColor, bandForLevel, bandScaleOptions } from "@/lib/signal-band";
+import { RUNG_SCALE } from "@/lib/result-headline";
+import { OptionScale } from "@/components/report/OptionScale";
 
 // Descriptions for audio quality metrics (matching AnalysisFailed page)
 const METRIC_DESCRIPTIONS = {
@@ -52,13 +55,21 @@ const DetailedAnalysisView = () => {
       : [0, 0, 0];
   };
 
-  // Helper function to get biomarker color based on z-score (matching BiometricLabGrid)
-  const getBiomarkerColor = (zScore?: number): string => {
-    if (zScore === undefined) return "#1E5631"; // Default cyan
+  /**
+   * Colour for a biomarker in the PDF and on the range track.
+   *
+   * Prefers the API level and its band colour. The z-score fallback exists for
+   * v1 results, which carry no level; its old ramp used the retired emerald
+   * #10B981 and amber/red outside the brand palette, so it now maps onto the
+   * band colours instead.
+   */
+  const getBiomarkerColor = (zScore?: number, level?: string): string => {
+    if (level) return bandColor(bandForLevel(level));
+    if (zScore === undefined) return BRAND_COLOR;
     const absZScore = Math.abs(zScore);
-    if (absZScore < 2.0) return "#10B981"; // Green - normal
-    if (absZScore < 3.0) return "#F59E0B"; // Orange
-    return "#EF4444"; // Red
+    if (absZScore < 2.0) return bandColor("LOW");
+    if (absZScore < 3.0) return bandColor("HIGH");
+    return bandColor("VERY HIGH");
   };
 
   const handleDownloadPDF = () => {
@@ -243,7 +254,7 @@ const DetailedAnalysisView = () => {
         yPosition += 5;
 
         // Value and Unit - with color coding matching BiometricLabGrid
-        const biomarkerColor = hexToRgb(getBiomarkerColor(biomarker.zScore));
+        const biomarkerColor = hexToRgb(getBiomarkerColor(biomarker.zScore, biomarker.level));
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(biomarkerColor[0], biomarkerColor[1], biomarkerColor[2]);
@@ -467,6 +478,28 @@ const DetailedAnalysisView = () => {
           {/* Prominent Outcome - Below header, matching dashboard style */}
           {visualizedResult && (
             <div className="mb-8 text-center">
+              {/*
+                Same assessment scale as the results screen, so the two pages
+                agree at a glance. The rung travels on the result alongside the
+                classification phrase, computed from one list of levels.
+              */}
+              {visualizedResult.headlineRung && (
+                <div className="max-w-md mx-auto mb-5">
+                  <div
+                    className="font-mono text-[9px] uppercase tracking-[0.2em] mb-2.5"
+                    style={{ color: "#B79862" }}
+                  >
+                    Assessment
+                  </div>
+                  <OptionScale
+                    options={RUNG_SCALE}
+                    activeKey={visualizedResult.headlineRung}
+                    size="lg"
+                    ariaLabel="Assessment outcome"
+                  />
+                </div>
+              )}
+
               {/* Likelihood tier in brackets (like SpectrogramWaveform) */}
               <div className="relative inline-flex items-center justify-center mb-3">
                 {/* Left Bracket */}
@@ -541,24 +574,26 @@ const DetailedAnalysisView = () => {
               >
                 <div className="p-4">
                   {/* Title Row */}
-                  <div className="flex items-baseline justify-between mb-3">
+                  <div className="flex items-baseline justify-between gap-3 mb-3">
                     <div>
                       <h3 className="font-mono text-sm text-white/90 font-medium">
                         {biomarker.title}
                       </h3>
                     </div>
-                    <div className="text-right">
-                      <span 
-                        className="font-mono text-lg font-semibold"
-                        style={{ 
-                          color: biomarker.zScore !== undefined 
-                            ? (() => {
-                                const absZScore = Math.abs(biomarker.zScore);
-                                if (absZScore < 2.0) return "#10B981"; // Green - normal
-                                if (absZScore < 3.0) return "#F59E0B"; // Orange
-                                return "#EF4444"; // Red
-                              })()
-                            : BRAND_COLOR
+                    {/*
+                      The raw score, kept on the detail page but demoted and
+                      labelled. It is a per-sign probability, so it is not the
+                      display primitive - the band below is - and the API
+                      documents it as internal. Coloured from the band rather
+                      than from a z-score ramp, which used the retired emerald.
+                    */}
+                    <div className="text-right flex-shrink-0">
+                      <span
+                        className="font-mono text-base font-semibold"
+                        style={{
+                          color: biomarker.level
+                            ? bandColor(bandForLevel(biomarker.level))
+                            : BRAND_COLOR,
                         }}
                       >
                         {biomarker.value}
@@ -566,9 +601,27 @@ const DetailedAnalysisView = () => {
                       <span className="font-mono text-xs text-white/40 ml-1">
                         {biomarker.unit}
                       </span>
+                      <div className="font-mono text-[8px] uppercase tracking-wider text-white/25 mt-0.5">
+                        signal score
+                      </div>
                     </div>
                   </div>
-                  
+
+                  {/* Where this signal sits, on the same scale as every other */}
+                  {biomarker.level && (
+                    <div className="mb-3">
+                      <OptionScale
+                        options={bandScaleOptions()}
+                        activeKey={
+                          bandForLevel(biomarker.level) === "INCONCLUSIVE"
+                            ? null
+                            : bandForLevel(biomarker.level)
+                        }
+                        ariaLabel={`${biomarker.title}: ${bandForLevel(biomarker.level)}`}
+                      />
+                    </div>
+                  )}
+
                   {/* Definition */}
                   <p className="font-mono text-[11px] text-white/50 leading-relaxed mb-3">
                     {biomarker.definition}

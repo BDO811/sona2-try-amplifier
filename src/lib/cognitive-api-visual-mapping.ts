@@ -94,6 +94,12 @@ export interface BiomarkerDefinition {
   clinicalContext: string;
   normalRange: string;
   zScore?: number; // Optional z-score for color determination
+  /**
+   * Raw v2 API level, carried so the detailed view can band a biomarker
+   * directly instead of matching it back to a signal by name. Absent on v1
+   * results, which have no level to carry.
+   */
+  level?: string;
 }
 
 /** v2 `extended_metrics[]` entry — a bipolar sub-dimension score. */
