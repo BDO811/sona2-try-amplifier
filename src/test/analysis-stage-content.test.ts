@@ -25,11 +25,23 @@ describe("getStageContent", () => {
     }
   });
 
-  it("gives every stage at least six detail lines", () => {
+  it("gives every stage enough detail lines to rotate", () => {
+    // Five rather than six: withholding a sign legitimately shortens a model's
+    // stage-4 list, and pulse publishes exactly six signs of which one is
+    // suppressed. Padding it would mean inventing a sign.
     for (const model of ALL_MODELS) {
       for (const stage of getStageContent(model)) {
-        expect(stage.details.length).toBeGreaterThanOrEqual(6);
+        expect(stage.details.length).toBeGreaterThanOrEqual(5);
       }
+    }
+  });
+
+  it("never names a withheld sign in the stage copy", () => {
+    // The screen must not announce work whose result it then withholds.
+    for (const model of ALL_MODELS) {
+      const signs = getStageContent(model)[3].details;
+      expect(signs).not.toContain("ELEVATED BLOOD PRESSURE");
+      expect(signs).not.toContain("HEAD IMPACT");
     }
   });
 

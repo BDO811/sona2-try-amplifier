@@ -1,4 +1,5 @@
 import type { AmplifierModelName } from "@/lib/pathway-model-map";
+import { isSuppressedSign } from "@/lib/suppressed-signs";
 
 /**
  * Readable copy for the analysis screen's six stages.
@@ -34,74 +35,85 @@ export interface StageContent {
  * the user's chosen model genuinely measures. Showing "elevated blood pressure"
  * during a mental-state scan would be describing work that is not happening.
  */
-const MODEL_SIGN_LABELS: Record<AmplifierModelName, string[]> = {
+const MODEL_SIGNS: Record<AmplifierModelName, Array<{ name: string; label: string }>> = {
   pulse: [
-    "MOOD DISRUPTION",
-    "ANXIETY",
-    "STRESS",
-    "FATIGUE",
-    "DEHYDRATION",
-    "ELEVATED BLOOD PRESSURE",
+    { name: "mood-disruption", label: "MOOD DISRUPTION" },
+    { name: "anxiety", label: "ANXIETY" },
+    { name: "stress", label: "STRESS" },
+    { name: "fatigue", label: "FATIGUE" },
+    { name: "dehydration", label: "DEHYDRATION" },
+    { name: "elevated-blood-pressure", label: "ELEVATED BLOOD PRESSURE" },
   ],
   clarity: [
-    "COGNITIVE IMPAIRMENT",
-    "SPEECH TIMING",
-    "LEXICAL RETRIEVAL",
-    "ARTICULATION PRECISION",
-    "PAUSE STRUCTURE",
-    "RESPONSE LATENCY",
+    { name: "cognitive-impairment", label: "COGNITIVE IMPAIRMENT" },
+    { name: "speech-timing", label: "SPEECH TIMING" },
+    { name: "lexical-retrieval", label: "LEXICAL RETRIEVAL" },
+    { name: "articulation-precision", label: "ARTICULATION PRECISION" },
+    { name: "pause-structure", label: "PAUSE STRUCTURE" },
+    { name: "response-latency", label: "RESPONSE LATENCY" },
   ],
   haven: [
-    "MOOD DISRUPTION",
-    "ANXIETY",
-    "STRESS",
-    "HYPERVIGILANCE",
-    "ATTENTION DYSREGULATION",
-    "FATIGUE",
+    { name: "mood-disruption", label: "MOOD DISRUPTION" },
+    { name: "anxiety", label: "ANXIETY" },
+    { name: "stress", label: "STRESS" },
+    { name: "hypervigilance", label: "HYPERVIGILANCE" },
+    { name: "attention-dysregulation", label: "ATTENTION DYSREGULATION" },
+    { name: "fatigue", label: "FATIGUE" },
   ],
   tide: [
-    "ELEVATED BLOOD PRESSURE",
-    "METABOLIC LOAD",
-    "DEHYDRATION",
-    "IRON DEFICIENCY",
-    "FATIGUE",
-    "DRY MOUTH",
+    { name: "elevated-blood-pressure", label: "ELEVATED BLOOD PRESSURE" },
+    { name: "metabolic-load", label: "METABOLIC LOAD" },
+    { name: "dehydration", label: "DEHYDRATION" },
+    { name: "iron-deficiency", label: "IRON DEFICIENCY" },
+    { name: "fatigue", label: "FATIGUE" },
+    { name: "dry-mouth", label: "DRY MOUTH" },
   ],
   aria: [
-    "ELEVATED ANDROGENS",
-    "IRON DEFICIENCY",
-    "DEHYDRATION",
-    "MOOD DISRUPTION",
-    "FATIGUE",
-    "ANXIETY",
-    "ELEVATED BLOOD PRESSURE",
+    { name: "elevated-androgens", label: "ELEVATED ANDROGENS" },
+    { name: "iron-deficiency", label: "IRON DEFICIENCY" },
+    { name: "dehydration", label: "DEHYDRATION" },
+    { name: "mood-disruption", label: "MOOD DISRUPTION" },
+    { name: "fatigue", label: "FATIGUE" },
+    { name: "anxiety", label: "ANXIETY" },
+    { name: "elevated-blood-pressure", label: "ELEVATED BLOOD PRESSURE" },
   ],
   breath: [
-    "AIRWAY OBSTRUCTION PATTERN",
-    "ALLERGY",
-    "RESPIRATORY RESONANCE",
-    "BREATH SUPPORT",
-    "EXPIRATORY FLOW",
-    "NASAL RESONANCE",
+    { name: "airway-obstruction-pattern", label: "AIRWAY OBSTRUCTION PATTERN" },
+    { name: "allergy", label: "ALLERGY" },
+    { name: "respiratory-resonance", label: "RESPIRATORY RESONANCE" },
+    { name: "breath-support", label: "BREATH SUPPORT" },
+    { name: "expiratory-flow", label: "EXPIRATORY FLOW" },
+    { name: "nasal-resonance", label: "NASAL RESONANCE" },
   ],
   harbor: [
-    "ALCOHOL USE PATTERN",
-    "SUBSTANCE USE PATTERN",
-    "EMOTIONAL DESTABILIZATION",
-    "ANXIETY",
-    "STRESS",
-    "FATIGUE",
+    { name: "alcohol-use-pattern", label: "ALCOHOL USE PATTERN" },
+    { name: "substance-use-pattern", label: "SUBSTANCE USE PATTERN" },
+    { name: "emotional-destabilization", label: "EMOTIONAL DESTABILIZATION" },
+    { name: "anxiety", label: "ANXIETY" },
+    { name: "stress", label: "STRESS" },
+    { name: "fatigue", label: "FATIGUE" },
   ],
   apex: [
-    "HEAD IMPACT",
-    "COGNITIVE LOAD",
-    "FATIGUE",
-    "DEHYDRATION",
-    "STRESS",
-    "ANXIETY",
-    "CARDIOVASCULAR STRAIN",
+    { name: "head-impact", label: "HEAD IMPACT" },
+    { name: "cognitive-load", label: "COGNITIVE LOAD" },
+    { name: "fatigue", label: "FATIGUE" },
+    { name: "dehydration", label: "DEHYDRATION" },
+    { name: "stress", label: "STRESS" },
+    { name: "anxiety", label: "ANXIETY" },
+    { name: "cardiovascular-strain", label: "CARDIOVASCULAR STRAIN" },
   ],
 };
+
+/**
+ * Sign labels for stage 4, with the withheld signs filtered out.
+ *
+ * Keyed by sign id rather than held as display strings, so the suppression list
+ * is what decides and the two cannot drift. Before this, the analysis screen
+ * announced HEAD IMPACT during a Sports run whose results never mention it.
+ */
+function shownSignLabels(model: AmplifierModelName): string[] {
+  return MODEL_SIGNS[model].filter((s) => !isSuppressedSign(s.name)).map((s) => s.label);
+}
 
 // Note: clarity publishes a single sign and breath two, so those two lists are
 // filled out with the vocal features the sign is derived from. Every other
@@ -218,7 +230,7 @@ export function getStageContent(model: AmplifierModelName): StageContent[] {
     { text: "ISOLATING VOCAL SIGNAL...", details: AUDIO_QUALITY_DETAILS },
     { text: "MAPPING ACOUSTIC FEATURES...", details: PROSODY_DETAILS },
     { text: "ANALYZING VOICE QUALITY...", details: VOICE_QUALITY_DETAILS },
-    { text: "SCORING BIOMARKER SIGNALS...", details: MODEL_SIGN_LABELS[model] },
+    { text: "SCORING BIOMARKER SIGNALS...", details: shownSignLabels(model) },
     {
       text: "RESOLVING SUB-DIMENSIONS...",
       details: EXTENDED_METRICS_BY_MODEL[model] ?? EXTENDED_METRIC_FALLBACK,

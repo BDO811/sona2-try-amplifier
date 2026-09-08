@@ -28,6 +28,7 @@
 
 import { AssessmentPathway } from "@/context/AssessmentContext";
 import { rungFor } from "@/lib/result-headline";
+import { isSuppressedSign } from "@/lib/suppressed-signs";
 import {
   VisualizedResult,
   LabMetric,
@@ -328,17 +329,6 @@ function levelToColorScore(level: string | undefined): number | undefined {
   }
 }
 
-/**
- * Signs withheld from every surface, by product decision rather than anything
- * the API says. elevated-blood-pressure is dropped outright: it reads as a
- * clinical measurement the voice model is not making, and a consumer screen is
- * the wrong place to imply one.
- *
- * Filtered at the mapper so there is a single choke point. Screens, the PDF
- * export and the saved voice history all read from its output, so none of them
- * can reintroduce it.
- */
-const SUPPRESSED_SIGNS = new Set(["elevated-blood-pressure", "head-impact"]);
 
 const LEVEL_RANK: Record<string, number> = {
   none: 0,
@@ -469,7 +459,7 @@ export function transformV2ResultToVisualization(
 
   // Signals dropped before anything downstream sees them, so they cannot reach
   // a screen, the PDF, the saved history or the headline grading.
-  const shownSignals = signals.filter((s) => !SUPPRESSED_SIGNS.has(s.name));
+  const shownSignals = signals.filter((s) => !isSuppressedSign(s.name));
 
   // Most-severe signal first, so the reveal screen leads with what matters.
   const orderedSignals = [...shownSignals].sort(
