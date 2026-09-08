@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { HEADLINE_LADDER, STRONG_SIGNAL_FLOOR, headlineFor } from "@/lib/result-headline";
+import {
+  HEADLINE_COPY,
+  HEADLINE_VARIANTS,
+  STRONG_SIGNAL_FLOOR,
+  headlineFor,
+  rungFor,
+  type HeadlineRung,
+} from "@/lib/result-headline";
 
 const h = (name: string, levels: string[]) => headlineFor({ name, levels });
 
@@ -9,14 +16,14 @@ describe("headlineFor", () => {
     expect(h("WELLNESS", ["none", "none"])).toBe("OPTIMAL WELLNESS FUNCTION");
   });
 
-  it("leads positive when several signals hold and nothing reached HIGH", () => {
+  it("gives a good outcome whenever two signals are reading well", () => {
+    // The brief. Reached regardless of how high the remaining signals went.
     expect(h("ATHLETIC", ["low", "low", "consider"])).toBe("STRONG ATHLETIC FOUNDATION");
-  });
-
-  it("stays warm when signals hold alongside flagged ones", () => {
-    // The brief's case, and the shape of a real apex run.
     expect(h("ATHLETIC", ["low", "low", "moderate", "moderate", "consider"])).toBe(
-      "RESILIENT ATHLETIC BASELINE"
+      "STRONG ATHLETIC FOUNDATION"
+    );
+    expect(h("ATHLETIC", ["none", "low", "elevated", "elevated"])).toBe(
+      "STRONG ATHLETIC FOUNDATION"
     );
   });
 
@@ -36,6 +43,14 @@ describe("headlineFor", () => {
   it("degrades gently rather than turning negative", () => {
     expect(h("ATHLETIC", ["low", "moderate", "moderate"])).toBe("STEADY ATHLETIC BASELINE");
     expect(h("ATHLETIC", ["moderate", "elevated", "consider"])).toBe("ATHLETIC PROFILE IN FOCUS");
+  });
+
+  it("reserves an optimal-whole claim for a clean result", () => {
+    // The good rung sits above flagged rows, so it must not claim the whole
+    // picture is optimal. Only the clean rung may.
+    expect(rungFor({ levels: ["low", "low", "moderate"] })).toBe("good");
+    expect(HEADLINE_COPY.good).not.toContain("OPTIMAL");
+    expect(HEADLINE_COPY.clean).toContain("OPTIMAL");
   });
 
   it("uses no negative or diagnostic wording at any rung", () => {
@@ -77,24 +92,57 @@ describe("headlineFor", () => {
       .fill("low")
       .concat(["moderate", "moderate"]);
     const atFloor = Array(STRONG_SIGNAL_FLOOR).fill("low").concat(["moderate", "moderate"]);
-    expect(h("ATHLETIC", justUnder)).not.toContain("RESILIENT");
-    expect(h("ATHLETIC", atFloor)).toBe("RESILIENT ATHLETIC BASELINE");
+    expect(rungFor({ levels: justUnder })).not.toBe("good");
+    expect(rungFor({ levels: atFloor })).toBe("good");
   });
 });
 
-describe("HEADLINE_LADDER", () => {
-  it("documents every rung the function can return", () => {
-    const produced = new Set([
-      h("X", ["none"]),
-      h("X", ["low", "low", "consider"]),
-      h("X", ["low", "low", "moderate"]),
-      h("X", ["low", "moderate", "moderate"]),
-      h("X", ["moderate", "moderate"]),
-      h("X", ["inconclusive"]),
-    ]);
-    const documented = new Set(HEADLINE_LADDER.map((r) => r.template.replace("{NAME}", "X")));
-    for (const headline of produced) {
-      expect(documented).toContain(headline);
+describe("the vocabulary catalogue", () => {
+  const RUNGS: HeadlineRung[] = ["clean", "good", "steady", "focus", "unreadable"];
+
+  it("offers alternatives for every rung", () => {
+    for (const rung of RUNGS) {
+      expect(HEADLINE_VARIANTS[rung].length).toBeGreaterThanOrEqual(3);
     }
+  });
+
+  it("keeps the copy in use inside its own rung's variants", () => {
+    for (const rung of RUNGS) {
+      expect(HEADLINE_VARIANTS[rung]).toContain(HEADLINE_COPY[rung]);
+    }
+  });
+
+  it("gives every variant a name slot to fill", () => {
+    for (const rung of RUNGS) {
+      for (const variant of HEADLINE_VARIANTS[rung]) {
+        expect(variant).toContain("{NAME}");
+      }
+    }
+  });
+
+  it("uses no risk or diagnostic wording in any variant", () => {
+    const banned = ["RISK", "ELEVATED", "POOR", "ABNORMAL", "DEFICIENT", "IMPAIRED", "DISEASE"];
+    for (const rung of RUNGS) {
+      for (const variant of HEADLINE_VARIANTS[rung]) {
+        for (const word of banned) {
+          expect(variant).not.toContain(word);
+        }
+      }
+    }
+  });
+
+  it("claims optimal or peak condition only on the clean rung", () => {
+    for (const rung of RUNGS) {
+      if (rung === "clean") continue;
+      for (const variant of HEADLINE_VARIANTS[rung]) {
+        expect(variant).not.toContain("OPTIMAL");
+        expect(variant).not.toContain("PEAK");
+      }
+    }
+  });
+
+  it("has no duplicate wording across rungs", () => {
+    const all = RUNGS.flatMap((r) => HEADLINE_VARIANTS[r]);
+    expect(new Set(all).size).toBe(all.length);
   });
 });

@@ -1,4 +1,4 @@
-import { bandForLevel, bandRank, type SignalBand } from "@/lib/signal-band";
+import { bandForLevel, type SignalBand } from "@/lib/signal-band";
 
 /**
  * The headline above the results, graded from the signals themselves.
@@ -8,17 +8,16 @@ import { bandForLevel, bandRank, type SignalBand } from "@/lib/signal-band";
  * is written to be constructive, so there is no outcome that reads as a verdict
  * against the user.
  *
- * What the ladder will not do is claim OPTIMAL FUNCTION while signals are
- * flagged high. On a real apex run, two signals sat at NONE/LOW while five were
- * flagged and two of those reached HIGH, with the API returning
- * recommended_action "review". A headline reading OPTIMAL ATHLETIC FUNCTION
- * would have printed directly above those five rows and contradicted them on
- * the same screen. So OPTIMAL is reserved for a genuinely clean result, and the
- * rungs beneath it stay warm without overclaiming: RESILIENT, STRONG, STEADY.
+ * Two signals reading well lands on the "good" rung regardless of how high the
+ * rest went, which is the brief. What that rung will not do is claim the whole
+ * picture is optimal: on a real apex run two signals sat at LOW while five were
+ * flagged, two of those at HIGH, with the API returning recommended_action
+ * "review". So the good rung names a strong foundation, which stays true
+ * printed above flagged rows, and OPTIMAL FUNCTION is kept for a clean result.
  *
- * To make OPTIMAL fire on the looser "two signals doing well" rule regardless
- * of what else is flagged, move the OPTIMAL_FUNCTION return into the
- * `strong >= STRONG_SIGNAL_FLOOR` branch below. That is the whole change.
+ * Wording is separate from grading. HEADLINE_COPY holds the line in use per
+ * rung; HEADLINE_VARIANTS holds the approved alternatives. Swapping copy is a
+ * one-line edit and needs no change to how a result is graded.
  */
 
 /** How many signals must be reading well before the headline leans positive. */
@@ -36,62 +35,84 @@ function isStrong(band: SignalBand): boolean {
   return band === "NONE" || band === "LOW";
 }
 
-/** HIGH or VERY HIGH — the levels that make an OPTIMAL claim indefensible. */
-function isHigh(band: SignalBand): boolean {
-  return bandRank(band) >= bandRank("HIGH");
-}
+export type HeadlineRung = "clean" | "good" | "steady" | "focus" | "unreadable";
 
-export function headlineFor({ name, levels }: HeadlineInput): string {
-  const bands = levels.map(bandForLevel);
-  const readable = bands.filter((b) => b !== "INCONCLUSIVE");
+/**
+ * Which rung a result lands on. Separated from the wording so the vocabulary
+ * can be swapped without touching the grading.
+ */
+export function rungFor({ levels }: { levels: string[] }): HeadlineRung {
+  const readable = levels.map(bandForLevel).filter((b) => b !== "INCONCLUSIVE");
 
   // Nothing readable: the recapture card carries this state, but the headline
   // must not imply a finding either way.
-  if (readable.length === 0) return `${name} ASSESSMENT INCONCLUSIVE`;
+  if (readable.length === 0) return "unreadable";
 
   const strong = readable.filter(isStrong).length;
-  const high = readable.filter(isHigh).length;
   const flagged = readable.length - strong;
 
-  // Genuinely clean: nothing flagged at all.
-  if (flagged === 0) return `OPTIMAL ${name} FUNCTION`;
-
-  // Several signals reading well and nothing has reached HIGH.
-  if (high === 0 && strong >= STRONG_SIGNAL_FLOOR) return `STRONG ${name} FOUNDATION`;
-
-  // The brief's case: a couple of signals holding up even though others are
-  // flagged. Warm, and true — a resilient baseline is not a claim that
-  // everything is optimal.
-  if (strong >= STRONG_SIGNAL_FLOOR) return `RESILIENT ${name} BASELINE`;
-
-  // One signal holding.
-  if (strong === 1) return `STEADY ${name} BASELINE`;
-
-  // Nothing reading clean. Still framed as something to work with.
-  return `${name} PROFILE IN FOCUS`;
+  if (flagged === 0) return "clean";
+  // The brief: two signals reading well is a good outcome, even with others
+  // flagged. Note this rung is reached regardless of how high the rest went,
+  // so its wording must stay true when it sits above flagged rows — which is
+  // why it names a strong foundation rather than an optimal whole.
+  if (strong >= STRONG_SIGNAL_FLOOR) return "good";
+  if (strong === 1) return "steady";
+  return "focus";
 }
 
+/** The wording in use per rung. Swap from HEADLINE_VARIANTS below. */
+export const HEADLINE_COPY: Record<HeadlineRung, string> = {
+  clean: "OPTIMAL {NAME} FUNCTION",
+  good: "STRONG {NAME} FOUNDATION",
+  steady: "STEADY {NAME} BASELINE",
+  focus: "{NAME} PROFILE IN FOCUS",
+  unreadable: "{NAME} ASSESSMENT INCONCLUSIVE",
+};
+
 /**
- * The graded vocabulary, strongest first. Kept here so the ladder above and any
- * copy review read from the same list.
+ * Approved alternatives per rung, strongest first within each. Any of these can
+ * be dropped into HEADLINE_COPY above; all are informational rather than
+ * diagnostic, and none carries a risk verdict.
  */
-export const HEADLINE_LADDER = [
-  { rung: "clean", template: "OPTIMAL {NAME} FUNCTION", when: "nothing flagged" },
-  {
-    rung: "mostly clean",
-    template: "STRONG {NAME} FOUNDATION",
-    when: `nothing at HIGH and ${STRONG_SIGNAL_FLOOR}+ reading well`,
-  },
-  {
-    rung: "mixed, holding",
-    template: "RESILIENT {NAME} BASELINE",
-    when: `${STRONG_SIGNAL_FLOOR}+ reading well alongside flagged signals`,
-  },
-  { rung: "one holding", template: "STEADY {NAME} BASELINE", when: "exactly one reading well" },
-  { rung: "none clean", template: "{NAME} PROFILE IN FOCUS", when: "nothing reading well" },
-  {
-    rung: "unreadable",
-    template: "{NAME} ASSESSMENT INCONCLUSIVE",
-    when: "no readable signals",
-  },
-] as const;
+export const HEADLINE_VARIANTS: Record<HeadlineRung, string[]> = {
+  clean: [
+    "OPTIMAL {NAME} FUNCTION",
+    "PEAK {NAME} CONDITION",
+    "EXEMPLARY {NAME} PROFILE",
+    "{NAME} READINESS CONFIRMED",
+    "{NAME} FUNCTION OPTIMAL",
+  ],
+  good: [
+    "STRONG {NAME} FOUNDATION",
+    "SOLID {NAME} FOUNDATION",
+    "FAVORABLE {NAME} PROFILE",
+    "RESILIENT {NAME} BASELINE",
+    "WELL-REGULATED {NAME} PROFILE",
+    "SOUND {NAME} CONDITIONING",
+    "{NAME} CAPACITY INTACT",
+    "{NAME} RESILIENCE CONFIRMED",
+  ],
+  steady: [
+    "STEADY {NAME} BASELINE",
+    "MEASURED {NAME} PROFILE",
+    "{NAME} BASELINE HOLDING",
+    "{NAME} FOUNDATION PRESENT",
+  ],
+  focus: [
+    "{NAME} PROFILE IN FOCUS",
+    "{NAME} PROFILE IN TRANSITION",
+    "ACTIVE {NAME} MONITORING",
+    "{NAME} PROFILE UNDER OBSERVATION",
+  ],
+  unreadable: [
+    "{NAME} ASSESSMENT INCONCLUSIVE",
+    "{NAME} SIGNALS UNREADABLE",
+    "{NAME} ASSESSMENT INCOMPLETE",
+  ],
+};
+
+export function headlineFor({ name, levels }: HeadlineInput): string {
+  return HEADLINE_COPY[rungFor({ levels })].replace("{NAME}", name);
+}
+
