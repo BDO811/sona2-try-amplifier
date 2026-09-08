@@ -116,3 +116,18 @@ export function headlineFor({ name, levels }: HeadlineInput): string {
   return HEADLINE_COPY[rungFor({ levels })].replace("{NAME}", name);
 }
 
+/**
+ * The four gradeable rungs as a scale, strongest first, for OptionScale.
+ * "unreadable" is not on the scale for the same reason INCONCLUSIVE is not a
+ * band: it describes the recording, not the result.
+ *
+ * Colour carries good versus caution, not ordinality — left to right already
+ * does that. Clean and good share a green because both are good outcomes, and
+ * inventing a gradient between them would imply a gap the grading never makes.
+ */
+export const RUNG_SCALE: Array<{ key: HeadlineRung; label: string; color: string }> = [
+  { key: "clean", label: "OPTIMAL", color: "#4CAF6E" },
+  { key: "good", label: "STRONG", color: "#4CAF6E" },
+  { key: "steady", label: "STEADY", color: "#F5EF79" },
+  { key: "focus", label: "IN FOCUS", color: "#FFC163" },
+];

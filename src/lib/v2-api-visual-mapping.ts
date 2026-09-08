@@ -27,7 +27,7 @@
  */
 
 import { AssessmentPathway } from "@/context/AssessmentContext";
-import { headlineFor } from "@/lib/result-headline";
+import { headlineFor, rungFor } from "@/lib/result-headline";
 import {
   VisualizedResult,
   LabMetric,
@@ -464,11 +464,11 @@ export function transformV2ResultToVisualization(
   const flaggedCount = summary?.flagged_count ?? signals.filter((s) => s.flagged).length;
 
   const score = calculateWellnessScore(signals, likelihoodTier);
-  const classification = getV2Classification(
-    likelihoodTier,
-    pathway,
-    signals.map((s) => s.level || "")
-  );
+  // One source of levels for both the phrase and the scale, so the lit rung
+  // and the wording can never disagree.
+  const signalLevels = signals.map((s) => s.level || "");
+  const classification = getV2Classification(likelihoodTier, pathway, signalLevels);
+  const headlineRung = signalLevels.length > 0 ? rungFor({ levels: signalLevels }) : undefined;
 
   const clinicalSubtext =
     summary?.description?.summary ||
@@ -487,6 +487,7 @@ export function transformV2ResultToVisualization(
     pathway: pathway || "WELLNESS",
     score,
     classification,
+    headlineRung,
     labMetrics,
     biomarkers,
     extendedMetrics: result.extended_metrics || [],

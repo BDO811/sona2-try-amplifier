@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
-import { bandColor, bandFill, bandForLevel } from "@/lib/signal-band";
+import { bandForLevel, bandScaleOptions } from "@/lib/signal-band";
+import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
   signals: SignalSummary[];
@@ -13,10 +14,13 @@ interface SignalPanelProps {
  * The per-sign read from a v2 model job: one row per sign the model measures,
  * ranked most-severe first, each reported as a band.
  *
- * Both the word and the bar come from the band, so they cannot disagree. The
- * raw 0-1 score is deliberately not drawn: it is a per-sign probability, not a
- * common scale, so comparing bar lengths across rows invited a false reading.
- * See lib/signal-band.ts.
+ * Each row shows every band in fixed order with only its own lit, so a signal's
+ * position is read in place. The previous single-word-plus-bar treatment could
+ * not do that: the word came from the level and the bar from the raw score, two
+ * different scales, so five rows reading MEDIUM carried five different bar
+ * lengths. The raw score is no longer drawn at all — it is a per-sign
+ * probability, not a common one, so comparing it across rows invited a false
+ * reading. See lib/signal-band.ts.
  */
 export const SignalPanel = ({
   signals,
@@ -32,8 +36,6 @@ export const SignalPanel = ({
     <div className="flex flex-col gap-px bg-white/5 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
         const band = bandForLevel(signal.level);
-        const color = bandColor(band);
-        const pct = bandFill(band);
 
         return (
           <motion.div
@@ -45,7 +47,7 @@ export const SignalPanel = ({
             animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 8 }}
             transition={{ delay: 1.15 + index * 0.06, duration: 0.3 }}
           >
-            <div className="flex items-baseline justify-between gap-3 mb-1.5">
+            <div className="flex items-baseline justify-between gap-3 mb-2">
               <span
                 className={`font-mono uppercase tracking-wider truncate ${
                   isSeniorMode
@@ -57,26 +59,23 @@ export const SignalPanel = ({
               >
                 {signal.label}
               </span>
-              <span
-                className={`font-mono uppercase tracking-widest flex-shrink-0 ${
-                  isSeniorMode ? "text-xs font-semibold" : isHighVis ? "text-[10px]" : "text-[9px]"
-                }`}
-                style={{ color }}
-              >
-                {band}
-              </span>
+              {/* Only surfaced when the scale has nothing to light. */}
+              {band === "INCONCLUSIVE" && (
+                <span
+                  className={`font-mono uppercase tracking-widest flex-shrink-0 text-white/40 ${
+                    isSeniorMode ? "text-xs" : "text-[9px]"
+                  }`}
+                >
+                  inconclusive
+                </span>
+              )}
             </div>
 
-            {/* Signal strength bar */}
-            <div className="relative h-1 w-full rounded-full overflow-hidden bg-white/10">
-              <motion.div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{ backgroundColor: color }}
-                initial={{ width: 0 }}
-                animate={{ width: showContent ? `${pct}%` : 0 }}
-                transition={{ delay: 1.25 + index * 0.06, duration: 0.7, ease: "easeOut" }}
-              />
-            </div>
+            <OptionScale
+              options={bandScaleOptions()}
+              activeKey={band === "INCONCLUSIVE" ? null : band}
+              ariaLabel={`${signal.label}: ${band}`}
+            />
           </motion.div>
         );
       })}

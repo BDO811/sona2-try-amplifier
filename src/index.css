@@ -326,4 +326,36 @@
   .animate-fade-up {
     animation: fade-up 0.6s ease-out forwards;
   }
+
+  /*
+    Scale highlight: the option a result actually landed on breathes, while the
+    ones it did not sit at half opacity. Colour and tints arrive as custom
+    properties so one keyframe serves every band and rung.
+
+    A breathing ring rather than a blink on purpose. A hard flash at this type
+    size is a photosensitivity hazard and reads as an error state, which is the
+    opposite of what marking your position means.
+  */
+  @keyframes scale-breathe {
+    0%, 100% {
+      box-shadow: 0 0 0 1px var(--scale-color), 0 0 0 0 transparent;
+      background: var(--scale-tint-lo);
+    }
+    50% {
+      box-shadow: 0 0 0 1px var(--scale-color), 0 0 var(--scale-glow, 9px) 1px var(--scale-color);
+      background: var(--scale-tint-hi);
+    }
+  }
+
+  .animate-scale-breathe {
+    animation: scale-breathe 1.9s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-scale-breathe {
+      animation: none;
+      box-shadow: 0 0 0 1px var(--scale-color);
+      background: var(--scale-tint-hi);
+    }
+  }
 }

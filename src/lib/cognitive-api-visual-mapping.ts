@@ -144,6 +144,8 @@ export interface VisualizedResult {
   flaggedCount?: number;
   totalSignals?: number;
   modelName?: string;
+  /** Which rung of the headline ladder this result landed on. */
+  headlineRung?: string;
 
   // Clinical insights
   clinicalSubtext: string;

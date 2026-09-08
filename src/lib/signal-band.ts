@@ -119,3 +119,12 @@ const ACTION_COLLAPSE: Record<string, ResultAction> = {
 export function collapseAction(apiAction: string | null | undefined): ResultAction {
   return ACTION_COLLAPSE[(apiAction || "").toLowerCase()] ?? "INCONCLUSIVE";
 }
+
+/**
+ * The five severity bands as a scale, in fixed order, for OptionScale.
+ * INCONCLUSIVE is deliberately absent: it is not a rung on this scale, so an
+ * unreadable signal lights nothing rather than borrowing a severity.
+ */
+export function bandScaleOptions(): Array<{ key: SignalBand; label: string; color: string }> {
+  return BAND_ORDER.map((band) => ({ key: band, label: band, color: bandColor(band) }));
+}

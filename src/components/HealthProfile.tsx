@@ -14,6 +14,8 @@ import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { collapseAction } from "@/lib/signal-band";
+import { RUNG_SCALE } from "@/lib/result-headline";
+import { OptionScale } from "./report/OptionScale";
 import { t } from "@/lib/i18n";
 
 interface HealthProfileProps {
@@ -279,20 +281,36 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             caption.
           */}
           <motion.div
-            className={`text-center font-mono uppercase tracking-[0.25em] mb-1 ${
-              isSeniorMode
-                ? 'text-lg md:text-xl font-bold'
-                : isHighVis
-                  ? 'text-sm md:text-base font-semibold'
-                  : 'text-xs md:text-sm font-medium'
-            }`}
-            style={{ color: 'rgba(255, 255, 255, 0.45)' }}
+            className="text-center font-mono uppercase tracking-[0.2em] text-[9px] md:text-[10px] mb-2.5"
+            style={{ color: '#B79862' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: showContent ? 1 : 0 }}
             transition={{ delay: 1.3, duration: 0.5 }}
           >
             Assessment
           </motion.div>
+
+          {/*
+            Every possible outcome across the top, with the one this result
+            landed on lit and the rest at half opacity. The rung comes from the
+            mapper alongside the phrase below, so the lit word and the wording
+            are the same computation and cannot disagree.
+          */}
+          {visualizedResult.headlineRung && (
+            <motion.div
+              className="mb-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showContent ? 1 : 0 }}
+              transition={{ delay: 1.35, duration: 0.5 }}
+            >
+              <OptionScale
+                options={RUNG_SCALE}
+                activeKey={visualizedResult.headlineRung}
+                size="lg"
+                ariaLabel="Assessment outcome"
+              />
+            </motion.div>
+          )}
 
           <SpectrogramWaveform
             displayText={formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)}
