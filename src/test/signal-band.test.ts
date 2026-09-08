@@ -15,6 +15,9 @@ import {
   bandScaleOptions,
   bandLabelForSignal,
   bandForSignal,
+  bandRank,
+  flaggingThresholdBand,
+  flaggingThresholdText,
   isFlaggedBand,
   type SignalLevel,
 } from "@/lib/signal-band";
@@ -298,5 +301,38 @@ describe("bandLabelForSignal", () => {
     expect(band).toBe("NORMAL");
     expect(isFlaggedBand(band)).toBe(false);
     expect(bandLabelForSignal("head-impact", band)).toBe("NONE");
+  });
+});
+
+describe("flaggingThresholdText", () => {
+  it("reads LOW and above for a sign with no override", () => {
+    // The API sets flagged from `consider` up, and `consider` displays as LOW.
+    expect(flaggingThresholdText("fatigue")).toBe("Flags at LOW and above");
+    expect(flaggingThresholdText("anxiety")).toBe("Flags at LOW and above");
+  });
+
+  it("names the override band on the sign that is held back", () => {
+    expect(flaggingThresholdText("head-impact")).toBe("Flags at ELEVATED");
+    expect(flaggingThresholdText("Head-Impact")).toBe("Flags at ELEVATED");
+  });
+
+  it("agrees with the band the sign actually displays", () => {
+    // The threshold text and bandForSignal must not disagree: a card claiming it
+    // flags at LOW while its own row reads NORMAL at consider is the defect the
+    // old normalRange string had.
+    for (const name of ["fatigue", "head-impact"]) {
+      const threshold = flaggingThresholdBand(name);
+      for (const level of LEVEL_ORDER) {
+        const band = bandForSignal(name, level);
+        expect(isFlaggedBand(band), `${name} @ ${level}`).toBe(
+          bandRank(band) >= bandRank(threshold)
+        );
+      }
+    }
+  });
+
+  it("says nothing about a numeric range", () => {
+    // Score-to-level is model-calibrated, so there is no interval to print.
+    expect(flaggingThresholdText("fatigue")).not.toMatch(/[0-9]/);
   });
 });

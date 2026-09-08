@@ -233,7 +233,7 @@ const DetailedAnalysisView = () => {
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(100, 100, 100);
-        doc.text(`Normal Range: ${biomarker.normalRange}`, margin, yPosition);
+        doc.text(`Flagging Threshold: ${biomarker.flaggingThreshold}`, margin, yPosition);
         yPosition += 5;
 
         // Value and Unit - with color coding matching BiometricLabGrid
@@ -624,13 +624,13 @@ const DetailedAnalysisView = () => {
                     </div>
                   )}
                   
-                  {/* Normal Range */}
+                  {/* Flagging Threshold */}
                   <div className="flex items-center justify-between pt-2 border-t border-white/5">
                     <span className="font-mono text-[9px] uppercase tracking-wider text-white">
-                      Normal Range
+                      Flagging Threshold
                     </span>
                     <span className="font-mono text-[10px] text-white">
-                      {biomarker.normalRange}
+                      {biomarker.flaggingThreshold}
                     </span>
                   </div>
                 </div>

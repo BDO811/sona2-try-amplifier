@@ -26,7 +26,15 @@ export interface BiomarkerDefinition {
   definition: string;
   /** Set only when the display band is flagged. Absent means nothing to add. */
   clinicalContext?: string;
-  normalRange: string;
+  /**
+   * Where this sign starts counting as flagged, e.g. "Flags at LOW and above".
+   *
+   * This replaced a `normalRange` that read "Below flagging threshold" on every
+   * biomarker including the flagged ones. There is no numeric range to print in
+   * its place: the docs describe score-to-level as distribution-based
+   * calibration unique to each model, not fixed numeric bounds.
+   */
+  flaggingThreshold: string;
   /** Raw v2 level, so a screen can band it without matching back by name. */
   level?: string;
 }

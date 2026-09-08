@@ -232,6 +232,24 @@ export function bandLabelForSignal(
 }
 
 /** True when a displayed band counts as a flag. NORMAL is the only one that does not. */
+/**
+ * The lowest band at which a sign is treated as flagged, as a display word.
+ *
+ * LOW for every sign, since the API sets `flagged` from `consider` up and
+ * `consider` displays as LOW. Signs held back by an override flag only at the
+ * band the override allows, so the card can state its own threshold instead of
+ * the reader inferring one rule for all seven rows.
+ */
+export function flaggingThresholdBand(name: string | null | undefined): DisplayBand {
+  return FLAG_ONLY_WHEN_ELEVATED.has((name || "").toLowerCase()) ? "ELEVATED" : "LOW";
+}
+
+/** "Flags at LOW and above", or "Flags at ELEVATED" where that is the only flagging band. */
+export function flaggingThresholdText(name: string | null | undefined): string {
+  const band = flaggingThresholdBand(name);
+  return band === "ELEVATED" ? "Flags at ELEVATED" : `Flags at ${band} and above`;
+}
+
 export function isFlaggedBand(band: DisplayBand): boolean {
   return band === "LOW" || band === "MODERATE" || band === "ELEVATED";
 }

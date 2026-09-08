@@ -32,6 +32,7 @@ import { isSuppressedSign } from "@/lib/suppressed-signs";
 import {
   bandForSignal,
   bandLabelForSignal,
+  flaggingThresholdText,
   isFlaggedBand,
   type DisplayBand,
 } from "@/lib/signal-band";
@@ -416,7 +417,7 @@ export function mapSignalsToBiomarkers(
       unit: "%",
       definition: copy.definition,
       clinicalContext,
-      normalRange: "Below flagging threshold",
+      flaggingThreshold: flaggingThresholdText(s.name),
       level: s.level,
     };
   });
