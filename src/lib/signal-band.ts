@@ -1,165 +1,163 @@
 /**
- * Turning a v2 signal's level into the band shown on the results screen.
+ * Presenting a v2 signal's level, using the API's own display vocabulary.
  *
- * The API reports six levels: none, low, consider, moderate, elevated and
- * inconclusive. Those words are precise but they do not read as a scale — a row
- * saying "consider" next to one saying "moderate" gives no sense of which is
- * worse, and five flagged signals all reading "consider" looked like the screen
- * had failed to distinguish them.
+ * The six levels and their display labels come straight from the Display
+ * Guidelines at docs.amplifierhealth.com/guides/interpreting-results:
  *
- * Bands are derived from `level`, never from `score`. That distinction matters:
- * the API documents level thresholds as "model-dependent; not a simple cutoff
- * on score alone", and a real apex run bears it out — cognitive load scored
- * 0.120 and came back "consider" (flagged) while head impact scored 0.144 and
- * came back "low" (not flagged). Banding the raw score would have labelled the
- * flagged signal Low and the unflagged one higher, overriding the model's own
- * per-sign calibration with a number that does not mean the same thing from one
- * sign to the next.
+ *   none          Within normal range     Neutral
+ *   low           Faint indicator         Informational
+ *   consider      Worth considering       Informational / Caution
+ *   moderate      Notable indicator       Caution
+ *   elevated      Significant indicator   Alert
+ *   inconclusive  Analysis inconclusive   Neutral
+ *
+ * These replace an invented NONE/LOW/MEDIUM/HIGH/VERY HIGH ramp. That ramp read
+ * as a severity scale the API does not publish, and it renamed levels the docs
+ * name explicitly — "MEDIUM" for `consider`, "HIGH" for `moderate` — which
+ * overstated two of the six.
+ *
+ * Levels are read from `level`, never derived from `score`. The docs are
+ * explicit on both halves of that: score is "for internal use only; use level
+ * for display", and score-to-level is "a distribution-based calibration unique
+ * to each model, rather than fixed numeric ranges". A real apex run bears it
+ * out — anxiety scored 0.359 and came back `consider` while cognitive load
+ * scored 0.273 and came back `moderate`.
  */
 
-export type SignalBand = "NONE" | "LOW" | "MEDIUM" | "HIGH" | "VERY HIGH" | "INCONCLUSIVE";
+export type SignalLevel =
+  | "none"
+  | "low"
+  | "consider"
+  | "moderate"
+  | "elevated"
+  | "inconclusive";
 
-/**
- * The API's level vocabulary, mapped one-to-one. `none` stays its own band
- * rather than folding into LOW: the API means "no signal detected" by it, which
- * is a different statement from a weak signal.
- */
-const LEVEL_TO_BAND: Record<string, SignalBand> = {
-  none: "NONE",
-  low: "LOW",
-  consider: "MEDIUM",
-  moderate: "HIGH",
-  elevated: "VERY HIGH",
-  inconclusive: "INCONCLUSIVE",
+/** The documented display label per level, verbatim. */
+const LEVEL_LABEL: Record<SignalLevel, string> = {
+  none: "Within normal range",
+  low: "Faint indicator",
+  consider: "Worth considering",
+  moderate: "Notable indicator",
+  elevated: "Significant indicator",
+  inconclusive: "Analysis inconclusive",
+};
+
+/** The documented UI treatment per level. */
+export type UiTreatment = "neutral" | "informational" | "caution" | "alert";
+
+const LEVEL_TREATMENT: Record<SignalLevel, UiTreatment> = {
+  none: "neutral",
+  low: "informational",
+  // The docs give "Informational / Caution" here; caution is the safer read of
+  // the two, and `consider` is the lowest level that sets flagged = true.
+  consider: "caution",
+  moderate: "caution",
+  elevated: "alert",
+  inconclusive: "neutral",
 };
 
 /**
- * How full the strength bar is drawn for each band, 0-100.
+ * Colour per UI treatment rather than per level, so the four documented
+ * treatments drive the palette and two levels sharing a treatment share a
+ * colour. Brand palette only, no lime.
  *
- * The bar used to be the raw score while the word came from the level, so the
- * two could disagree — a shorter bar could carry a higher level. Driving both
- * from the band means they can never contradict each other.
+ * Two grounds: the dark data canvas, and the beige page. Every light value is
+ * measured above 4.5:1 against #DBCCB1, where the dark ramp collapses —
+ * #FFC163 is 1.02:1 there.
  */
-const BAND_FILL: Record<SignalBand, number> = {
-  NONE: 0,
-  LOW: 25,
-  MEDIUM: 50,
-  HIGH: 75,
-  "VERY HIGH": 100,
-  INCONCLUSIVE: 0,
-};
-
-/**
- * Brand palette only, and all legible on the dark signal panel. Escalates
- * tan → green → yellow → orange → red. No lime, ever.
- */
-const BAND_COLOR: Record<SignalBand, string> = {
-  NONE: "#B79862",
-  LOW: "#4CAF6E",
-  MEDIUM: "#F5EF79",
-  HIGH: "#FFC163",
-  "VERY HIGH": "#FF6173",
-  INCONCLUSIVE: "#CECECE",
-};
-
-/**
- * The same ramp for a light surface. The colours above are tuned for the black
- * data canvas and wash out on beige: #FFC163 measures 1.02:1 against #DBCCB1,
- * which is invisible, and #F5EF79 is 1.32:1.
- *
- * Every value below was measured against the beige page and clears 4.5:1. Three
- * of them needed darkening past the first hue I picked — NONE, MEDIUM and
- * INCONCLUSIVE came in at 4.41, 3.96 and 4.23 before being taken down.
- */
-const BAND_COLOR_LIGHT: Record<SignalBand, string> = {
-  NONE: "#665233", // 4.71:1
-  LOW: "#1E5631", // 5.47:1
-  MEDIUM: "#6D5200", // 4.65:1
-  HIGH: "#8A3B08", // 4.90:1
-  "VERY HIGH": "#8E1220", // 5.88:1
-  INCONCLUSIVE: "#565656", // 4.64:1
+const TREATMENT_COLOR: Record<UiTreatment, { dark: string; light: string }> = {
+  neutral: { dark: "#B79862", light: "#665233" },
+  informational: { dark: "#4CAF6E", light: "#1E5631" },
+  caution: { dark: "#FFC163", light: "#8A3B08" },
+  alert: { dark: "#FF6173", light: "#8E1220" },
 };
 
 export type Surface = "dark" | "light";
 
-/** Band colour for the surface it will actually sit on. */
-export function bandColorOn(band: SignalBand, surface: Surface): string {
-  return surface === "light" ? BAND_COLOR_LIGHT[band] : BAND_COLOR[band];
-}
-
-/** Severity order, for ranking and for tests that assert the scale is monotonic. */
-export const BAND_ORDER: SignalBand[] = ["NONE", "LOW", "MEDIUM", "HIGH", "VERY HIGH"];
+/** The severity order the docs list the levels in, excluding inconclusive. */
+export const LEVEL_ORDER: SignalLevel[] = ["none", "low", "consider", "moderate", "elevated"];
 
 /**
- * Band for an API level. An unrecognised or missing level reads INCONCLUSIVE
- * rather than NONE: if a future model adds a level this build has not seen,
- * saying "we could not read this" is honest, while saying "no signal detected"
- * would be a claim the data does not support.
+ * Normalise an API level. An unrecognised or missing value reads inconclusive
+ * rather than none: if a future model adds a level this build has not seen,
+ * "analysis inconclusive" is honest, while "within normal range" would be a
+ * claim the data does not support.
  */
-export function bandForLevel(level: string | null | undefined): SignalBand {
-  return LEVEL_TO_BAND[(level || "").toLowerCase()] ?? "INCONCLUSIVE";
+export function levelOf(level: string | null | undefined): SignalLevel {
+  const key = (level || "").toLowerCase();
+  return (LEVEL_ORDER as string[]).includes(key) || key === "inconclusive"
+    ? (key as SignalLevel)
+    : "inconclusive";
 }
 
-export function bandFill(band: SignalBand): number {
-  return BAND_FILL[band];
+export function levelLabel(level: SignalLevel): string {
+  return LEVEL_LABEL[level];
 }
 
-export function bandColor(band: SignalBand): string {
-  return BAND_COLOR[band];
+export function levelTreatment(level: SignalLevel): UiTreatment {
+  return LEVEL_TREATMENT[level];
 }
 
-/** Rank for sorting. Bands outside the severity scale sort to the bottom. */
-export function bandRank(band: SignalBand): number {
-  const index = BAND_ORDER.indexOf(band);
-  return index === -1 ? -1 : index;
+export function levelColor(level: SignalLevel, surface: Surface = "dark"): string {
+  return TREATMENT_COLOR[LEVEL_TREATMENT[level]][surface];
 }
 
-export type ResultAction = "NONE" | "MONITOR" | "ESCALATE" | "INCONCLUSIVE";
+/** Rank for sorting. inconclusive sorts below every graded level. */
+export function levelRank(level: SignalLevel): number {
+  return LEVEL_ORDER.indexOf(level);
+}
 
-/**
- * Collapse the API's recommended_action to the three this screen reports.
- *
- * The API computes recommended_action itself across the whole signal set, using
- * a documented table: nothing at low or above -> none; 1+ low -> monitor;
- * 1+ consider -> consider; 1+ moderate or 2+ consider -> review; 1+ elevated ->
- * escalate, which takes precedence over everything else. That derivation is not
- * repeated here — the API's value is read and collapsed, so this cannot drift
- * from the vendor's logic if the table changes.
- *
- * consider and review both fold into MONITOR. review losing its distinct
- * meaning is the real cost of collapsing five values into three.
- *
- * inconclusive stays separate rather than folding into NONE: it means the audio
- * could not be read, which is not the same as nothing being found.
- */
-const ACTION_COLLAPSE: Record<string, ResultAction> = {
-  none: "NONE",
-  monitor: "MONITOR",
-  consider: "MONITOR",
-  review: "MONITOR",
-  escalate: "ESCALATE",
-  inconclusive: "INCONCLUSIVE",
-};
-
-export function collapseAction(apiAction: string | null | undefined): ResultAction {
-  return ACTION_COLLAPSE[(apiAction || "").toLowerCase()] ?? "INCONCLUSIVE";
+/** True when the API would set flagged: consider, moderate or elevated. */
+export function isFlaggedLevel(level: SignalLevel): boolean {
+  return level === "consider" || level === "moderate" || level === "elevated";
 }
 
 /**
- * The five severity bands as a scale, in fixed order, for OptionScale.
- * INCONCLUSIVE is deliberately absent: it is not a rung on this scale, so an
- * unreadable signal lights nothing rather than borrowing a severity.
+ * The five graded levels as a scale, in the documented order, for OptionScale.
+ * inconclusive is absent: it describes the recording, not a position on the
+ * scale, so an unreadable signal lights nothing.
  */
-export function bandScaleOptions(): Array<{
-  key: SignalBand;
+export function levelScaleOptions(): Array<{
+  key: SignalLevel;
   label: string;
   color: string;
   colorLight: string;
 }> {
-  return BAND_ORDER.map((band) => ({
-    key: band,
-    label: band,
-    color: bandColor(band),
-    colorLight: bandColorOn(band, "light"),
+  return LEVEL_ORDER.map((level) => ({
+    key: level,
+    label: LEVEL_LABEL[level],
+    color: levelColor(level, "dark"),
+    colorLight: levelColor(level, "light"),
   }));
+}
+
+export type ResultAction = "none" | "monitor" | "consider" | "review" | "escalate" | "inconclusive";
+
+/**
+ * The API's recommended_action, passed through rather than collapsed.
+ *
+ * It is derived server-side from the full distribution of signal levels, per a
+ * documented table (1+ elevated always wins). Reimplementing or collapsing it
+ * here would let this drift from the vendor's logic, so the value is only
+ * normalised.
+ */
+const ACTIONS: ResultAction[] = ["none", "monitor", "consider", "review", "escalate", "inconclusive"];
+
+export function actionOf(action: string | null | undefined): ResultAction {
+  const key = (action || "").toLowerCase();
+  return ACTIONS.includes(key as ResultAction) ? (key as ResultAction) : "inconclusive";
+}
+
+/** Documented meaning of each action, for display next to the result. */
+const ACTION_LABEL: Record<ResultAction, string> = {
+  none: "No action warranted",
+  monitor: "Routine follow-up",
+  consider: "Clinician discretion",
+  review: "Clinical follow-up recommended",
+  escalate: "Prompt clinical escalation",
+  inconclusive: "Collect a new sample",
+};
+
+export function actionLabel(action: ResultAction): string {
+  return ACTION_LABEL[action];
 }

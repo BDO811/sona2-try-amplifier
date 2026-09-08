@@ -481,10 +481,7 @@ export function transformV2ResultToVisualization(
   const classification = getV2Classification(likelihoodTier, pathway, signalLevels);
   const headlineRung = signalLevels.length > 0 ? rungFor({ levels: signalLevels }) : undefined;
 
-  const clinicalSubtext =
-    summary?.description?.summary ||
-    result.signal?.description?.summary ||
-    buildFallbackSubtext(orderedSignals, flaggedCount);
+  const clinicalSubtext = buildSubtext(orderedSignals, flaggedCount);
 
   const sampleRate = job.audio_sample_rate
     ? `${Math.round(job.audio_sample_rate / 1000)}kHz`
@@ -595,16 +592,33 @@ export function getV2Classification(
   return `${pathwayDomainName(pathway)} PROFILE`;
 }
 
-function buildFallbackSubtext(signals: V2Signal[], flaggedCount: number): string {
-  if (!signals.length) return "No voice signals were returned for this sample.";
+/**
+ * The sentence under the result, composed from the signals actually shown.
+ *
+ * The API's own `summary.description.summary` is deliberately not used here.
+ * The docs are explicit that it is not patient-facing: "surface it only after
+ * review by qualified care staff, not as direct patient-facing output". On a
+ * real apex run it also named Elevated Blood Pressure and Cognitive Impairment
+ * — the canonical sign names behind apex's cardiovascular-strain and
+ * cognitive-load aliases — and counted six signals against the rows on screen.
+ *
+ * Composing it from `signals[].label` means it can only ever name what the
+ * screen shows, in the API's own v2 wording, with a count that matches the
+ * rows. The narrative stays on the payload for a future staff-facing view.
+ */
+function buildSubtext(signals: V2Signal[], flaggedCount: number): string {
+  if (!signals.length) return "No voice signals were returned for this recording.";
+
   if (flaggedCount === 0) {
-    return `Voice analysis found no elevated signals across ${signals.length} measured markers.`;
+    return `None of the ${signals.length} voice signals measured were flagged.`;
   }
-  const names = signals
-    .filter((s) => s.flagged)
-    .map((s) => s.label || titleCase(s.name))
-    .join(", ");
-  return `Voice analysis identified ${flaggedCount} elevated ${
-    flaggedCount === 1 ? "signal" : "signals"
-  } (${names}). The detected voice patterns may warrant further review.`;
+
+  const flagged = signals.filter((s) => s.flagged).map((s) => s.label || titleCase(s.name));
+  const names =
+    flagged.length === 1
+      ? flagged[0]
+      : `${flagged.slice(0, -1).join(", ")} and ${flagged[flagged.length - 1]}`;
+
+  return `${flaggedCount} of ${signals.length} voice signals were flagged: ${names}.`;
 }
+

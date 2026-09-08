@@ -1,4 +1,4 @@
-import { bandForLevel, type SignalBand } from "@/lib/signal-band";
+import { isFlaggedLevel, levelOf } from "@/lib/signal-band";
 
 /**
  * The headline above the results, graded from the signals themselves.
@@ -23,9 +23,9 @@ import { bandForLevel, type SignalBand } from "@/lib/signal-band";
 /** How many signals must be reading well before the headline leans positive. */
 export const STRONG_SIGNAL_FLOOR = 2;
 
-/** A signal at NONE or LOW is not flagged and is reading well. */
-function isStrong(band: SignalBand): boolean {
-  return band === "NONE" || band === "LOW";
+/** A signal the API would not flag: none or low. */
+function isStrong(level: string): boolean {
+  return !isFlaggedLevel(levelOf(level));
 }
 
 export type HeadlineRung = "clean" | "good" | "steady" | "focus" | "unreadable";
@@ -35,7 +35,7 @@ export type HeadlineRung = "clean" | "good" | "steady" | "focus" | "unreadable";
  * can be swapped without touching the grading.
  */
 export function rungFor({ levels }: { levels: string[] }): HeadlineRung {
-  const readable = levels.map(bandForLevel).filter((b) => b !== "INCONCLUSIVE");
+  const readable = levels.map(levelOf).filter((l) => l !== "inconclusive");
 
   // Nothing readable: the recapture card carries this state, but the headline
   // must not imply a finding either way.

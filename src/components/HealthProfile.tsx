@@ -13,7 +13,7 @@ import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
-import { collapseAction } from "@/lib/signal-band";
+import { actionLabel, actionOf } from "@/lib/signal-band";
 import { RUNG_SCALE } from "@/lib/result-headline";
 import { OptionScale } from "./report/OptionScale";
 import { t } from "@/lib/i18n";
@@ -85,28 +85,28 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   // Inconclusive state - show recapture option
   const isInconclusiveState = likelihoodTier.toUpperCase() === "INCONCLUSIVE";
 
-  // Copy for the footer card, driven by the API's own recommended_action rather
-  // than the flag count alone. The API derives that action across the whole
-  // signal set — one elevated signal outranks several weak ones — so a count
-  // cannot reproduce it. Collapsed to three outcomes; see lib/signal-band.ts.
+  /*
+    The footer card states the API's own recommended_action, using the meaning
+    the docs give it, rather than a count of flags or a collapsed rewrite.
+
+    The action is derived server-side from the full distribution of signal
+    levels, with one elevated signal outranking several weak ones, so no count
+    reproduces it. It was previously folded into three outcomes with invented
+    headlines; that discarded the distinction between consider, review and
+    escalate, which is the whole point of the field.
+  */
   const flaggedCount = visualizedResult.flaggedCount ?? 0;
   const totalSignals = visualizedResult.totalSignals ?? flaggedCount;
-  const resultAction = collapseAction(visualizedResult.recommendedAction);
-  const monitoringCard =
-    resultAction === "ESCALATE"
-      ? {
-          headline: "Significant Indicator",
-          body: `${flaggedCount} of ${totalSignals} voice signals came back elevated, including one at the highest level. Re-screen to see whether it holds.`,
-        }
-      : resultAction === "MONITOR"
-        ? {
-            headline: "Continued Monitoring",
-            body: `${flaggedCount} of ${totalSignals} voice signals came back elevated. Re-screen to see whether the pattern holds.`,
-          }
-        : {
-            headline: "Standard Monitoring",
-            body: "Nothing came back elevated in this recording. Re-screen anytime to track changes.",
-          };
+  const resultAction = actionOf(visualizedResult.recommendedAction);
+  const monitoringCard = {
+    headline: actionLabel(resultAction),
+    body:
+      resultAction === "inconclusive"
+        ? "This recording could not be read reliably. Record again to get a result."
+        : flaggedCount > 0
+          ? `${flaggedCount} of ${totalSignals} voice signals were flagged. Record again to see whether the pattern holds.`
+          : `None of the ${totalSignals} voice signals measured were flagged. Record again anytime to track changes.`,
+  };
 
   // Initialize date from visualized result or current date
   useEffect(() => {

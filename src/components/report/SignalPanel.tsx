@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
-import { bandForLevel, bandScaleOptions } from "@/lib/signal-band";
+import { levelLabel, levelOf, levelScaleOptions } from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
@@ -35,7 +35,7 @@ export const SignalPanel = ({
   return (
     <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
-        const band = bandForLevel(signal.level);
+        const level = levelOf(signal.level);
 
         return (
           <motion.div
@@ -59,22 +59,20 @@ export const SignalPanel = ({
               >
                 {signal.label}
               </span>
-              {/* Only surfaced when the scale has nothing to light. */}
-              {band === "INCONCLUSIVE" && (
-                <span
-                  className={`font-mono uppercase tracking-widest flex-shrink-0 text-white ${
-                    isSeniorMode ? "text-xs" : "text-[9px]"
-                  }`}
-                >
-                  inconclusive
-                </span>
-              )}
+              {/* The documented display label for this signal's own level. */}
+              <span
+                className={`font-mono flex-shrink-0 text-white ${
+                  isSeniorMode ? "text-xs" : "text-[10px]"
+                }`}
+              >
+                {levelLabel(level)}
+              </span>
             </div>
 
             <OptionScale
-              options={bandScaleOptions()}
-              activeKey={band === "INCONCLUSIVE" ? null : band}
-              ariaLabel={`${signal.label}: ${band}`}
+              options={levelScaleOptions()}
+              activeKey={level === "inconclusive" ? null : level}
+              ariaLabel={`${signal.label}: ${levelLabel(level)}`}
             />
           </motion.div>
         );
