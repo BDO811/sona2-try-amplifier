@@ -181,14 +181,28 @@ const BAND_COLOR: Record<DisplayBand, { dark: string; light: string }> = {
 /**
  * Signs that only ever display as flagged at the top of the scale.
  *
- * head-impact is the case: a head trauma reading is a serious claim, so it is
- * shown as ELEVATED or not at all. Anything below that displays NORMAL.
+ * Both entries are readings that name a clinical finding rather than describe
+ * how a voice sounded, so a faint indicator should not surface as a flag:
+ * shown as ELEVATED or not at all, and anything below that displays NORMAL.
+ *
+ * head-impact came first, on apex. elevated-blood-pressure is the same case on
+ * pulse, so it gets the same treatment: it can reach the screen as a flag only
+ * at ELEVATED, and reads NORMAL at consider or moderate where it previously
+ * showed LOW or MODERATE and counted toward the flag total.
+ *
+ * This does not even out the grading between the two models. That gap is a
+ * separate thing: the grade counts signals reading NORMAL, and apex simply
+ * measures seven signs where pulse measures six, so it has more room to collect
+ * them. On one live 45s sample apex had two (head-impact and
+ * cardiovascular-strain, both `low`) against pulse's one, which is the whole
+ * difference between `good` and `steady` there — the override was not involved,
+ * since `low` already bands to NORMAL without it.
  *
  * INCONCLUSIVE is never rewritten to NORMAL. Unreadable audio is not evidence
  * that nothing was found, and claiming otherwise would be the one genuinely
  * misleading outcome here.
  */
-const FLAG_ONLY_WHEN_ELEVATED = new Set(["head-impact"]);
+const FLAG_ONLY_WHEN_ELEVATED = new Set(["head-impact", "elevated-blood-pressure"]);
 
 /**
  * The band to display for a given sign, applying any per-sign override.

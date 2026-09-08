@@ -304,6 +304,25 @@ describe("bandLabelForSignal", () => {
   });
 });
 
+/** The signs each model returned on a live run, in API order. */
+const APEX_SIGNS = [
+  "head-impact",
+  "cognitive-load",
+  "fatigue",
+  "dehydration",
+  "stress",
+  "anxiety",
+  "cardiovascular-strain",
+];
+const PULSE_SIGNS = [
+  "fatigue",
+  "stress",
+  "dehydration",
+  "mood-disruption",
+  "anxiety",
+  "elevated-blood-pressure",
+];
+
 describe("flaggingThresholdText", () => {
   it("reads LOW and above for a sign with no override", () => {
     // The API sets flagged from `consider` up, and `consider` displays as LOW.
@@ -311,9 +330,31 @@ describe("flaggingThresholdText", () => {
     expect(flaggingThresholdText("anxiety")).toBe("Flags at LOW and above");
   });
 
-  it("names the override band on the sign that is held back", () => {
+  it("names the override band on every sign that is held back", () => {
     expect(flaggingThresholdText("head-impact")).toBe("Flags at ELEVATED");
     expect(flaggingThresholdText("Head-Impact")).toBe("Flags at ELEVATED");
+    // Same treatment on pulse's clinical-sounding sign.
+    expect(flaggingThresholdText("elevated-blood-pressure")).toBe("Flags at ELEVATED");
+  });
+
+  it("gives each model the same override treatment", () => {
+    const overridden = (signs: string[]) =>
+      signs.filter((n) => flaggingThresholdBand(n) === "ELEVATED");
+    expect(overridden(APEX_SIGNS)).toEqual(["head-impact"]);
+    expect(overridden(PULSE_SIGNS)).toEqual(["elevated-blood-pressure"]);
+  });
+
+  it("holds an overridden sign at NORMAL through consider and moderate", () => {
+    // This is what the override actually changes. At `low` it does nothing,
+    // because `low` already bands to NORMAL on its own.
+    for (const sign of ["head-impact", "elevated-blood-pressure"]) {
+      expect(bandForSignal(sign, "low"), sign).toBe("NORMAL");
+      expect(bandForSignal(sign, "consider"), sign).toBe("NORMAL");
+      expect(bandForSignal(sign, "moderate"), sign).toBe("NORMAL");
+      expect(bandForSignal(sign, "elevated"), sign).toBe("ELEVATED");
+      // Unreadable audio is never rewritten as normal.
+      expect(bandForSignal(sign, "inconclusive"), sign).toBe("INCONCLUSIVE");
+    }
   });
 
   it("agrees with the band the sign actually displays", () => {
