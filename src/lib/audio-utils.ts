@@ -18,20 +18,8 @@ declare global {
  */
 export type AudioFormat = 'wave' | 'wav' | 'flac' | 'mp3';
 
-/** Capture rate. MediaRecorder takes the device default, typically 48 kHz. */
+/** Recording and encoding target: WebM Opus at 48 kHz. All encoders re-encode to this. */
 export const RECORDING_SAMPLE_RATE = 48000;
-
-/**
- * Rate the audio is submitted to the API at.
- *
- * The v2 audio requirements give 8000 Hz as the minimum and 16000 Hz as the
- * recommendation: "Record and submit at 16000 Hz where possible for best
- * results across all models." We were submitting the 48 kHz capture untouched,
- * which is 3x the recommended rate and made a 30-second clip 1.04 MB. Down to
- * 16 kHz that is roughly a third of the bytes, at the rate the models are
- * documented to prefer.
- */
-export const ANALYSIS_SAMPLE_RATE = 16000;
 
 /**
  * Get audio format from environment variable (defaults to 'flac')
@@ -461,50 +449,9 @@ export function mergeAudioBuffers(buffers: AudioBuffer[]): AudioBuffer {
  * Convert an AudioBuffer to the configured format (FLAC, WAV, or MP3).
  * Used when merging multi-segment recordings before encoding.
  */
-/**
- * Resample to `targetRate` via OfflineAudioContext, which does a real
- * band-limited conversion rather than dropping samples.
- *
- * Falls back to the original buffer if the browser refuses the target rate.
- * Older Safari only accepted 44.1 kHz here, and submitting a larger file at
- * the capture rate is a far better outcome than losing the recording over an
- * optimisation.
- */
-export async function resampleAudioBuffer(
-  buffer: AudioBuffer,
-  targetRate: number = ANALYSIS_SAMPLE_RATE
-): Promise<AudioBuffer> {
-  if (Math.abs(buffer.sampleRate - targetRate) < 1) return buffer;
-
-  const frames = Math.max(1, Math.round(buffer.duration * targetRate));
-  try {
-    const offline = new (window.OfflineAudioContext ||
-      (window as any).webkitOfflineAudioContext)(buffer.numberOfChannels, frames, targetRate);
-    const source = offline.createBufferSource();
-    source.buffer = buffer;
-    source.connect(offline.destination);
-    source.start();
-    const rendered = await offline.startRendering();
-    console.log(
-      `[audio] Resampled ${buffer.sampleRate}Hz -> ${rendered.sampleRate}Hz ` +
-        `(${buffer.duration.toFixed(1)}s)`
-    );
-    return rendered;
-  } catch (error) {
-    console.warn(
-      `[audio] Resample to ${targetRate}Hz failed, submitting at ${buffer.sampleRate}Hz:`,
-      error
-    );
-    return buffer;
-  }
-}
-
 export async function convertAudioBufferToBlob(
   buffer: AudioBuffer
 ): Promise<{ blob: Blob; format: AudioFormat; extension: string; mimeType: string }> {
-  // Every merged recording passes through here on its way to the API, so this
-  // is the one place the submission rate needs setting.
-  buffer = await resampleAudioBuffer(buffer);
   const format = getAudioFormat();
   let blob: Blob;
   switch (format) {

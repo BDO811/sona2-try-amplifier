@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useCallback, useEffect, ReactNode 
 import { useSearchParams } from "react-router-dom";
 import { VisualizedResult } from "@/lib/cognitive-api-visual-mapping";
 import { Language } from "@/lib/i18n";
-import { ANALYSIS_SAMPLE_RATE } from "@/lib/audio-utils";
 
 export type AssessmentPathway =
   | "BRAIN_AGE"
@@ -30,10 +29,7 @@ export interface PathwayConfig {
 export const BRAND_COLOR = "#1E5631";
 export const BRAND_COLOR_HSL = "140 48% 23%";
 
-// Derived, so it cannot drift from what is actually submitted. The capture is
-// still the device default (typically 48 kHz); this is the rate the audio is
-// resampled to before it reaches the API.
-export const SAMPLE_RATE_LABEL = `${ANALYSIS_SAMPLE_RATE / 1000}kHz`;
+export const SAMPLE_RATE_LABEL = "48kHz";
 
 const DEFAULT_PATHWAY_METADATA: PathwayConfig["metadata"] = {
   topLeft: { label: "SIGNAL", value: "ACTIVE" },
