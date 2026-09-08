@@ -52,11 +52,36 @@ export const OptionScale = ({
   const isLarge = size === "lg";
 
   return (
+    /*
+      Two different layouts on purpose.
+
+      The five band labels are all short and of similar length, so equal columns
+      give them the even spacing that makes the row read as a scale.
+
+      The four assessment labels are not: "NEEDS IMPROVEMENT" is nearly three
+      times the width of "STEADY". On equal quarter-columns its longest word
+      cannot fit on one line, and on a fixed column it broke out of its own
+      padding and printed past the lit box's border.
+
+      These are laid out edge to edge with each cell hugging its own label, and
+      the long one is allowed to wrap. At 2x DPR the results panel gives about
+      492px of content while the four labels need roughly 512px on one line, so
+      wrapping is the honest outcome; what matters is that the cell is sized to
+      the wrapped text and keeps its padding, so nothing touches a border.
+    */
     <div
       role="group"
       aria-label={ariaLabel}
-      className="grid gap-1 items-stretch"
-      style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
+      className={
+        isLarge
+          ? "flex flex-wrap items-stretch justify-between gap-x-2 gap-y-1"
+          : "grid gap-1 items-stretch"
+      }
+      style={
+        isLarge
+          ? undefined
+          : { gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }
+      }
     >
       {options.map((option) => {
         const isActive = option.key === activeKey;
@@ -67,15 +92,14 @@ export const OptionScale = ({
             Flex-centred and full height. As a plain text span the cell
             stretched to the tallest option in the row, and any single-line
             label sat at the top of its own box - so the lit box looked like it
-            had its word offset upward while "NEEDS IMPROVEMENT" wrapped to two
-            lines next to it.
+            had its word offset upward.
           */
           <span
             key={option.key}
             aria-current={isActive ? "true" : undefined}
             className={`flex items-center justify-center h-full text-center font-mono uppercase rounded leading-tight ${
               isLarge
-                ? `tracking-[0.08em] py-2.5 px-1.5 ${
+                ? `tracking-[0.08em] py-2.5 px-3 ${
                     isActive
                       ? "text-[13px] md:text-[16px] font-semibold"
                       : "text-[12px] md:text-[14px] font-medium"
