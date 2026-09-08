@@ -84,13 +84,6 @@ export interface VisualizedResult {
     suffix: string;
   };
 
-  /**
-   * Still rendered, still under review. `robustness` currently carries
-   * audio_clarity/100 under a different name, and `frequencyResponse` is the
-   * Nyquist of the capture rate rather than anything the API reports.
-   */
-  robustness?: number;
-
   signalQuality?: {
     /** v2 `audio_quality.audio_clarity`, 0-100. */
     audioClarity?: number;
@@ -98,8 +91,8 @@ export interface VisualizedResult {
     voicePercentage?: number;
     sampleRate: string;
     duration: number;
-    /** Derived, not reported. Under review. */
-    frequencyResponse?: string;
+    /** Nyquist of `audio_sample_rate`. A property of the capture, not of the analysis. */
+    captureBandwidth?: string;
     /** Codes from `audio_quality.issues`, empty when the recording was clean. */
     issues?: string[];
   };

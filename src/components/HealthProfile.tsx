@@ -208,11 +208,11 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           }}
         />
 
-        {/* System Status Bar - passes data status color for robustness display */}
-        <SystemStatusBar 
-          showContent={showContent} 
-          statusColor={dataStatusColor}
-          robustness={visualizedResult?.robustness}
+        {/* System Status Bar — the capture values the job reports. */}
+        <SystemStatusBar
+          showContent={showContent}
+          sampleRate={visualizedResult?.signalQuality?.sampleRate}
+          modelName={visualizedResult?.modelName}
         />
 
         {/* Header Metadata Row */}

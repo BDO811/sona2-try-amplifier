@@ -313,8 +313,8 @@ const DetailedAnalysisView = () => {
       if (signalQuality?.voicePercentage !== undefined) {
         signalQualityData.push(["Voice Percentage", `${(signalQuality.voicePercentage * 100).toFixed(1)}%`]);
       }
-      if (signalQuality?.frequencyResponse) {
-        signalQualityData.push(["Frequency Range Analyzed", signalQuality.frequencyResponse]);
+      if (signalQuality?.captureBandwidth) {
+        signalQualityData.push(["Capture Bandwidth", signalQuality.captureBandwidth]);
       }
       if (signalQuality?.sampleRate) {
         signalQualityData.push(["Sample Rate", signalQuality.sampleRate]);
@@ -745,11 +745,11 @@ const DetailedAnalysisView = () => {
                   </span>
                 </div>
               )}
-              {signalQuality.frequencyResponse && (
+              {signalQuality.captureBandwidth && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white">Frequency Range Analyzed</span>
+                  <span className="font-mono text-xs text-white">Capture Bandwidth</span>
                   <span className="font-mono text-xs text-white">
-                    {signalQuality.frequencyResponse}
+                    {signalQuality.captureBandwidth}
                   </span>
                 </div>
               )}

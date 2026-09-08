@@ -521,15 +521,17 @@ export function transformV2ResultToVisualization(
       value: String(flaggedCount),
       suffix: shownSignals.length ? ` / ${shownSignals.length}` : "",
     },
-    robustness: typeof audioClarity === "number" ? audioClarity / 100 : undefined,
     signalQuality: {
       // v2 has no SI-SDR figure. It reports `audio_clarity` on a 0-100 scale,
       // which is a different quantity — surfaced separately as audioClarity so
       // it is never mislabelled as a dB signal-to-noise ratio.
       audioClarity,
-      frequencyResponse: job.audio_sample_rate
+      // Nyquist of the capture rate: the highest frequency the recording can
+      // carry. The API reports no frequency range of its own, so this is
+      // labelled as a property of the capture, not of the analysis.
+      captureBandwidth: job.audio_sample_rate
         ? `${Math.round(job.audio_sample_rate / 2000)}kHz`
-        : "24kHz",
+        : undefined,
       sampleRate,
       duration: job.audio_duration_seconds || 0,
       issues,

@@ -6,13 +6,14 @@ const BRAND_COLOR = "#1E5631";
 
 interface SystemStatusBarProps {
   showContent: boolean;
-  statusColor: string; // Still passed for robustness display (data-driven)
-  robustness?: number; // Optional: use from visualized result if available (0-1 scale)
+  /** `audio_sample_rate` off the job, already formatted. */
+  sampleRate?: string;
+  /** `model_name` off the job. */
+  modelName?: string;
 }
 
-export const SystemStatusBar = ({ showContent, statusColor, robustness: propRobustness }: SystemStatusBarProps) => {
+export const SystemStatusBar = ({ showContent, sampleRate, modelName }: SystemStatusBarProps) => {
   const [blinkOn, setBlinkOn] = useState(true);
-  const [robustness, setRobustness] = useState(propRobustness ?? 0.92);
 
   // Blink effect for status indicator
   useEffect(() => {
@@ -21,13 +22,6 @@ export const SystemStatusBar = ({ showContent, statusColor, robustness: propRobu
     }, 800);
     return () => clearInterval(interval);
   }, []);
-
-  // Use robustness from visualized result if provided
-  useEffect(() => {
-    if (propRobustness !== undefined) {
-      setRobustness(propRobustness);
-    }
-  }, [propRobustness]);
 
   return (
     <motion.div
@@ -58,7 +52,7 @@ export const SystemStatusBar = ({ showContent, statusColor, robustness: propRobu
       {/* Sample Rate */}
       <div className="hidden md:flex items-center gap-2">
         <span className="text-[#2E2E2E]">
-          Sample Rate: <span className="text-[#231200] font-medium">48kHz</span>
+          Sample Rate: <span className="text-[#231200] font-medium">{sampleRate || "—"}</span>
         </span>
       </div>
 
@@ -68,7 +62,9 @@ export const SystemStatusBar = ({ showContent, statusColor, robustness: propRobu
       {/* Model Version */}
       <div className="hidden md:flex items-center gap-2">
         <span className="text-[#2E2E2E]">
-          Model: <span className="text-[#231200] font-medium">SONA-2.0</span>
+          Model: <span className="text-[#231200] font-medium">
+            {(modelName || "—").toUpperCase()}
+          </span>
         </span>
       </div>
     </motion.div>
