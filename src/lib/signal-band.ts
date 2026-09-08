@@ -161,6 +161,42 @@ const BAND_COLOR: Record<DisplayBand, { dark: string; light: string }> = {
   INCONCLUSIVE: { dark: "#CECECE", light: "#565656" },
 };
 
+/**
+ * Signs that only ever display as flagged at the top of the scale.
+ *
+ * head-impact is the case: a head trauma reading is a serious claim, so it is
+ * shown as ELEVATED or not at all. Anything below that displays NORMAL.
+ *
+ * INCONCLUSIVE is never rewritten to NORMAL. Unreadable audio is not evidence
+ * that nothing was found, and claiming otherwise would be the one genuinely
+ * misleading outcome here.
+ */
+const FLAG_ONLY_WHEN_ELEVATED = new Set(["head-impact"]);
+
+/**
+ * The band to display for a given sign, applying any per-sign override.
+ *
+ * Use this rather than bandOfLevel anywhere a band reaches a screen, a count or
+ * the grade. Applying the override in only some of those places is what would
+ * produce a row reading NORMAL while the header counted it as a flag.
+ */
+export function bandForSignal(
+  name: string | null | undefined,
+  level: string | null | undefined
+): DisplayBand {
+  const band = bandOfLevel(level);
+  if (band === "INCONCLUSIVE") return band;
+  if (FLAG_ONLY_WHEN_ELEVATED.has((name || "").toLowerCase())) {
+    return band === "ELEVATED" ? "ELEVATED" : "NORMAL";
+  }
+  return band;
+}
+
+/** True when a displayed band counts as a flag. NORMAL is the only one that does not. */
+export function isFlaggedBand(band: DisplayBand): boolean {
+  return band === "LOW" || band === "MODERATE" || band === "ELEVATED";
+}
+
 export function bandColor(band: DisplayBand, surface: Surface = "dark"): string {
   return BAND_COLOR[band][surface];
 }

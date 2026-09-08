@@ -29,6 +29,7 @@
 import { AssessmentPathway } from "@/context/AssessmentContext";
 import { rungFor } from "@/lib/result-headline";
 import { isSuppressedSign } from "@/lib/suppressed-signs";
+import { bandForSignal, isFlaggedBand, type DisplayBand } from "@/lib/signal-band";
 import {
   VisualizedResult,
   LabMetric,
@@ -461,27 +462,34 @@ export function transformV2ResultToVisualization(
   // a screen, the PDF, the saved history or the headline grading.
   const shownSignals = signals.filter((s) => !isSuppressedSign(s.name));
 
-  // Most-severe signal first, so the reveal screen leads with what matters.
-  const orderedSignals = [...shownSignals].sort(
-    (a, b) =>
-      (LEVEL_RANK[(b.level || "").toLowerCase()] ?? -1) -
-        (LEVEL_RANK[(a.level || "").toLowerCase()] ?? -1) || b.score - a.score
-  );
+  /*
+    Left in the order the API returned them, rather than sorted most-severe
+    first. The reveal deliberately shows a mix, so a clean signal sitting next
+    to a flagged one is visible instead of being pushed to the bottom.
+
+    summary.primary_signals is not used for ordering either: it is documented as
+    the "top 1-3 name values by score", and a real apex run returned six.
+  */
+  const orderedSignals = shownSignals;
   const biomarkers = mapSignalsToBiomarkers(orderedSignals);
 
-  // Counted from the signals actually shown, not from summary.flagged_count.
-  // The API counts what it measured, so a suppressed sign would leave the
-  // screen reading "6 of 6 flagged" above five rows.
-  const flaggedCount = shownSignals.filter((s) => s.flagged).length;
+  /*
+    Counts and the grade both read the displayed band, not the raw level, so a
+    per-sign override cannot leave a row reading NORMAL while the header counts
+    it as a flag. head-impact is the sign that override applies to.
+  */
+  const displayBands = shownSignals.map((sig) => bandForSignal(sig.name, sig.level));
+  const flaggedCount = displayBands.filter(isFlaggedBand).length;
 
   const score = calculateWellnessScore(shownSignals, likelihoodTier);
-  // One source of levels for both the phrase and the scale, so the lit rung
-  // and the wording can never disagree.
-  const signalLevels = shownSignals.map((s) => s.level || "");
+  // Graded from the displayed bands for the same reason the count is.
+  const signalLevels = shownSignals.map((sig, i) =>
+    displayBands[i] === "NORMAL" ? "low" : sig.level || ""
+  );
   const classification = getV2Classification(likelihoodTier, pathway, signalLevels);
   const headlineRung = signalLevels.length > 0 ? rungFor({ levels: signalLevels }) : undefined;
 
-  const clinicalSubtext = buildSubtext(orderedSignals, flaggedCount);
+  const clinicalSubtext = buildSubtext(orderedSignals, displayBands);
 
   const sampleRate = job.audio_sample_rate
     ? `${Math.round(job.audio_sample_rate / 1000)}kHz`
@@ -606,19 +614,25 @@ export function getV2Classification(
  * screen shows, in the API's own v2 wording, with a count that matches the
  * rows. The narrative stays on the payload for a future staff-facing view.
  */
-function buildSubtext(signals: V2Signal[], flaggedCount: number): string {
+function buildSubtext(signals: V2Signal[], bands: DisplayBand[]): string {
   if (!signals.length) return "No voice signals were returned for this recording.";
 
-  if (flaggedCount === 0) {
+  // Named off the displayed bands, not the API's own `flagged`. Those differ
+  // wherever a per-sign override applies: with head-impact forced to moderate,
+  // filtering on `flagged` listed seven names under a count of six.
+  const flagged = signals
+    .filter((_, i) => isFlaggedBand(bands[i]))
+    .map((s) => s.label || titleCase(s.name));
+
+  if (flagged.length === 0) {
     return `None of the ${signals.length} voice signals measured were flagged.`;
   }
 
-  const flagged = signals.filter((s) => s.flagged).map((s) => s.label || titleCase(s.name));
   const names =
     flagged.length === 1
       ? flagged[0]
       : `${flagged.slice(0, -1).join(", ")} and ${flagged[flagged.length - 1]}`;
 
-  return `${flaggedCount} of ${signals.length} voice signals were flagged: ${names}.`;
+  return `${flagged.length} of ${signals.length} voice signals were flagged: ${names}.`;
 }
 

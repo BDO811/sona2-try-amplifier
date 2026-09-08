@@ -13,6 +13,8 @@ import {
   bandColor,
   bandOf,
   bandScaleOptions,
+  bandForSignal,
+  isFlaggedBand,
   type SignalLevel,
 } from "@/lib/signal-band";
 
@@ -236,5 +238,36 @@ describe("the calibration the docs describe", () => {
       "LOW",
       "NORMAL",
     ]);
+  });
+});
+
+describe("bandForSignal", () => {
+  it("shows head impact only at the top of the scale", () => {
+    // A head trauma reading is a serious claim, so it displays ELEVATED or not
+    // at all. Everything below reads NORMAL.
+    expect(bandForSignal("head-impact", "elevated")).toBe("ELEVATED");
+    for (const level of ["moderate", "consider", "low", "none"]) {
+      expect(bandForSignal("head-impact", level)).toBe("NORMAL");
+    }
+  });
+
+  it("never rewrites an unreadable head impact to NORMAL", () => {
+    // Unreadable audio is not evidence that nothing was found.
+    expect(bandForSignal("head-impact", "inconclusive")).toBe("INCONCLUSIVE");
+  });
+
+  it("leaves every other sign on its own band", () => {
+    for (const name of ["anxiety", "fatigue", "cardiovascular-strain", "dehydration"]) {
+      expect(bandForSignal(name, "moderate")).toBe("MODERATE");
+      expect(bandForSignal(name, "consider")).toBe("LOW");
+      expect(bandForSignal(name, "low")).toBe("NORMAL");
+    }
+  });
+
+  it("counts a flag off the displayed band, so an override cannot disagree", () => {
+    // head-impact at moderate displays NORMAL, so it must not count as a flag.
+    expect(isFlaggedBand(bandForSignal("head-impact", "moderate"))).toBe(false);
+    expect(isFlaggedBand(bandForSignal("anxiety", "consider"))).toBe(true);
+    expect(isFlaggedBand("NORMAL")).toBe(false);
   });
 });

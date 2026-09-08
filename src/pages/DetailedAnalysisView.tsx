@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { jsPDF } from "jspdf";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
-import { bandColor, bandOfLevel, bandScaleOptions } from "@/lib/signal-band";
+import { bandColor, bandForSignal, bandOfLevel, bandScaleOptions } from "@/lib/signal-band";
 import { RUNG_SCALE } from "@/lib/result-headline";
 import { OptionScale } from "@/components/report/OptionScale";
 
@@ -593,7 +593,7 @@ const DetailedAnalysisView = () => {
                         className="font-mono text-base font-semibold"
                         style={{
                           color: biomarker.level
-                            ? bandColor(bandOfLevel(biomarker.level), "dark")
+                            ? bandColor(bandForSignal(biomarker.technicalName, biomarker.level), "dark")
                             : BRAND_COLOR,
                         }}
                       >
@@ -614,11 +614,11 @@ const DetailedAnalysisView = () => {
                       <OptionScale
                         options={bandScaleOptions()}
                         activeKey={
-                          bandOfLevel(biomarker.level) === "INCONCLUSIVE"
+                          bandForSignal(biomarker.technicalName, biomarker.level) === "INCONCLUSIVE"
                             ? null
-                            : bandOfLevel(biomarker.level)
+                            : bandForSignal(biomarker.technicalName, biomarker.level)
                         }
-                        ariaLabel={`${biomarker.title}: ${bandOfLevel(biomarker.level)}`}
+                        ariaLabel={`${biomarker.title}: ${bandForSignal(biomarker.technicalName, biomarker.level)}`}
                       />
                     </div>
                   )}

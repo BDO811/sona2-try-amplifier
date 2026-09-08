@@ -70,7 +70,7 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     expect(visualized.headlineRung).toBe("steady");
   });
 
-  it("maps all six pulse signals into biomarkers, most severe first", () => {
+  it("maps all six pulse signals into biomarkers, in the order returned", () => {
     expect(visualized.biomarkers).toHaveLength(6);
     expect(visualized.signals).toHaveLength(6);
     // elevated-blood-pressure is a documented standalone sign and is shown.
@@ -110,7 +110,7 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     // The docs say summary.description.summary is not patient-facing, and on a
     // real run it named a sign the job never measured.
     expect(visualized.clinicalSubtext).toBe(
-      "5 of 6 voice signals were flagged: Anxiety, Fatigue, Dehydration, Stress and Mood Disruption."
+      "5 of 6 voice signals were flagged: Fatigue, Stress, Dehydration, Mood Disruption and Anxiety."
     );
     expect(visualized.clinicalSubtext).not.toContain("elevated signals");
     expect(visualized.clinicalSubtext).not.toContain("warrant further review");

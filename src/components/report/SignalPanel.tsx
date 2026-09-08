@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
-import { bandOf, bandScaleOptions, levelOf } from "@/lib/signal-band";
+import { bandForSignal, bandScaleOptions } from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
@@ -35,8 +35,7 @@ export const SignalPanel = ({
   return (
     <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
-        const level = levelOf(signal.level);
-        const band = bandOf(level);
+        const band = bandForSignal(signal.name, signal.level);
 
         return (
           <motion.div
@@ -60,13 +59,23 @@ export const SignalPanel = ({
               >
                 {signal.label}
               </span>
-              {/* The documented display label for this signal's own level. */}
-              <span
-                className={`font-mono flex-shrink-0 text-white ${
-                  isSeniorMode ? "text-xs" : "text-[10px]"
-                }`}
-              >
-                {band}
+              {/*
+                The band, plus the raw score. The docs class score as internal,
+                so it is deliberately the smaller of the two and labelled.
+              */}
+              <span className="flex items-baseline gap-2 flex-shrink-0">
+                <span
+                  className={`font-mono tabular-nums text-white/70 ${
+                    isSeniorMode ? "text-[11px]" : "text-[9px]"
+                  }`}
+                >
+                  {Number.isFinite(signal.score) ? signal.score.toFixed(3) : "—"}
+                </span>
+                <span
+                  className={`font-mono text-white ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
+                >
+                  {band}
+                </span>
               </span>
             </div>
 
