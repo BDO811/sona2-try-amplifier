@@ -68,8 +68,8 @@ export function rungFor({ levels }: { levels: string[] }): HeadlineRung {
 export const RUNG_LABEL_VARIANTS: Record<HeadlineRung, string[]> = {
   clean: ["OPTIMAL", "PEAK", "EXEMPLARY", "READY"],
   good: ["STRONG", "SOLID", "FAVORABLE", "RESILIENT", "WELL-REGULATED", "SOUND"],
-  steady: ["STEADY", "MEASURED", "HOLDING", "PRESENT"],
-  focus: ["NEEDS IMPROVEMENT", "IN TRANSITION", "UNDER OBSERVATION", "MONITORING"],
+  steady: ["LOW", "STEADY", "MEASURED", "HOLDING"],
+  focus: ["EXTREME", "NEEDS IMPROVEMENT", "IN TRANSITION", "UNDER OBSERVATION"],
   unreadable: ["INCONCLUSIVE", "UNREADABLE", "INCOMPLETE"],
 };
 
@@ -90,6 +90,6 @@ export const RUNG_SCALE: Array<{
 }> = [
   { key: "clean", label: "OPTIMAL", color: "#4CAF6E", colorLight: "#1E5631" },
   { key: "good", label: "STRONG", color: "#4CAF6E", colorLight: "#1E5631" },
-  { key: "steady", label: "STEADY", color: "#F5EF79", colorLight: "#6D5200" },
-  { key: "focus", label: "NEEDS IMPROVEMENT", color: "#FFC163", colorLight: "#8A3B08" },
+  { key: "steady", label: "LOW", color: "#F5EF79", colorLight: "#6D5200" },
+  { key: "focus", label: "EXTREME", color: "#FF6173", colorLight: "#8E1220" },
 ];

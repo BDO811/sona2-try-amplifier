@@ -209,6 +209,28 @@ export function bandForSignal(
   return band;
 }
 
+/**
+ * The word shown for a band on a given sign.
+ *
+ * head-impact reads NONE rather than NORMAL where it is gated: "no impact
+ * detected" is the plain statement, and NORMAL invites the reading that a
+ * normal amount of head trauma was found.
+ *
+ * The band itself stays NORMAL, so the flag count, the grade and the sentence
+ * are unaffected. Only the label differs.
+ */
+const NONE_INSTEAD_OF_NORMAL = new Set(["head-impact"]);
+
+export function bandLabelForSignal(
+  name: string | null | undefined,
+  band: DisplayBand
+): string {
+  if (band === "NORMAL" && NONE_INSTEAD_OF_NORMAL.has((name || "").toLowerCase())) {
+    return "NONE";
+  }
+  return band;
+}
+
 /** True when a displayed band counts as a flag. NORMAL is the only one that does not. */
 export function isFlaggedBand(band: DisplayBand): boolean {
   return band === "LOW" || band === "MODERATE" || band === "ELEVATED";

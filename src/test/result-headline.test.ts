@@ -83,6 +83,10 @@ describe("RUNG_SCALE", () => {
     expect(clean.colorLight).toBe(good.colorLight);
   });
 
+  it("labels the four rungs OPTIMAL / STRONG / LOW / EXTREME", () => {
+    expect(RUNG_SCALE.map((r) => r.label)).toEqual(["OPTIMAL", "STRONG", "LOW", "EXTREME"]);
+  });
+
   it("uses no risk or diagnostic wording in any label", () => {
     const banned = ["RISK", "ELEVATED", "POOR", "ABNORMAL", "DEFICIENT", "IMPAIRED", "DISEASE"];
     for (const r of RUNG_SCALE) {

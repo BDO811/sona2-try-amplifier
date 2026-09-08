@@ -48,7 +48,7 @@ export const SUB_DIMENSIONS: SubDimensionConfig[] = [
   {
     id: "sleep-disturbance",
     label: "Recovery",
-    levels: ["RECOVERED", "STEADY", "UNDER-RECOVERED"],
+    levels: ["RECOVERED", "NORMAL", "UNDER-RECOVERED"],
     shown: true,
   },
   {
@@ -62,44 +62,46 @@ export const SUB_DIMENSIONS: SubDimensionConfig[] = [
   {
     id: "anhedonia",
     label: "Happiness/Anhedonia",
-    levels: ["UPBEAT", "STEADY", "FLAT"],
+    levels: ["UPBEAT", "NORMAL", "FLAT"],
     shown: true,
   },
   {
     id: "energy-level",
     label: "Vitality",
-    levels: ["HIGH ENERGY", "STEADY", "LOW ENERGY"],
+    levels: ["HIGH ENERGY", "NORMAL", "LOW ENERGY"],
     shown: true,
   },
   {
     id: "burnout",
     label: "Freshness",
-    levels: ["FRESH", "STEADY", "DEPLETED"],
+    levels: ["FRESH", "NORMAL", "DEPLETED"],
     shown: true,
   },
   {
     id: "psychomotor-state",
     label: "Composure",
-    levels: ["COMPOSED", "STEADY", "AMPED"],
+    levels: ["COMPOSED", "NORMAL", "AMPED"],
     shown: true,
   },
   {
+    // Dropped alongside Sense of Dominance: relaxed and activated are both
+    // just descriptions, so a graded middle would imply both ends are not.
     id: "vad-arousal",
     label: "Activation",
-    levels: ["RELAXED", "STEADY", "ACTIVATED"],
-    shown: true,
+    levels: ["RELAXED", "NORMAL", "ACTIVATED"],
+    shown: false,
     neutral: true,
   },
   {
     id: "concentration",
     label: "Focus",
-    levels: ["SHARP", "STEADY", "SCATTERED"],
+    levels: ["SHARP", "NORMAL", "SCATTERED"],
     shown: true,
   },
   {
     id: "motivation",
     label: "Drive",
-    levels: ["DRIVEN", "STEADY", "FLAGGING"],
+    levels: ["DRIVEN", "NORMAL", "FLAGGING"],
     shown: true,
   },
   {
@@ -108,7 +110,7 @@ export const SUB_DIMENSIONS: SubDimensionConfig[] = [
     // so a middle band labelled normal would imply both ends are not.
     id: "vad-dominance",
     label: "Sense of Dominance",
-    levels: ["RESERVED", "STEADY", "ASSERTIVE"],
+    levels: ["RESERVED", "NORMAL", "ASSERTIVE"],
     shown: false,
     neutral: true,
   },

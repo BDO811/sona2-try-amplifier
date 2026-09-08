@@ -13,6 +13,7 @@ import {
   bandColor,
   bandOf,
   bandScaleOptions,
+  bandLabelForSignal,
   bandForSignal,
   isFlaggedBand,
   type SignalLevel,
@@ -269,5 +270,33 @@ describe("bandForSignal", () => {
     expect(isFlaggedBand(bandForSignal("head-impact", "moderate"))).toBe(false);
     expect(isFlaggedBand(bandForSignal("anxiety", "consider"))).toBe(true);
     expect(isFlaggedBand("NORMAL")).toBe(false);
+  });
+});
+
+describe("bandLabelForSignal", () => {
+  it("reads head impact as NONE rather than NORMAL", () => {
+    // "No impact detected" is the plain statement. NORMAL invites the reading
+    // that a normal amount of head trauma was found.
+    expect(bandLabelForSignal("head-impact", "NORMAL")).toBe("NONE");
+  });
+
+  it("leaves head impact's other bands alone", () => {
+    expect(bandLabelForSignal("head-impact", "ELEVATED")).toBe("ELEVATED");
+    expect(bandLabelForSignal("head-impact", "INCONCLUSIVE")).toBe("INCONCLUSIVE");
+  });
+
+  it("leaves every other sign reading NORMAL", () => {
+    for (const name of ["anxiety", "fatigue", "cardiovascular-strain"]) {
+      expect(bandLabelForSignal(name, "NORMAL")).toBe("NORMAL");
+    }
+  });
+
+  it("changes only the word, never the band", () => {
+    // The band drives the flag count and the grade, so relabelling must not
+    // move it.
+    const band = bandForSignal("head-impact", "low");
+    expect(band).toBe("NORMAL");
+    expect(isFlaggedBand(band)).toBe(false);
+    expect(bandLabelForSignal("head-impact", band)).toBe("NONE");
   });
 });

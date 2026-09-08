@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
-import { bandForSignal, bandScaleOptions } from "@/lib/signal-band";
+import { bandForSignal, bandLabelForSignal, bandScaleOptions } from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
@@ -36,6 +36,13 @@ export const SignalPanel = ({
     <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
         const band = bandForSignal(signal.name, signal.level);
+        // head-impact reads NONE rather than NORMAL; the band itself is
+        // unchanged so counts and the grade are unaffected.
+        const bandWord = bandLabelForSignal(signal.name, band);
+        const scale = bandScaleOptions().map((o) => ({
+          ...o,
+          label: bandLabelForSignal(signal.name, o.key),
+        }));
 
         return (
           <motion.div
@@ -74,15 +81,15 @@ export const SignalPanel = ({
                 <span
                   className={`font-mono text-white ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
                 >
-                  {band}
+                  {bandWord}
                 </span>
               </span>
             </div>
 
             <OptionScale
-              options={bandScaleOptions()}
+              options={scale}
               activeKey={band === "INCONCLUSIVE" ? null : band}
-              ariaLabel={`${signal.label}: ${band}`}
+              ariaLabel={`${signal.label}: ${bandWord}`}
             />
           </motion.div>
         );

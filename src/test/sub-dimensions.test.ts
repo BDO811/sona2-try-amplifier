@@ -73,12 +73,17 @@ describe("SUB_DIMENSIONS config", () => {
     expect(configFor("fatigue")?.label).not.toBe("Fatigue");
   });
 
-  it("hides dominance and marks both VAD dimensions neutral", () => {
-    expect(configFor("vad-dominance")?.shown).toBe(false);
-    expect(configFor("vad-dominance")?.neutral).toBe(true);
-    // Arousal is kept but still has no bad end.
-    expect(configFor("vad-arousal")?.shown).toBe(true);
-    expect(configFor("vad-arousal")?.neutral).toBe(true);
+  it("hides both VAD dimensions, since neither has a bad end", () => {
+    for (const id of ["vad-dominance", "vad-arousal"]) {
+      expect(configFor(id)?.shown, id).toBe(false);
+      expect(configFor(id)?.neutral, id).toBe(true);
+    }
+  });
+
+  it("uses NORMAL as the middle word on every metric", () => {
+    for (const config of SUB_DIMENSIONS) {
+      expect(config.levels[1], config.id).toBe("NORMAL");
+    }
   });
 
   it("orders the level words low score to high score, matching the anchors", () => {
@@ -93,9 +98,10 @@ describe("SUB_DIMENSIONS config", () => {
 describe("readableSubDimensions", () => {
   const rows = readableSubDimensions(APEX_RUN);
 
-  it("drops the hidden metric and keeps the rest", () => {
-    expect(rows).toHaveLength(9);
+  it("drops the hidden metrics and keeps the rest", () => {
+    expect(rows).toHaveLength(8);
     expect(rows.map((r) => r.id)).not.toContain("vad-dominance");
+    expect(rows.map((r) => r.id)).not.toContain("vad-arousal");
   });
 
   it("renders in configured order, not the order the API returned", () => {
@@ -115,7 +121,7 @@ describe("readableSubDimensions", () => {
 
   it("picks the word matching the band", () => {
     const recovery = rows.find((r) => r.id === "sleep-disturbance")!;
-    expect(recovery.level).toBe("STEADY");
+    expect(recovery.level).toBe("NORMAL");
     expect(recovery.scoreMean).toBeCloseTo(0.534, 4);
   });
 
