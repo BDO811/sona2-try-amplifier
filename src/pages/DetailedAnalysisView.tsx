@@ -51,22 +51,9 @@ const DetailedAnalysisView = () => {
       : [0, 0, 0];
   };
 
-  /**
-   * Colour for a biomarker in the PDF and on the range track.
-   *
-   * Prefers the API level and its band colour. The z-score fallback exists for
-   * v1 results, which carry no level; its old ramp used the retired emerald
-   * #10B981 and amber/red outside the brand palette, so it now maps onto the
-   * band colours instead.
-   */
-  const getBiomarkerColor = (zScore?: number, level?: string): string => {
-    if (level) return bandColor(bandOfLevel(level), "light");
-    if (zScore === undefined) return BRAND_COLOR;
-    const absZScore = Math.abs(zScore);
-    if (absZScore < 2.0) return bandColor("NORMAL", "light");
-    if (absZScore < 3.0) return bandColor("MODERATE", "light");
-    return bandColor("ELEVATED", "light");
-  };
+  /** Colour for a biomarker in the PDF and on the range track. */
+  const getBiomarkerColor = (level?: string): string =>
+    level ? bandColor(bandOfLevel(level), "light") : BRAND_COLOR;
 
   const handleDownloadPDF = () => {
     toast.loading("Generating Clinical PDF...", { id: "pdf-gen" });
@@ -250,7 +237,7 @@ const DetailedAnalysisView = () => {
         yPosition += 5;
 
         // Value and Unit - with color coding matching BiometricLabGrid
-        const biomarkerColor = hexToRgb(getBiomarkerColor(biomarker.zScore, biomarker.level));
+        const biomarkerColor = hexToRgb(getBiomarkerColor(biomarker.level));
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(biomarkerColor[0], biomarkerColor[1], biomarkerColor[2]);
@@ -264,8 +251,8 @@ const DetailedAnalysisView = () => {
         const defHeight = addWrappedText(biomarker.definition, margin, yPosition, maxWidth, 9);
         yPosition += defHeight + 3;
 
-        // Clinical Context - Only show if not in normal range (z-score >= 2.0) AND context exists
-        if (biomarker.zScore !== undefined && Math.abs(biomarker.zScore) >= 2.0 && biomarker.clinicalContext) {
+        // Present only on a flagged band — the mapper leaves it undefined otherwise.
+        if (biomarker.clinicalContext) {
           doc.setFillColor(240, 248, 255);
           doc.rect(margin, yPosition - 2, maxWidth, 15, "F");
           doc.setFontSize(8);
@@ -622,8 +609,8 @@ const DetailedAnalysisView = () => {
                     {biomarker.definition}
                   </p>
                   
-                  {/* Clinical Context - Only show if not in normal range (z-score >= 2.0) AND context exists */}
-                  {biomarker.zScore !== undefined && Math.abs(biomarker.zScore) >= 2.0 && biomarker.clinicalContext && (
+                  {/* Present only on a flagged band — the mapper leaves it undefined otherwise. */}
+                  {biomarker.clinicalContext && (
                     <div 
                       className="rounded px-3 py-2 mb-2"
                       style={{ background: 'rgba(30, 86, 49, 0.05)' }}

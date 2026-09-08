@@ -29,7 +29,12 @@
 import { AssessmentPathway } from "@/context/AssessmentContext";
 import { rungFor } from "@/lib/result-headline";
 import { isSuppressedSign } from "@/lib/suppressed-signs";
-import { bandForSignal, isFlaggedBand, type DisplayBand } from "@/lib/signal-band";
+import {
+  bandForSignal,
+  bandLabelForSignal,
+  isFlaggedBand,
+  type DisplayBand,
+} from "@/lib/signal-band";
 import {
   VisualizedResult,
   LabMetric,
@@ -313,23 +318,6 @@ export function v2LevelToLikelihoodTier(level: string | undefined): string {
  * v2 does not publish z-scores, so this encodes severity, not standard
  * deviations, and is never surfaced as a number to the user.
  */
-function levelToColorScore(level: string | undefined): number | undefined {
-  switch ((level || "").toLowerCase()) {
-    case "none":
-      return 0.4;
-    case "low":
-      return 1.2;
-    case "consider":
-      return 2.2;
-    case "moderate":
-      return 2.6;
-    case "elevated":
-      return 3.4;
-    default:
-      return undefined;
-  }
-}
-
 
 const LEVEL_RANK: Record<string, number> = {
   none: 0,
@@ -391,22 +379,35 @@ export function mapVocalFeaturesToLabMetrics(features: V2VocalFeature[]): LabMet
       unit: f.unit || "",
       reference: FEATURE_REFERENCE[f.feature] || f.value_interpretation || "—",
       status,
-      // Vocal features are descriptive, not severity-graded — keep them out of
-      // the red band so a merely "reduced" pause length does not read as alarming.
-      zScore: status === "normal" ? 0.5 : 2.2,
     };
   });
 }
 
-export function mapSignalsToBiomarkers(signals: V2Signal[]): BiomarkerDefinition[] {
-  return signals.map((s) => {
+export function mapSignalsToBiomarkers(
+  signals: V2Signal[],
+  bands: DisplayBand[]
+): BiomarkerDefinition[] {
+  return signals.map((s, i) => {
     const copy = SIGN_COPY[s.name] || DEFAULT_SIGN_COPY;
-    const level = (s.level || "").toLowerCase();
+    const band = bands[i] ?? bandForSignal(s.name, s.level);
     const pct = Number.isFinite(s.score) ? Math.round(s.score * 100) : 0;
 
-    const clinicalContext = s.flagged
-      ? `Flagged at ${level} level (${pct}% signal strength). ${copy.context}`
-      : `Below the flagging threshold at ${level} level (${pct}% signal strength). ${copy.context}`;
+    /*
+      Written from the display band rather than the API's own `flagged` and
+      `level` words. Those disagree with what the row shows: `flagged` is true
+      from consider up, consider displays as LOW, and head-impact is held to
+      ELEVATED, so a signal reading LOW on screen would have opened this
+      paragraph with "Flagged at consider level".
+
+      The paragraph is present only when the band is flagged, which is the gate
+      itself. It used to be gated in the view on Math.abs(zScore) >= 2.0, where
+      zScore came from a hand-written level-to-number table and the API returns
+      no such statistic.
+    */
+    const bandWord = bandLabelForSignal(s.name, band);
+    const clinicalContext = isFlaggedBand(band)
+      ? `Reading ${bandWord} at ${pct}% signal strength. ${copy.context}`
+      : undefined;
 
     return {
       title: s.label || titleCase(s.name),
@@ -416,7 +417,6 @@ export function mapSignalsToBiomarkers(signals: V2Signal[]): BiomarkerDefinition
       definition: copy.definition,
       clinicalContext,
       normalRange: "Below flagging threshold",
-      zScore: levelToColorScore(s.level),
       level: s.level,
     };
   });
@@ -471,7 +471,6 @@ export function transformV2ResultToVisualization(
     the "top 1-3 name values by score", and a real apex run returned six.
   */
   const orderedSignals = shownSignals;
-  const biomarkers = mapSignalsToBiomarkers(orderedSignals);
 
   /*
     Counts and the grade both read the displayed band, not the raw level, so a
@@ -480,6 +479,7 @@ export function transformV2ResultToVisualization(
   */
   const displayBands = shownSignals.map((sig) => bandForSignal(sig.name, sig.level));
   const flaggedCount = displayBands.filter(isFlaggedBand).length;
+  const biomarkers = mapSignalsToBiomarkers(orderedSignals, displayBands);
   // Graded from the displayed bands for the same reason the count is.
   const signalLevels = shownSignals.map((sig, i) =>
     displayBands[i] === "NORMAL" ? "low" : sig.level || ""

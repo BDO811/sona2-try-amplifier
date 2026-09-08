@@ -24,15 +24,11 @@ export interface BiomarkerDefinition {
   value: string;
   unit: string;
   definition: string;
-  clinicalContext: string;
+  /** Set only when the display band is flagged. Absent means nothing to add. */
+  clinicalContext?: string;
   normalRange: string;
   /** Raw v2 level, so a screen can band it without matching back by name. */
   level?: string;
-  /**
-   * A pseudo z-score derived from `level`, not a statistic the API returns.
-   * Still gates the clinical-context block on the detail page. Under review.
-   */
-  zScore?: number;
 }
 
 /** v2 `extended_metrics[]` entry — a bipolar sub-dimension score. */
