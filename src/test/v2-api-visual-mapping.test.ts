@@ -2,9 +2,11 @@ import { describe, it, expect } from "vitest";
 import {
   isV2Result,
   transformV2ResultToVisualization,
-  v2LevelToLikelihoodTier,
   V2JobDetail,
 } from "@/lib/v2-api-visual-mapping";
+import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
+import { getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
+import { bandColor, bandOfLevel } from "@/lib/signal-band";
 
 // A real, unedited response from the deployed analyzeAudio Cloud Function
 // (Amplifier v2 API, model "pulse") captured 2026-09-05 against a 36s sample.
@@ -23,24 +25,71 @@ describe("v2 result detection", () => {
   });
 });
 
-describe("v2 level → likelihood tier", () => {
-  it("maps every documented level", () => {
-    expect(v2LevelToLikelihoodTier("none")).toBe("NO_RISK");
-    expect(v2LevelToLikelihoodTier("low")).toBe("LOW");
-    expect(v2LevelToLikelihoodTier("consider")).toBe("MODERATE");
-    expect(v2LevelToLikelihoodTier("moderate")).toBe("MODERATE");
-    expect(v2LevelToLikelihoodTier("elevated")).toBe("HIGH");
-    expect(v2LevelToLikelihoodTier("inconclusive")).toBe("INCONCLUSIVE");
+describe("overall_level carried through as the tier", () => {
+  const tierFor = (level: string) =>
+    transformV2ResultToVisualization(
+      {
+        job_id: "j",
+        status: "done",
+        created_at: "2026-09-08T00:00:00Z",
+        result: {
+          summary: { overall_level: level, flagged_signs: [], primary_signals: [] },
+          signals: [],
+          extended_metrics: [],
+          audio_quality: { voice_percentage: 90, audio_clarity: 90, issues: [] },
+        },
+      } as never,
+      "WELLNESS"
+    ).likelihoodTier;
+
+  it("keeps all six documented levels distinct", () => {
+    // consider and moderate used to both arrive as MODERATE.
+    const tiers = ["none", "low", "consider", "moderate", "elevated", "inconclusive"].map(tierFor);
+    expect(tiers).toEqual([
+      "NONE",
+      "LOW",
+      "CONSIDER",
+      "MODERATE",
+      "ELEVATED",
+      "INCONCLUSIVE",
+    ]);
+    expect(new Set(tiers).size).toBe(6);
+  });
+
+  it("invents no level the API does not return", () => {
+    // NO_RISK and HIGH were not levels, so bandOfLevel could not recognise
+    // them: `none` and `elevated` both coloured as inconclusive grey.
+    for (const tier of ["none", "low", "consider", "moderate", "elevated"].map(tierFor)) {
+      expect(bandOfLevel(tier)).not.toBe("INCONCLUSIVE");
+    }
+    expect(getStatusColorFromLikelihoodTier(tierFor("none"))).toBe(bandColor("NORMAL", "light"));
+    expect(getStatusColorFromLikelihoodTier(tierFor("elevated"))).toBe(
+      bandColor("ELEVATED", "light")
+    );
+    expect(getStatusColorFromLikelihoodTier(tierFor("consider"))).not.toBe(
+      getStatusColorFromLikelihoodTier(tierFor("moderate"))
+    );
+  });
+
+  it("gives each level its own display wording", () => {
+    const words = ["none", "low", "consider", "moderate", "elevated", "inconclusive"]
+      .map(tierFor)
+      .map(formatLikelihoodTierForDisplay);
+    expect(new Set(words).size).toBe(6);
+    expect(formatLikelihoodTierForDisplay(tierFor("moderate"))).toBe("Continue to Monitor");
+  });
+
+  it("reads inconclusive when the summary has no level at all", () => {
+    expect(tierFor("")).toBe("INCONCLUSIVE");
   });
 });
 
 describe("transformV2ResultToVisualization on a real pulse response", () => {
   const visualized = transformV2ResultToVisualization(job, "WELLNESS");
 
-  it("counts flags over the shown signals, not the API total", () => {
-    // summary.flagged_count on this sample is 5 across six measured signals.
-    // With one suppressed, a screen reading "5 of 6" would sit above five rows.
-    expect(visualized.totalSignals).toBe(5);
+  it("counts flags over the signals it shows", () => {
+    // Nothing is suppressed, so the count matches what pulse measured.
+    expect(visualized.totalSignals).toBe(6);
     expect(visualized.flaggedCount).toBe(5);
   });
 
@@ -65,21 +114,17 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     }
   });
 
-  it("grades down once the only clean signal is suppressed", () => {
-    // elevated-blood-pressure was the one signal reading low on this sample.
-    // With it withheld nothing reads clean, so the rung drops from steady.
-    // Suppressing a sign changes the grade, not just the list of rows.
-    expect(visualized.headlineRung).toBe("focus");
+  it("grades on the levels of every signal returned", () => {
+    // elevated-blood-pressure reads low here, the docs' "Faint indicator", and
+    // is the only unflagged signal. It is no longer withheld, so it counts.
+    expect(visualized.headlineRung).toBe("steady");
   });
 
-  it("maps the shown pulse signals into biomarkers, most severe first", () => {
-    // pulse returns six; elevated-blood-pressure is suppressed, so five show.
-    expect(visualized.biomarkers).toHaveLength(5);
-    expect(visualized.signals).toHaveLength(5);
-    expect(visualized.signals?.map((s) => s.name)).not.toContain("elevated-blood-pressure");
-    expect(visualized.biomarkers.map((b) => b.technicalName)).not.toContain(
-      "elevated-blood-pressure"
-    );
+  it("maps all six pulse signals into biomarkers, in the order returned", () => {
+    expect(visualized.biomarkers).toHaveLength(6);
+    expect(visualized.signals).toHaveLength(6);
+    // elevated-blood-pressure is a documented standalone sign and is shown.
+    expect(visualized.signals?.map((s) => s.name)).toContain("elevated-blood-pressure");
     // every biomarker has real display copy, not a placeholder
     for (const b of visualized.biomarkers) {
       expect(b.title.length).toBeGreaterThan(0);
@@ -111,42 +156,34 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     expect(fatigue?.high_anchor).toBe("exhausted");
   });
 
-  it("uses the API's own narrative, not a generic tier sentence", () => {
-    expect(visualized.clinicalSubtext).toContain("5 elevated signals");
-    expect(visualized.clinicalSubtext).not.toContain("Analysis shows");
+  it("composes the sentence from the signals it shows, not the API narrative", () => {
+    // The docs say summary.description.summary is not patient-facing, and on a
+    // real run it named a sign the job never measured.
+    expect(visualized.clinicalSubtext).toBe(
+      "5 of 6 voice signals were flagged: Fatigue, Stress, Dehydration, Mood Disruption and Anxiety."
+    );
+    expect(visualized.clinicalSubtext).not.toContain("elevated signals");
+    expect(visualized.clinicalSubtext).not.toContain("warrant further review");
   });
 
-  it("reports the flagged count over the shown signals", () => {
-    // The API measured six and flagged five. One is suppressed, so the stat
-    // must read over the five that appear, not the six that were measured.
+  it("reports the flagged count as the key stat", () => {
     expect(visualized.flaggedCount).toBe(5);
-    expect(visualized.totalSignals).toBe(5);
+    expect(visualized.totalSignals).toBe(6);
     expect(visualized.keyStat).toEqual({
       label: "Signals Flagged",
       value: "5",
-      suffix: " / 5",
+      suffix: " / 6",
     });
-  });
-
-  it("derives the score from actual signal strength, not the tier alone", () => {
-    // Scored over the shown signals only, so dropping the suppressed one moves
-    // this: max 0.5555 (anxiety) with a higher mean now that the lowest signal
-    // is gone.
-    expect(visualized.score).toBe(52);
-    // a tier-only mapping would have produced a flat 50
-    expect(visualized.score).not.toBe(50);
   });
 
   it("maps audio quality into signal quality", () => {
     // v2 reports voice_percentage as 0-100; the report screens multiply by 100,
     // so the mapper must hand them the 0-1 fraction (96.5% must not render 9650%).
     expect(visualized.signalQuality?.voicePercentage).toBeCloseTo(0.965, 4);
-    // audio_clarity is a 0-100 score, NOT a dB SI-SDR — it must not land in snr.
     expect(visualized.signalQuality?.audioClarity).toBe(96.4);
-    expect(visualized.signalQuality?.snr).toBe(0);
     expect(visualized.signalQuality?.sampleRate).toBe("48kHz");
     expect(visualized.signalQuality?.duration).toBeCloseTo(36.506, 2);
-    expect(visualized.flaggingExplanation).toBeUndefined(); // issues[] is empty
+    expect(visualized.signalQuality?.issues).toEqual([]);
   });
 });
 
@@ -182,7 +219,7 @@ describe("condition jobs (singular signal, no summary)", () => {
 
   it("handles the singular signal shape", () => {
     const v = transformV2ResultToVisualization(conditionJob, "WELLNESS");
-    expect(v.likelihoodTier).toBe("HIGH");
+    expect(v.likelihoodTier).toBe("ELEVATED");
     expect(v.biomarkers).toHaveLength(1);
     expect(v.labMetrics).toHaveLength(1);
     expect(v.flaggedCount).toBe(1);
@@ -206,8 +243,9 @@ describe("inconclusive / low-quality audio", () => {
       "WELLNESS"
     );
     expect(v.likelihoodTier).toBe("INCONCLUSIVE");
-    expect(v.score).toBe(50);
     expect(v.biomarkers).toHaveLength(0);
-    expect(v.flaggingExplanation).toBe("low_voice_percentage");
+    // The failure screen names the reason from these codes, so they must survive
+    // the transform rather than being flattened into a sentence.
+    expect(v.signalQuality?.issues).toEqual(["low_voice_percentage"]);
   });
 });

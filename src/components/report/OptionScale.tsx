@@ -29,6 +29,8 @@ interface OptionScaleProps {
   size?: "sm" | "lg";
   /** Which ground the scale sits on. Picks the legible half of each colour. */
   surface?: "dark" | "light";
+  /** Opacity for the options a result is not. Defaults to DIM. */
+  dimOpacity?: number;
   ariaLabel: string;
 }
 
@@ -47,6 +49,7 @@ export const OptionScale = ({
   activeKey,
   size = "sm",
   surface = "dark",
+  dimOpacity = DIM,
   ariaLabel,
 }: OptionScaleProps) => {
   const isLarge = size === "lg";
@@ -112,7 +115,7 @@ export const OptionScale = ({
             } ${isActive ? "animate-scale-breathe" : ""}`}
             style={{
               color,
-              opacity: isActive ? 1 : DIM,
+              opacity: isActive ? 1 : dimOpacity,
               // Read by the keyframes; harmless on the dimmed options.
               ["--scale-color" as string]: color,
               // A touch more fill on a light ground: the same alpha that reads

@@ -2,20 +2,6 @@ import { motion } from "framer-motion";
 import { AlertTriangle, RefreshCw, CheckCircle, XCircle } from "lucide-react";
 import { useAssessment, BRAND_COLOR } from "@/context/AssessmentContext";
 
-// Acceptability thresholds for audio quality metrics
-const QUALITY_THRESHOLDS = {
-  pesq: 1.1,
-  stoi: 0.5,
-  voicePercentage: 0.3,
-  siSdr: -10.0, // dB
-};
-
-// Descriptions from feature_descriptions.json
-const METRIC_DESCRIPTIONS = {
-  pesq: "Average Perceptual Evaluation of Speech Quality score, measuring overall speech quality perception.",
-  stoi: "Average Short-Time Objective Intelligibility score, measuring how intelligible the speech is.",
-};
-
 interface AnalysisFailedProps {
   onRestart: () => void;
 }
@@ -106,148 +92,91 @@ export const AnalysisFailed = ({ onRestart }: AnalysisFailedProps) => {
         {/* Audio Quality Metrics for Inconclusive Results */}
         {isInconclusive && signalQuality && (
           <motion.div
-            className="w-full max-w-md mx-auto mb-8 text-left"
-            initial={{ opacity: 0, y: 20 }}
+            className="w-full max-w-md mb-6 rounded-lg p-4"
+            style={{ background: "rgba(11, 11, 10, 0.9)", border: "1px solid rgba(255,255,255,0.1)" }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.3 }}
           >
-            <h2 className="font-mono text-xs uppercase tracking-widest text-black/60 mb-4 pb-2 border-b border-black/10">
-              Audio Quality Metrics
-            </h2>
-            
-            {/* Explanation from flagging_results */}
-            {visualizedResult?.flaggingExplanation && (
-              <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <p className="font-mono text-xs text-amber-200 leading-relaxed">
-                  {visualizedResult.flaggingExplanation}
-                </p>
+            <h3 className="font-mono text-[10px] uppercase tracking-widest text-white mb-3">
+              Recording quality
+            </h3>
+
+            {/*
+              The two fields the v2 API actually reports, with the thresholds the
+              docs publish for them: voice_percentage below 30 corresponds to
+              insufficient_speech, audio_clarity below 50 to
+              high_background_noise.
+
+              This block previously showed PESQ and STOI against thresholds of
+              1.1 and 0.5. Those are v1 fields; v2 never returns them, so the
+              rows could not render and the screen showed no reason at all.
+            */}
+            {signalQuality.voicePercentage !== undefined &&
+              (() => {
+                const pct = signalQuality.voicePercentage * 100;
+                const ok = pct >= 30;
+                return (
+                  <div className="flex items-baseline justify-between gap-3 mb-2">
+                    <span className="font-mono text-[11px] text-white">Speech detected</span>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="font-mono text-[11px] tabular-nums"
+                        style={{ color: ok ? "#4CAF6E" : "#FF6173" }}
+                      >
+                        {pct.toFixed(1)}%
+                      </span>
+                      <span className="font-mono text-[9px] text-white">(needs 30%)</span>
+                      {ok ? (
+                        <CheckCircle className="w-3 h-3" style={{ color: "#4CAF6E" }} />
+                      ) : (
+                        <XCircle className="w-3 h-3" style={{ color: "#FF6173" }} />
+                      )}
+                    </span>
+                  </div>
+                );
+              })()}
+
+            {signalQuality.audioClarity !== undefined &&
+              (() => {
+                const ok = signalQuality.audioClarity >= 50;
+                return (
+                  <div className="flex items-baseline justify-between gap-3 mb-2">
+                    <span className="font-mono text-[11px] text-white">Background noise</span>
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="font-mono text-[11px] tabular-nums"
+                        style={{ color: ok ? "#4CAF6E" : "#FF6173" }}
+                      >
+                        {signalQuality.audioClarity.toFixed(1)} / 100
+                      </span>
+                      <span className="font-mono text-[9px] text-white">(needs 50)</span>
+                      {ok ? (
+                        <CheckCircle className="w-3 h-3" style={{ color: "#4CAF6E" }} />
+                      ) : (
+                        <XCircle className="w-3 h-3" style={{ color: "#FF6173" }} />
+                      )}
+                    </span>
+                  </div>
+                );
+              })()}
+
+            {/* The API's own issue codes, which name the problem directly. */}
+            {signalQuality.issues && signalQuality.issues.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-white/10">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-white block mb-1">
+                  Reported
+                </span>
+                <span className="font-mono text-[11px] text-white">
+                  {signalQuality.issues.map((code) => code.replace(/_/g, " ")).join(" · ")}
+                </span>
               </div>
             )}
-            
-            <div className="space-y-0 divide-y divide-white/5 bg-black/40 rounded-lg overflow-hidden">
-              {signalQuality.pesq !== undefined && (() => {
-                const meetsThreshold = signalQuality.pesq > QUALITY_THRESHOLDS.pesq;
-                return (
-                  <div className="py-3 px-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-white/50">PESQ Score</span>
-                        {meetsThreshold ? (
-                          <CheckCircle className="w-3 h-3 text-green-400" />
-                        ) : (
-                          <XCircle className="w-3 h-3 text-red-400" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span 
-                          className="font-mono text-xs font-semibold"
-                          style={{ color: meetsThreshold ? "#10B981" : "#EF4444" }}
-                        >
-                          {signalQuality.pesq.toFixed(2)}
-                        </span>
-                        <span className="font-mono text-[10px] text-white/40">
-                          (&gt;{QUALITY_THRESHOLDS.pesq})
-                        </span>
-                      </div>
-                    </div>
-                    <p className="font-mono text-[10px] text-white/40 mt-1">
-                      {METRIC_DESCRIPTIONS.pesq}
-                    </p>
-                  </div>
-                );
-              })()}
-              {signalQuality.stoi !== undefined && (() => {
-                const meetsThreshold = signalQuality.stoi > QUALITY_THRESHOLDS.stoi;
-                return (
-                  <div className="py-3 px-4">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-white/50">STOI Score</span>
-                        {meetsThreshold ? (
-                          <CheckCircle className="w-3 h-3 text-green-400" />
-                        ) : (
-                          <XCircle className="w-3 h-3 text-red-400" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span 
-                          className="font-mono text-xs font-semibold"
-                          style={{ color: meetsThreshold ? "#10B981" : "#EF4444" }}
-                        >
-                          {signalQuality.stoi.toFixed(2)}
-                        </span>
-                        <span className="font-mono text-[10px] text-white/40">
-                          (&gt;{QUALITY_THRESHOLDS.stoi})
-                        </span>
-                      </div>
-                    </div>
-                    <p className="font-mono text-[10px] text-white/40 mt-1">
-                      {METRIC_DESCRIPTIONS.stoi}
-                    </p>
-                  </div>
-                );
-              })()}
-              {signalQuality.snr !== undefined && (() => {
-                const meetsThreshold = signalQuality.snr > QUALITY_THRESHOLDS.siSdr;
-                return (
-                  <div className="flex items-center justify-between py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-white/50">Signal-to-Noise Ratio (SI-SDR)</span>
-                      {meetsThreshold ? (
-                        <CheckCircle className="w-3 h-3 text-green-400" />
-                      ) : (
-                        <XCircle className="w-3 h-3 text-red-400" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span 
-                        className="font-mono text-xs font-semibold"
-                        style={{ color: meetsThreshold ? "#10B981" : "#EF4444" }}
-                      >
-                        {signalQuality.snr.toFixed(1)} dB
-                      </span>
-                      <span className="font-mono text-[10px] text-white/40">
-                        (&gt;{QUALITY_THRESHOLDS.siSdr}dB)
-                      </span>
-                    </div>
-                  </div>
-                );
-              })()}
-              {signalQuality.voicePercentage !== undefined && (() => {
-                const meetsThreshold = signalQuality.voicePercentage > QUALITY_THRESHOLDS.voicePercentage;
-                return (
-                  <div className="flex items-center justify-between py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-white/50">Voice Percentage</span>
-                      {meetsThreshold ? (
-                        <CheckCircle className="w-3 h-3 text-green-400" />
-                      ) : (
-                        <XCircle className="w-3 h-3 text-red-400" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span 
-                        className="font-mono text-xs font-semibold"
-                        style={{ color: meetsThreshold ? "#10B981" : "#EF4444" }}
-                      >
-                        {(signalQuality.voicePercentage * 100).toFixed(1)}%
-                      </span>
-                      <span className="font-mono text-[10px] text-white/40">
-                        (&gt;{QUALITY_THRESHOLDS.voicePercentage * 100}%)
-                      </span>
-                    </div>
-                  </div>
-                );
-              })()}
-              {signalQuality.duration !== undefined && (
-                <div className="flex items-center justify-between py-3 px-4">
-                  <span className="font-mono text-xs text-white/50">Duration</span>
-                  <span className="font-mono text-xs text-white/80">
-                    {signalQuality.duration.toFixed(1)}s
-                  </span>
-                </div>
-              )}
-            </div>
+
+            <p className="font-mono text-[10px] text-white leading-relaxed mt-3">
+              {signalQuality.duration.toFixed(1)}s recorded. Records of at least 15 seconds
+              are accepted; 20 seconds or more is the range the models are tuned for.
+            </p>
           </motion.div>
         )}
 

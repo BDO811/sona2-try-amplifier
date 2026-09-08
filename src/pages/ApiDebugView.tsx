@@ -1,5 +1,4 @@
 import { useAssessment } from "@/context/AssessmentContext";
-import { ApiResult } from "@/lib/cognitive-api-visual-mapping";
 
 /**
  * Debug page to inspect the raw API response and transformation
@@ -26,7 +25,7 @@ const ApiDebugView = () => {
   return (
     <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Cognitive API Response Inspector</h1>
+        <h1 className="text-3xl font-bold mb-6">v2 API Response Inspector</h1>
         
         {/* Raw API Result */}
         <section className="mb-8">
@@ -42,56 +41,11 @@ const ApiDebugView = () => {
           </div>
         </section>
         
-        {/* Structured ApiResult */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-cyan-400">2. Structured ApiResult (Type Definition)</h2>
-          <div className="bg-gray-900 rounded-lg p-4">
-            <pre className="text-xs text-yellow-400 font-mono whitespace-pre-wrap">
-{`interface ApiResult {
-  job_id: string;
-  status: string;
-  created_at: string;
-  result: {
-    explanations?: {
-      feature_explanations?: {
-        error: string | null;
-        features: Record<string, FeatureData>;
-        status: string;
-      };
-    };
-    likelihood_tier?: string;
-    internal?: any;
-  };
-}
-
-interface FeatureData {
-  feature_value: number;
-  z_score_0: number;
-  z_score_1: number;
-  z_score_difference: number;
-  median_distance_0: number;
-  median_distance_1: number;
-  ri_stats_0: {
-    mean: number;
-    median: number;
-    std: number;
-    iqr: number;
-  };
-  ri_stats_1: {
-    mean: number;
-    median: number;
-    std: number;
-    iqr: number;
-  };
-}`}
-            </pre>
-          </div>
-        </section>
         
         {/* Extracted Features */}
         {apiResult && (apiResult as any).explanations?.feature_explanations?.features && (
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-cyan-400">3. Extracted Features</h2>
+            <h2 className="text-xl font-semibold mb-4 text-cyan-400">2. Extracted Features</h2>
             <div className="bg-gray-900 rounded-lg p-4 overflow-auto max-h-96">
               <pre className="text-xs text-blue-400 font-mono whitespace-pre-wrap break-words">
                 {JSON.stringify((apiResult as any).explanations.feature_explanations.features, null, 2)}
@@ -105,7 +59,7 @@ interface FeatureData {
         
         {/* Transformed VisualizedResult */}
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-cyan-400">4. Transformed VisualizedResult (Display Format)</h2>
+          <h2 className="text-xl font-semibold mb-4 text-cyan-400">3. Transformed VisualizedResult (Display Format)</h2>
           <div className="bg-gray-900 rounded-lg p-4 overflow-auto">
             {visualizedResult ? (
               <pre className="text-xs text-purple-400 font-mono whitespace-pre-wrap break-words">
@@ -119,7 +73,7 @@ interface FeatureData {
         
         {/* Transformation Flow */}
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-cyan-400">5. Transformation Flow</h2>
+          <h2 className="text-xl font-semibold mb-4 text-cyan-400">4. Transformation Flow</h2>
           <div className="bg-gray-900 rounded-lg p-4">
             <ol className="list-decimal list-inside space-y-2 text-white/80">
               <li>
@@ -140,7 +94,7 @@ interface FeatureData {
               <li>
                 <strong>Transform:</strong> <code className="text-cyan-400">transformApiResultToVisualization(apiResult, pathway, biologicalSex)</code>
                 <br />
-                <span className="text-white/60 text-sm">Located in: <code>src/lib/cognitive-api-visual-mapping.ts</code></span>
+                <span className="text-white/60 text-sm">Located in: <code>src/lib/v2-api-visual-mapping.ts</code></span>
               </li>
               <li>
                 <strong>Store Visualized:</strong> <code className="text-cyan-400">setVisualizedResult(visualized)</code>
@@ -153,7 +107,7 @@ interface FeatureData {
         
         {/* Where It's Displayed */}
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-cyan-400">6. Where It's Displayed</h2>
+          <h2 className="text-xl font-semibold mb-4 text-cyan-400">5. Where It's Displayed</h2>
           <div className="bg-gray-900 rounded-lg p-4">
             <ul className="list-disc list-inside space-y-2 text-white/80">
               <li>
@@ -177,7 +131,7 @@ interface FeatureData {
         
         {/* Current Pathway */}
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-cyan-400">7. Current Context</h2>
+          <h2 className="text-xl font-semibold mb-4 text-cyan-400">6. Current Context</h2>
           <div className="bg-gray-900 rounded-lg p-4">
             <div className="space-y-2">
               <p><strong>Pathway:</strong> <span className="text-cyan-400">{pathway || "None"}</span></p>

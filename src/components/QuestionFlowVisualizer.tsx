@@ -5,7 +5,6 @@ import { useAssessment, getIsSeniorMode, getIsHighVis } from "@/context/Assessme
 import { convertAudioBufferToBlob, decodeBlobToAudioBuffer, mergeAudioBuffers } from "@/lib/audio-utils";
 import { leadgenWellnessAnalyzeAudioSync, leadgenRootHealthCheck } from "@/lib/leadgen-api-client";
 import { isAssessmentPathwayEnabled } from "@/lib/utils";
-import { transformApiResultToVisualization, ApiResult } from "@/lib/cognitive-api-visual-mapping";
 import { isV2Result, transformV2ResultToVisualization, V2JobDetail } from "@/lib/v2-api-visual-mapping";
 import { getModelForPathway } from "@/lib/pathway-model-map";
 import { t, getQuestionPool } from "@/lib/i18n";
@@ -212,21 +211,26 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
       if (pathway && jobDetail.result) {
         try {
-          // The v2 API returns signals + vocal features + extended metrics;
-          // the legacy v1 API returns a z-score feature table. They need
-          // different mappers, so pick by inspecting the payload shape.
-          const visualized = isV2Result(jobDetail.result)
-            ? transformV2ResultToVisualization(jobDetail as V2JobDetail, pathway)
-            : transformApiResultToVisualization(
-                {
-                  job_id: jobDetail.job_id,
-                  status: jobDetail.status,
-                  created_at: jobDetail.created_at || new Date().toISOString(),
-                  result: jobDetail.result,
-                } as ApiResult,
-                pathway,
-                userProfile.biologicalSex
-              );
+          /*
+            v2 only. A payload that is not v2-shaped used to fall through to a
+            legacy mapper scoped to the BRAIN_AGE pathway, which produced a
+            z-score feature table for whichever assessment the user picked. That
+            mapper is gone, so an unrecognised shape now fails loudly rather
+            than rendering a result built for a different API.
+          */
+          if (!isV2Result(jobDetail.result)) {
+            console.error(
+              "[QuestionFlowVisualizer] Response is not a v2 result shape:",
+              jobDetail.result
+            );
+            setApiStatus("failed");
+            return;
+          }
+
+          const visualized = transformV2ResultToVisualization(
+            jobDetail as V2JobDetail,
+            pathway
+          );
 
           setVisualizedResult(visualized);
           console.log("[QuestionFlowVisualizer] Result transformed:", visualized);

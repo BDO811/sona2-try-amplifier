@@ -1,21 +1,24 @@
 /**
- * Signs withheld from every surface, by product decision rather than anything
- * the API says.
+ * Signs withheld from every surface.
  *
- * elevated-blood-pressure and head-impact are both dropped outright: each reads
- * as a clinical finding the voice model is not making, and a consumer screen is
- * the wrong place to imply one.
+ * Empty on purpose. This held elevated-blood-pressure and head-impact, removed
+ * on the grounds that each reads as a clinical finding the voice model is not
+ * making. That call is reversed here in favour of the API's own vocabulary: the
+ * docs publish both as first-class signs with display labels, and withholding
+ * them had two costs beyond the missing rows.
  *
- * This lives on its own so the two places that must agree can share it: the
- * mapper, which filters signals out of every result, and the analysis screen's
- * stage copy, which names the signs being scored while the user waits. When the
- * list lived only in the mapper, the analysis screen went on announcing HEAD
- * IMPACT during a Sports run whose results would never mention it.
+ * It changed the grade. Both were reading `low`, the levels the docs call
+ * "Faint indicator", so dropping them removed the only unflagged signals and
+ * pushed both assessments down the scale.
+ *
+ * And it could not fully succeed. The API's own narrative named Elevated Blood
+ * Pressure anyway, so the sign reached the screen through prose while its row
+ * was hidden.
+ *
+ * The hook stays because a future suppression should route through one place
+ * rather than being scattered across the mapper and the analysis copy again.
  */
-export const SUPPRESSED_SIGNS: ReadonlySet<string> = new Set([
-  "elevated-blood-pressure",
-  "head-impact",
-]);
+export const SUPPRESSED_SIGNS: ReadonlySet<string> = new Set<string>();
 
 export function isSuppressedSign(name: string | null | undefined): boolean {
   return SUPPRESSED_SIGNS.has((name || "").toLowerCase());

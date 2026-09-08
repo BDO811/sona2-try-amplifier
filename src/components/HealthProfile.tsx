@@ -7,13 +7,14 @@ import { Bell, Calendar, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
 import { BiometricLabGrid } from "./report/BiometricLabGrid";
+import { SubDimensionPanel } from "./report/SubDimensionPanel";
 import { SignalPanel } from "./report/SignalPanel";
 import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
-import { formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
+import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
-import { collapseAction } from "@/lib/signal-band";
+import { actionLabel, actionOf } from "@/lib/signal-band";
 import { RUNG_SCALE } from "@/lib/result-headline";
 import { OptionScale } from "./report/OptionScale";
 import { t } from "@/lib/i18n";
@@ -52,7 +53,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   const isHighVis = getIsHighVis(userProfile.ageRange);
   const isSeniorMode = getIsSeniorMode(userProfile.ageRange);
   const [showContent, setShowContent] = useState(false);
-  const [displayScore, setDisplayScore] = useState(0);
   const [currentDate, setCurrentDate] = useState("");
 
   // Persists this result against the user's email, then loads their history so
@@ -65,7 +65,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
     return null;
   }
 
-  const currentScore = visualizedResult.score;
   const classification = visualizedResult.classification;
   const likelihoodTier = visualizedResult.likelihoodTier;
   const protocolId = getProtocolId(pathway);
@@ -85,28 +84,28 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   // Inconclusive state - show recapture option
   const isInconclusiveState = likelihoodTier.toUpperCase() === "INCONCLUSIVE";
 
-  // Copy for the footer card, driven by the API's own recommended_action rather
-  // than the flag count alone. The API derives that action across the whole
-  // signal set — one elevated signal outranks several weak ones — so a count
-  // cannot reproduce it. Collapsed to three outcomes; see lib/signal-band.ts.
+  /*
+    The footer card states the API's own recommended_action, using the meaning
+    the docs give it, rather than a count of flags or a collapsed rewrite.
+
+    The action is derived server-side from the full distribution of signal
+    levels, with one elevated signal outranking several weak ones, so no count
+    reproduces it. It was previously folded into three outcomes with invented
+    headlines; that discarded the distinction between consider, review and
+    escalate, which is the whole point of the field.
+  */
   const flaggedCount = visualizedResult.flaggedCount ?? 0;
   const totalSignals = visualizedResult.totalSignals ?? flaggedCount;
-  const resultAction = collapseAction(visualizedResult.recommendedAction);
-  const monitoringCard =
-    resultAction === "ESCALATE"
-      ? {
-          headline: "Significant Indicator",
-          body: `${flaggedCount} of ${totalSignals} voice signals came back elevated, including one at the highest level. Re-screen to see whether it holds.`,
-        }
-      : resultAction === "MONITOR"
-        ? {
-            headline: "Continued Monitoring",
-            body: `${flaggedCount} of ${totalSignals} voice signals came back elevated. Re-screen to see whether the pattern holds.`,
-          }
-        : {
-            headline: "Standard Monitoring",
-            body: "Nothing came back elevated in this recording. Re-screen anytime to track changes.",
-          };
+  const resultAction = actionOf(visualizedResult.recommendedAction);
+  const monitoringCard = {
+    headline: actionLabel(resultAction),
+    body:
+      resultAction === "inconclusive"
+        ? "This recording could not be read reliably. Record again to get a result."
+        : flaggedCount > 0
+          ? `${flaggedCount} of ${totalSignals} voice signals were flagged. Record again to see whether the pattern holds.`
+          : `None of the ${totalSignals} voice signals measured were flagged. Record again anytime to track changes.`,
+  };
 
   // Initialize date from visualized result or current date
   useEffect(() => {
@@ -135,29 +134,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
     return () => clearTimeout(showTimer);
   }, [archetype]);
 
-  // Count-up animation for score
-  useEffect(() => {
-    if (!showContent) return;
-    
-    const duration = 1800;
-    const startTime = Date.now();
-    const startDelay = 400;
-
-    const timeout = setTimeout(() => {
-      const animate = () => {
-        const elapsed = Date.now() - startTime - startDelay;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 4);
-        setDisplayScore(Math.round(eased * currentScore));
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-      requestAnimationFrame(animate);
-    }, startDelay);
-
-    return () => clearTimeout(timeout);
-  }, [showContent, currentScore]);
   
   if (!archetype) {
     return null;
@@ -233,11 +209,11 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           }}
         />
 
-        {/* System Status Bar - passes data status color for robustness display */}
-        <SystemStatusBar 
-          showContent={showContent} 
-          statusColor={dataStatusColor}
-          robustness={visualizedResult?.robustness}
+        {/* System Status Bar — the capture values the job reports. */}
+        <SystemStatusBar
+          showContent={showContent}
+          sampleRate={visualizedResult?.signalQuality?.sampleRate}
+          modelName={visualizedResult?.modelName}
         />
 
         {/* Header Metadata Row */}
@@ -373,6 +349,39 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             </motion.h3>
             <SignalPanel
               signals={revealSignals}
+              showContent={showContent}
+              isHighVis={isHighVis}
+              isSeniorMode={isSeniorMode}
+            />
+          </div>
+        )}
+
+        {/* Sub-dimensions from result.extended_metrics — direction, not severity */}
+        {(visualizedResult.extendedMetrics?.length ?? 0) > 0 && (
+          <div className="px-4 py-3 border-b border-[#231200]/10">
+            <motion.h3
+              className={`font-mono uppercase tracking-widest mb-1 ${
+                isHighVis ? 'text-[10px] md:text-xs font-semibold text-[#231200]' : 'text-[9px] font-medium text-[#231200]'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showContent ? 1 : 0 }}
+              transition={{ delay: 1.18 }}
+            >
+              Sub-Dimensions
+            </motion.h3>
+            <motion.p
+              className={`font-mono text-[#2E2E2E] mb-2.5 ${
+                isHighVis ? 'text-[9px] md:text-[10px]' : isSeniorMode ? 'text-[10px]' : 'text-[8px]'
+              }`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showContent ? 1 : 0 }}
+              transition={{ delay: 1.19 }}
+            >
+              Each of these sits between two ends rather than against a threshold, so none of
+              them is flagged. They describe how the recording read, not what it found.
+            </motion.p>
+            <SubDimensionPanel
+              metrics={visualizedResult.extendedMetrics}
               showContent={showContent}
               isHighVis={isHighVis}
               isSeniorMode={isSeniorMode}

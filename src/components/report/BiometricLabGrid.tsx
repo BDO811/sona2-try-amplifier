@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { AssessmentPathway } from "@/context/AssessmentContext";
-import { LabMetric } from "@/lib/cognitive-api-visual-mapping";
+import { LabMetric } from "@/lib/result-types";
 
 interface BiometricLabGridProps {
   pathway: AssessmentPathway;
@@ -11,24 +11,8 @@ interface BiometricLabGridProps {
   isSeniorMode?: boolean;
 }
 
-const getStatusIndicator = (status: "normal" | "elevated" | "low", zScore?: number): { color: string; symbol: string } => {
+const getStatusIndicator = (status: "normal" | "elevated" | "low"): { color: string; symbol: string } => {
   // If we have z-score, use it to determine color based on new thresholds
-  if (zScore !== undefined) {
-    const absZScore = Math.abs(zScore);
-    if (absZScore < 2.0) {
-      return { color: "#10B981", symbol: "●" }; // Green - normal
-    } else if (absZScore < 3.0) {
-      // Orange zone
-      return status === "elevated" 
-        ? { color: "#F59E0B", symbol: "▲" } 
-        : { color: "#F59E0B", symbol: "▼" };
-    } else {
-      // Red zone
-      return status === "elevated" 
-        ? { color: "#EF4444", symbol: "▲" } 
-        : { color: "#EF4444", symbol: "▼" };
-    }
-  }
   
   // Fallback to original logic if no z-score
   switch (status) {
@@ -55,7 +39,7 @@ export const BiometricLabGrid = ({ pathway, statusColor, showContent, labMetrics
       transition={{ delay: 1.4, duration: 0.5 }}
     >
       {labMetrics.map((metric, index) => {
-        const indicator = getStatusIndicator(metric.status, metric.zScore);
+        const indicator = getStatusIndicator(metric.status);
         
         return (
           <motion.div

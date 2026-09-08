@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
-import { bandForLevel, bandScaleOptions } from "@/lib/signal-band";
+import { SignalSummary } from "@/lib/result-types";
+import { bandForSignal, bandLabelForSignal, bandScaleOptions } from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
@@ -35,7 +35,14 @@ export const SignalPanel = ({
   return (
     <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
-        const band = bandForLevel(signal.level);
+        const band = bandForSignal(signal.name, signal.level);
+        // head-impact reads NONE rather than NORMAL; the band itself is
+        // unchanged so counts and the grade are unaffected.
+        const bandWord = bandLabelForSignal(signal.name, band);
+        const scale = bandScaleOptions().map((o) => ({
+          ...o,
+          label: bandLabelForSignal(signal.name, o.key),
+        }));
 
         return (
           <motion.div
@@ -59,22 +66,30 @@ export const SignalPanel = ({
               >
                 {signal.label}
               </span>
-              {/* Only surfaced when the scale has nothing to light. */}
-              {band === "INCONCLUSIVE" && (
+              {/*
+                The band, plus the raw score. The docs class score as internal,
+                so it is deliberately the smaller of the two and labelled.
+              */}
+              <span className="flex items-baseline gap-2 flex-shrink-0">
                 <span
-                  className={`font-mono uppercase tracking-widest flex-shrink-0 text-white ${
-                    isSeniorMode ? "text-xs" : "text-[9px]"
+                  className={`font-mono tabular-nums text-white/70 ${
+                    isSeniorMode ? "text-[11px]" : "text-[9px]"
                   }`}
                 >
-                  inconclusive
+                  {Number.isFinite(signal.score) ? signal.score.toFixed(3) : "—"}
                 </span>
-              )}
+                <span
+                  className={`font-mono text-white ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
+                >
+                  {bandWord}
+                </span>
+              </span>
             </div>
 
             <OptionScale
-              options={bandScaleOptions()}
+              options={scale}
               activeKey={band === "INCONCLUSIVE" ? null : band}
-              ariaLabel={`${signal.label}: ${band}`}
+              ariaLabel={`${signal.label}: ${bandWord}`}
             />
           </motion.div>
         );

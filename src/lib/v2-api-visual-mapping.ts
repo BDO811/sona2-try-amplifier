@@ -5,7 +5,7 @@
  *
  * The legacy L5 v1 API (`/api/v1/{type}/analyze-audio-sync`) returned
  * `result.explanations.feature_explanations.features` — a z-score table that
- * `cognitive-api-visual-mapping.ts` knows how to render.
+ * the report screens know how to render (see result-types.ts).
  *
  * The v2 API (`/v2/models/{model}/analyze` → `/v2/jobs/{id}`) returns a
  * completely different, richer shape:
@@ -30,10 +30,17 @@ import { AssessmentPathway } from "@/context/AssessmentContext";
 import { rungFor } from "@/lib/result-headline";
 import { isSuppressedSign } from "@/lib/suppressed-signs";
 import {
+  bandForSignal,
+  bandLabelForSignal,
+  flaggingThresholdText,
+  isFlaggedBand,
+  type DisplayBand,
+} from "@/lib/signal-band";
+import {
   VisualizedResult,
   LabMetric,
   BiomarkerDefinition,
-} from "@/lib/cognitive-api-visual-mapping";
+} from "@/lib/result-types";
 
 // ============================================================================
 // v2 response types
@@ -287,49 +294,6 @@ const FEATURE_SHORT_LABEL: Record<string, string> = {
 // Level helpers
 // ============================================================================
 
-/** v2 `level` → the likelihood tier the report components already understand. */
-export function v2LevelToLikelihoodTier(level: string | undefined): string {
-  switch ((level || "").toLowerCase()) {
-    case "none":
-      return "NO_RISK";
-    case "low":
-      return "LOW";
-    case "consider":
-    case "moderate":
-      return "MODERATE";
-    case "elevated":
-      return "HIGH";
-    case "inconclusive":
-      return "INCONCLUSIVE";
-    default:
-      return "INCONCLUSIVE";
-  }
-}
-
-/**
- * Pseudo z-score used purely to drive the existing colour logic in
- * BiometricLabGrid / DetailedAnalysisView (< 2 green, < 3 amber, else red).
- * v2 does not publish z-scores, so this encodes severity, not standard
- * deviations, and is never surfaced as a number to the user.
- */
-function levelToColorScore(level: string | undefined): number | undefined {
-  switch ((level || "").toLowerCase()) {
-    case "none":
-      return 0.4;
-    case "low":
-      return 1.2;
-    case "consider":
-      return 2.2;
-    case "moderate":
-      return 2.6;
-    case "elevated":
-      return 3.4;
-    default:
-      return undefined;
-  }
-}
-
-
 const LEVEL_RANK: Record<string, number> = {
   none: 0,
   low: 1,
@@ -390,22 +354,35 @@ export function mapVocalFeaturesToLabMetrics(features: V2VocalFeature[]): LabMet
       unit: f.unit || "",
       reference: FEATURE_REFERENCE[f.feature] || f.value_interpretation || "—",
       status,
-      // Vocal features are descriptive, not severity-graded — keep them out of
-      // the red band so a merely "reduced" pause length does not read as alarming.
-      zScore: status === "normal" ? 0.5 : 2.2,
     };
   });
 }
 
-export function mapSignalsToBiomarkers(signals: V2Signal[]): BiomarkerDefinition[] {
-  return signals.map((s) => {
+export function mapSignalsToBiomarkers(
+  signals: V2Signal[],
+  bands: DisplayBand[]
+): BiomarkerDefinition[] {
+  return signals.map((s, i) => {
     const copy = SIGN_COPY[s.name] || DEFAULT_SIGN_COPY;
-    const level = (s.level || "").toLowerCase();
+    const band = bands[i] ?? bandForSignal(s.name, s.level);
     const pct = Number.isFinite(s.score) ? Math.round(s.score * 100) : 0;
 
-    const clinicalContext = s.flagged
-      ? `Flagged at ${level} level (${pct}% signal strength). ${copy.context}`
-      : `Below the flagging threshold at ${level} level (${pct}% signal strength). ${copy.context}`;
+    /*
+      Written from the display band rather than the API's own `flagged` and
+      `level` words. Those disagree with what the row shows: `flagged` is true
+      from consider up, consider displays as LOW, and head-impact is held to
+      ELEVATED, so a signal reading LOW on screen would have opened this
+      paragraph with "Flagged at consider level".
+
+      The paragraph is present only when the band is flagged, which is the gate
+      itself. It used to be gated in the view on Math.abs(zScore) >= 2.0, where
+      zScore came from a hand-written level-to-number table and the API returns
+      no such statistic.
+    */
+    const bandWord = bandLabelForSignal(s.name, band);
+    const clinicalContext = isFlaggedBand(band)
+      ? `Reading ${bandWord} at ${pct}% signal strength. ${copy.context}`
+      : undefined;
 
     return {
       title: s.label || titleCase(s.name),
@@ -414,8 +391,7 @@ export function mapSignalsToBiomarkers(signals: V2Signal[]): BiomarkerDefinition
       unit: "%",
       definition: copy.definition,
       clinicalContext,
-      normalRange: "Below flagging threshold",
-      zScore: levelToColorScore(s.level),
+      flaggingThreshold: flaggingThresholdText(s.name),
       level: s.level,
     };
   });
@@ -440,7 +416,17 @@ export function transformV2ResultToVisualization(
 
   const summary = result.summary;
   const overallLevel = summary?.overall_level || worstLevel(signals);
-  const likelihoodTier = v2LevelToLikelihoodTier(overallLevel);
+  /*
+    summary.overall_level, carried through as the API reports it rather than
+    translated into a risk vocabulary.
+
+    It used to pass through v2LevelToLikelihoodTier, which mapped the six
+    documented levels onto NO_RISK / LOW / MODERATE / HIGH / INCONCLUSIVE. That
+    collapsed consider and moderate into one value, and because NO_RISK and HIGH
+    are not levels levelOf() recognises, both fell back to inconclusive: a clean
+    result and the most severe result each rendered in the inconclusive grey.
+  */
+  const likelihoodTier = (overallLevel || "inconclusive").toUpperCase();
 
   const audioQuality = result.audio_quality || {};
   const voicePercentage = audioQuality.voice_percentage;
@@ -461,30 +447,32 @@ export function transformV2ResultToVisualization(
   // a screen, the PDF, the saved history or the headline grading.
   const shownSignals = signals.filter((s) => !isSuppressedSign(s.name));
 
-  // Most-severe signal first, so the reveal screen leads with what matters.
-  const orderedSignals = [...shownSignals].sort(
-    (a, b) =>
-      (LEVEL_RANK[(b.level || "").toLowerCase()] ?? -1) -
-        (LEVEL_RANK[(a.level || "").toLowerCase()] ?? -1) || b.score - a.score
+  /*
+    Left in the order the API returned them, rather than sorted most-severe
+    first. The reveal deliberately shows a mix, so a clean signal sitting next
+    to a flagged one is visible instead of being pushed to the bottom.
+
+    summary.primary_signals is not used for ordering either: it is documented as
+    the "top 1-3 name values by score", and a real apex run returned six.
+  */
+  const orderedSignals = shownSignals;
+
+  /*
+    Counts and the grade both read the displayed band, not the raw level, so a
+    per-sign override cannot leave a row reading NORMAL while the header counts
+    it as a flag. head-impact is the sign that override applies to.
+  */
+  const displayBands = shownSignals.map((sig) => bandForSignal(sig.name, sig.level));
+  const flaggedCount = displayBands.filter(isFlaggedBand).length;
+  const biomarkers = mapSignalsToBiomarkers(orderedSignals, displayBands);
+  // Graded from the displayed bands for the same reason the count is.
+  const signalLevels = shownSignals.map((sig, i) =>
+    displayBands[i] === "NORMAL" ? "low" : sig.level || ""
   );
-  const biomarkers = mapSignalsToBiomarkers(orderedSignals);
-
-  // Counted from the signals actually shown, not from summary.flagged_count.
-  // The API counts what it measured, so a suppressed sign would leave the
-  // screen reading "6 of 6 flagged" above five rows.
-  const flaggedCount = shownSignals.filter((s) => s.flagged).length;
-
-  const score = calculateWellnessScore(shownSignals, likelihoodTier);
-  // One source of levels for both the phrase and the scale, so the lit rung
-  // and the wording can never disagree.
-  const signalLevels = shownSignals.map((s) => s.level || "");
   const classification = getV2Classification(likelihoodTier, pathway, signalLevels);
   const headlineRung = signalLevels.length > 0 ? rungFor({ levels: signalLevels }) : undefined;
 
-  const clinicalSubtext =
-    summary?.description?.summary ||
-    result.signal?.description?.summary ||
-    buildFallbackSubtext(orderedSignals, flaggedCount);
+  const clinicalSubtext = buildSubtext(orderedSignals, displayBands);
 
   const sampleRate = job.audio_sample_rate
     ? `${Math.round(job.audio_sample_rate / 1000)}kHz`
@@ -496,7 +484,6 @@ export function transformV2ResultToVisualization(
     status: job.status,
     likelihoodTier,
     pathway: pathway || "WELLNESS",
-    score,
     classification,
     headlineRung,
     labMetrics,
@@ -519,22 +506,20 @@ export function transformV2ResultToVisualization(
       value: String(flaggedCount),
       suffix: shownSignals.length ? ` / ${shownSignals.length}` : "",
     },
-    confidence: Math.round(
-      typeof audioClarity === "number" ? Math.max(0, Math.min(100, audioClarity)) : 90
-    ),
-    robustness: typeof audioClarity === "number" ? audioClarity / 100 : undefined,
-    flaggingExplanation: issues.length ? issues.join(" · ") : undefined,
     signalQuality: {
       // v2 has no SI-SDR figure. It reports `audio_clarity` on a 0-100 scale,
       // which is a different quantity — surfaced separately as audioClarity so
       // it is never mislabelled as a dB signal-to-noise ratio.
-      snr: 0,
       audioClarity,
-      frequencyResponse: job.audio_sample_rate
+      // Nyquist of the capture rate: the highest frequency the recording can
+      // carry. The API reports no frequency range of its own, so this is
+      // labelled as a property of the capture, not of the analysis.
+      captureBandwidth: job.audio_sample_rate
         ? `${Math.round(job.audio_sample_rate / 2000)}kHz`
-        : "24kHz",
+        : undefined,
       sampleRate,
       duration: job.audio_duration_seconds || 0,
+      issues,
       // v2 reports voice_percentage as 0-100; the report screens expect the
       // 0-1 fraction the legacy v1 field used.
       voicePercentage: typeof voicePercentage === "number" ? voicePercentage / 100 : undefined,
@@ -542,25 +527,6 @@ export function transformV2ResultToVisualization(
   };
 }
 
-/**
- * Wellness score, 0-100, where higher is better. Driven by the actual signal
- * scores rather than by the tier alone, so two "moderate" results with clearly
- * different signal strength do not display an identical number.
- */
-function calculateWellnessScore(signals: V2Signal[], likelihoodTier: string): number {
-  if (likelihoodTier === "INCONCLUSIVE") return 50;
-  const scored = signals.filter((s) => Number.isFinite(s.score));
-  if (!scored.length) {
-    const fallback: Record<string, number> = { NO_RISK: 95, LOW: 75, MODERATE: 50, HIGH: 25 };
-    return fallback[likelihoodTier] ?? 50;
-  }
-  // Weight the worst signal against the mean so a single strong signal is not
-  // washed out by five quiet ones, then invert (high signal = low wellness).
-  const max = Math.max(...scored.map((s) => s.score));
-  const mean = scored.reduce((sum, s) => sum + s.score, 0) / scored.length;
-  const burden = max * 0.6 + mean * 0.4;
-  return Math.max(1, Math.min(99, Math.round((1 - burden) * 100)));
-}
 
 function pathwayDomainName(pathway: AssessmentPathway): string {
   return pathway === "BRAIN_AGE"
@@ -595,16 +561,39 @@ export function getV2Classification(
   return `${pathwayDomainName(pathway)} PROFILE`;
 }
 
-function buildFallbackSubtext(signals: V2Signal[], flaggedCount: number): string {
-  if (!signals.length) return "No voice signals were returned for this sample.";
-  if (flaggedCount === 0) {
-    return `Voice analysis found no elevated signals across ${signals.length} measured markers.`;
+/**
+ * The sentence under the result, composed from the signals actually shown.
+ *
+ * The API's own `summary.description.summary` is deliberately not used here.
+ * The docs are explicit that it is not patient-facing: "surface it only after
+ * review by qualified care staff, not as direct patient-facing output". On a
+ * real apex run it also named Elevated Blood Pressure and Cognitive Impairment
+ * — the canonical sign names behind apex's cardiovascular-strain and
+ * cognitive-load aliases — and counted six signals against the rows on screen.
+ *
+ * Composing it from `signals[].label` means it can only ever name what the
+ * screen shows, in the API's own v2 wording, with a count that matches the
+ * rows. The narrative stays on the payload for a future staff-facing view.
+ */
+function buildSubtext(signals: V2Signal[], bands: DisplayBand[]): string {
+  if (!signals.length) return "No voice signals were returned for this recording.";
+
+  // Named off the displayed bands, not the API's own `flagged`. Those differ
+  // wherever a per-sign override applies: with head-impact forced to moderate,
+  // filtering on `flagged` listed seven names under a count of six.
+  const flagged = signals
+    .filter((_, i) => isFlaggedBand(bands[i]))
+    .map((s) => s.label || titleCase(s.name));
+
+  if (flagged.length === 0) {
+    return `None of the ${signals.length} voice signals measured were flagged.`;
   }
-  const names = signals
-    .filter((s) => s.flagged)
-    .map((s) => s.label || titleCase(s.name))
-    .join(", ");
-  return `Voice analysis identified ${flaggedCount} elevated ${
-    flaggedCount === 1 ? "signal" : "signals"
-  } (${names}). The detected voice patterns may warrant further review.`;
+
+  const names =
+    flagged.length === 1
+      ? flagged[0]
+      : `${flagged.slice(0, -1).join(", ")} and ${flagged[flagged.length - 1]}`;
+
+  return `${flagged.length} of ${signals.length} voice signals were flagged: ${names}.`;
 }
+
