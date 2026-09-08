@@ -1,4 +1,5 @@
 import { AssessmentPathway } from "@/context/AssessmentContext";
+import { bandColorOn, type Surface } from "@/lib/signal-band";
 
 export function getProtocolId(pathway: AssessmentPathway): string {
   if (pathway === "BRAIN_AGE") return "COGNITIVE-01";
@@ -29,11 +30,23 @@ export function isWellnessPositive(likelihoodTier: string): boolean {
   return upper === "MODERATE" || upper === "HIGH";
 }
 
-export function getStatusColorFromLikelihoodTier(tier: string): string {
+/**
+ * Colour for the likelihood tier, mapped onto the signal band palette so the
+ * tier word and the bands beneath it come from one ramp.
+ *
+ * The old values were off-brand: emerald #10B981, amber #F59E0B, red #EF4444,
+ * and #84CC16 for the LOW tier, which is a lime green the design canon bans
+ * outright. They also assumed a dark ground, and both report screens sit on
+ * the beige page, where #F59E0B measures 1.9:1.
+ */
+export function getStatusColorFromLikelihoodTier(
+  tier: string,
+  surface: Surface = "light"
+): string {
   const upperTier = tier.toUpperCase();
-  if (upperTier === "NO_RISK") return "#10B981";
-  if (upperTier === "LOW") return "#84CC16";
-  if (upperTier === "MODERATE") return "#F59E0B";
-  if (upperTier === "HIGH") return "#EF4444";
-  return "#F59E0B";
+  if (upperTier === "NO_RISK" || upperTier === "LOW") return bandColorOn("LOW", surface);
+  if (upperTier === "MODERATE") return bandColorOn("HIGH", surface);
+  if (upperTier === "HIGH") return bandColorOn("VERY HIGH", surface);
+  if (upperTier === "INCONCLUSIVE") return bandColorOn("INCONCLUSIVE", surface);
+  return bandColorOn("HIGH", surface);
 }

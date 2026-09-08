@@ -609,7 +609,7 @@ export function formatLikelihoodTierForDisplay(tier: string): string {
   const tierMap: Record<string, string> = {
     "NO_RISK": "Optimal",
     "LOW": "Normal",
-    "MODERATE": "Monitor",
+    "MODERATE": "Continue to Monitor",
     "HIGH": "Review Recommended",
     "INCONCLUSIVE": "Inconclusive",
   };

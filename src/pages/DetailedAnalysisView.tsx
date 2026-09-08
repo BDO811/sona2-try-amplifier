@@ -408,7 +408,7 @@ const DetailedAnalysisView = () => {
 
   return (
     <motion.div
-      className="min-h-screen text-white"
+      className="min-h-screen text-[#231200]"
       style={{ backgroundColor: "#DBCCB1" }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -445,31 +445,31 @@ const DetailedAnalysisView = () => {
           >
             Technical Appendix: {protocolId}
           </h1>
-          <p className="font-mono text-[10px] uppercase tracking-widest text-white/40 mb-3">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-[#2E2E2E] mb-3">
             {assessmentTitle} Assessment — Detailed Biomarker Analysis
           </p>
           
           {/* Metadata Header Bar (matching dashboard) */}
           {visualizedResult && (
-            <div className="flex flex-col px-4 py-2 border-b border-white/10 font-mono text-[9px] md:text-[10px] uppercase tracking-wider mb-6">
-              {/* First Row: Date | Sample Rate | Robustness | Model */}
+            <div className="flex flex-col px-4 py-2 border-b border-[#231200]/20 font-mono text-[9px] md:text-[10px] uppercase tracking-wider mb-6">
+              {/* First Row: Date | Sample Rate | Model */}
               <div className="flex items-center justify-center gap-3 flex-wrap mb-1">
-                <span className="text-white/50">
-                  Date: <span className="text-white/70">{new Date(visualizedResult.createdAt).toISOString().split('T')[0].replace(/-/g, '.')}</span>
+                <span className="text-[#2E2E2E]">
+                  Date: <span className="text-[#231200] font-medium">{new Date(visualizedResult.createdAt).toISOString().split('T')[0].replace(/-/g, '.')}</span>
                 </span>
-                <span className="text-white/20">|</span>
-                <span className="text-white/50">
-                  Sample Rate: <span className="text-white/70">48kHz</span>
+                <span className="text-[#4B2700]/50">|</span>
+                <span className="text-[#2E2E2E]">
+                  Sample Rate: <span className="text-[#231200] font-medium">48kHz</span>
                 </span>
-                <span className="text-white/20">|</span>
-                <span className="text-white/50">
-                  Model: <span className="text-white/70">SONA-2.0</span>
+                <span className="text-[#4B2700]/50">|</span>
+                <span className="text-[#2E2E2E]">
+                  Model: <span className="text-[#231200] font-medium">SONA-2.0</span>
                 </span>
               </div>
               {/* Second Row: Job ID only */}
               <div className="flex items-center justify-center gap-3 flex-wrap">
-                <span className="text-white/50">
-                  Job ID: <span className="text-white/70">{visualizedResult.jobId}</span>
+                <span className="text-[#2E2E2E]">
+                  Job ID: <span className="text-[#231200] font-medium">{visualizedResult.jobId}</span>
                 </span>
               </div>
             </div>
@@ -487,7 +487,7 @@ const DetailedAnalysisView = () => {
                 <div className="max-w-md mx-auto mb-5">
                   <div
                     className="font-mono text-[9px] uppercase tracking-[0.2em] mb-2.5"
-                    style={{ color: "#B79862" }}
+                    style={{ color: "#4B2700" }}
                   >
                     Assessment
                   </div>
@@ -495,6 +495,7 @@ const DetailedAnalysisView = () => {
                     options={RUNG_SCALE}
                     activeKey={visualizedResult.headlineRung}
                     size="lg"
+                    surface="light"
                     ariaLabel="Assessment outcome"
                   />
                 </div>
@@ -551,11 +552,11 @@ const DetailedAnalysisView = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-4 pb-2 border-b border-white/10">
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-4 pb-2 border-b border-[#231200]/20">
             Biometric Results and Descriptions
           </h2>
           
-          <p className="font-mono text-[8px] text-white/40 mb-4">
+          <p className="font-mono text-[9px] text-[#2E2E2E] mb-4">
             Note: We analyze over 1,000 voice biomarkers. The markers shown here are a small subset that are easiest to interpret and most influential in your result.
           </p>
           
@@ -568,15 +569,15 @@ const DetailedAnalysisView = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 + index * 0.05 }}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.02)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  background: 'rgba(11, 11, 10, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                 }}
               >
                 <div className="p-4">
                   {/* Title Row */}
                   <div className="flex items-baseline justify-between gap-3 mb-3">
                     <div>
-                      <h3 className="font-mono text-sm text-white/90 font-medium">
+                      <h3 className="font-mono text-sm text-white font-medium">
                         {biomarker.title}
                       </h3>
                     </div>
@@ -598,10 +599,10 @@ const DetailedAnalysisView = () => {
                       >
                         {biomarker.value}
                       </span>
-                      <span className="font-mono text-xs text-white/40 ml-1">
+                      <span className="font-mono text-xs text-white ml-1">
                         {biomarker.unit}
                       </span>
-                      <div className="font-mono text-[8px] uppercase tracking-wider text-white/25 mt-0.5">
+                      <div className="font-mono text-[8px] uppercase tracking-wider text-white mt-0.5">
                         signal score
                       </div>
                     </div>
@@ -623,7 +624,7 @@ const DetailedAnalysisView = () => {
                   )}
 
                   {/* Definition */}
-                  <p className="font-mono text-[11px] text-white/50 leading-relaxed mb-3">
+                  <p className="font-mono text-[11px] text-white leading-relaxed mb-3">
                     {biomarker.definition}
                   </p>
                   
@@ -633,10 +634,10 @@ const DetailedAnalysisView = () => {
                       className="rounded px-3 py-2 mb-2"
                       style={{ background: 'rgba(30, 86, 49, 0.05)' }}
                     >
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-white/40 block mb-1">
+                      <span className="font-mono text-[9px] uppercase tracking-wider text-white block mb-1">
                         Clinical Context
                       </span>
-                      <p className="font-mono text-[11px] text-white/60 leading-relaxed">
+                      <p className="font-mono text-[11px] text-white leading-relaxed">
                         {biomarker.clinicalContext}
                       </p>
                     </div>
@@ -644,10 +645,10 @@ const DetailedAnalysisView = () => {
                   
                   {/* Normal Range */}
                   <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-white/30">
+                    <span className="font-mono text-[9px] uppercase tracking-wider text-white">
                       Normal Range
                     </span>
-                    <span className="font-mono text-[10px] text-white/50">
+                    <span className="font-mono text-[10px] text-white">
                       {biomarker.normalRange}
                     </span>
                   </div>
@@ -665,10 +666,10 @@ const DetailedAnalysisView = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
           >
-            <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-2 pb-2 border-b border-white/10">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-2 pb-2 border-b border-[#231200]/20">
               Sub-Dimension Metrics
             </h2>
-            <p className="font-mono text-[9px] text-white/30 leading-relaxed mb-4">
+            <p className="font-mono text-[9px] text-white leading-relaxed mb-4">
               Each dimension is scored between two anchors. The marker shows where this sample
               sits; the band around it is the variation across segments of the recording.
             </p>
@@ -680,12 +681,12 @@ const DetailedAnalysisView = () => {
                 return (
                   <div key={metric.metric_id} className="py-3">
                     <div className="flex items-baseline justify-between mb-2">
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-white/60">
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-white">
                         {metric.label}
                       </span>
-                      <span className="font-mono text-[10px] text-white/40">
+                      <span className="font-mono text-[10px] text-white">
                         {metric.score_mean.toFixed(2)}
-                        <span className="text-white/25"> ± {metric.score_std.toFixed(2)}</span>
+                        <span className="text-white"> ± {metric.score_std.toFixed(2)}</span>
                       </span>
                     </div>
 
@@ -707,10 +708,10 @@ const DetailedAnalysisView = () => {
                     </div>
 
                     <div className="flex items-center justify-between mt-1.5">
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/30">
+                      <span className="font-mono text-[8px] uppercase tracking-wider text-white">
                         {metric.low_anchor}
                       </span>
-                      <span className="font-mono text-[8px] uppercase tracking-wider text-white/30">
+                      <span className="font-mono text-[8px] uppercase tracking-wider text-white">
                         {metric.high_anchor}
                       </span>
                     </div>
@@ -729,7 +730,7 @@ const DetailedAnalysisView = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-4 pb-2 border-b border-white/10">
+            <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-4 pb-2 border-b border-[#231200]/20">
               Signal Quality Report
             </h2>
             
@@ -737,13 +738,13 @@ const DetailedAnalysisView = () => {
               {signalQuality.pesq !== undefined && (
                 <div className="py-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-xs text-white/50">PESQ Score</span>
-                    <span className="font-mono text-xs text-white/80">
+                    <span className="font-mono text-xs text-white">PESQ Score</span>
+                    <span className="font-mono text-xs text-white">
                       {signalQuality.pesq.toFixed(2)}
                     </span>
                   </div>
                   {METRIC_DESCRIPTIONS.pesq && (
-                    <p className="font-mono text-[10px] text-white/40 mt-1">
+                    <p className="font-mono text-[10px] text-white mt-1">
                       {METRIC_DESCRIPTIONS.pesq}
                     </p>
                   )}
@@ -752,13 +753,13 @@ const DetailedAnalysisView = () => {
               {signalQuality.stoi !== undefined && (
                 <div className="py-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-xs text-white/50">STOI Score</span>
-                    <span className="font-mono text-xs text-white/80">
+                    <span className="font-mono text-xs text-white">STOI Score</span>
+                    <span className="font-mono text-xs text-white">
                       {signalQuality.stoi.toFixed(2)}
                     </span>
                   </div>
                   {METRIC_DESCRIPTIONS.stoi && (
-                    <p className="font-mono text-[10px] text-white/40 mt-1">
+                    <p className="font-mono text-[10px] text-white mt-1">
                       {METRIC_DESCRIPTIONS.stoi}
                     </p>
                   )}
@@ -766,47 +767,47 @@ const DetailedAnalysisView = () => {
               )}
               {signalQuality.audioClarity !== undefined ? (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white/50">Audio Clarity</span>
-                  <span className="font-mono text-xs text-white/80">
+                  <span className="font-mono text-xs text-white">Audio Clarity</span>
+                  <span className="font-mono text-xs text-white">
                     {signalQuality.audioClarity.toFixed(1)} / 100
                   </span>
                 </div>
               ) : signalQuality.snr ? (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white/50">Signal-to-Noise Ratio (SI-SDR)</span>
-                  <span className="font-mono text-xs text-white/80">
+                  <span className="font-mono text-xs text-white">Signal-to-Noise Ratio (SI-SDR)</span>
+                  <span className="font-mono text-xs text-white">
                     {signalQuality.snr.toFixed(1)}dB
                   </span>
                 </div>
               ) : null}
               {signalQuality.voicePercentage !== undefined && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white/50">Voice Percentage</span>
-                  <span className="font-mono text-xs text-white/80">
+                  <span className="font-mono text-xs text-white">Voice Percentage</span>
+                  <span className="font-mono text-xs text-white">
                     {(signalQuality.voicePercentage * 100).toFixed(1)}%
                   </span>
                 </div>
               )}
               {signalQuality.frequencyResponse && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white/50">Frequency Range Analyzed</span>
-                  <span className="font-mono text-xs text-white/80">
+                  <span className="font-mono text-xs text-white">Frequency Range Analyzed</span>
+                  <span className="font-mono text-xs text-white">
                     {signalQuality.frequencyResponse}
                   </span>
                 </div>
               )}
               {signalQuality.sampleRate && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white/50">Sample Rate</span>
-                  <span className="font-mono text-xs text-white/80">
+                  <span className="font-mono text-xs text-white">Sample Rate</span>
+                  <span className="font-mono text-xs text-white">
                     {signalQuality.sampleRate}
                   </span>
                 </div>
               )}
               {signalQuality.duration !== undefined && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="font-mono text-xs text-white/50">Capture Duration</span>
-                  <span className="font-mono text-xs text-white/80">
+                  <span className="font-mono text-xs text-white">Capture Duration</span>
+                  <span className="font-mono text-xs text-white">
                     {signalQuality.duration.toFixed(1)} seconds
                   </span>
                 </div>
@@ -821,7 +822,7 @@ const DetailedAnalysisView = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <h2 className="font-mono text-[10px] uppercase tracking-widest text-white/60 mb-4 pb-2 border-b border-white/10">
+          <h2 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-4 pb-2 border-b border-[#231200]/20">
             Export Report
           </h2>
           
@@ -829,7 +830,7 @@ const DetailedAnalysisView = () => {
             onClick={handleDownloadPDF}
             className="w-full flex items-center justify-center gap-3 py-4 rounded-lg font-mono text-xs uppercase tracking-widest transition-all duration-300 hover:scale-[1.01]"
             style={{
-              background: 'rgba(255, 255, 255, 0.03)',
+              background: 'rgba(11, 11, 10, 0.9)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               color: 'rgba(255, 255, 255, 0.7)',
             }}
@@ -839,7 +840,7 @@ const DetailedAnalysisView = () => {
             <Download className="w-3.5 h-3.5 opacity-50" />
           </button>
           
-          <p className="font-mono text-[9px] text-white/30 text-center mt-3">
+          <p className="font-mono text-[9px] text-white text-center mt-3">
             Includes full biomarker data, analysis, and explanations.
           </p>
         </motion.section>

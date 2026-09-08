@@ -31,7 +31,7 @@ export const SystemStatusBar = ({ showContent, statusColor, robustness: propRobu
 
   return (
     <motion.div
-      className="flex items-center justify-between px-4 py-2 border-b border-white/10 font-mono text-[9px] md:text-[10px] uppercase tracking-wider"
+      className="flex items-center justify-between px-4 py-2 border-b border-[#231200]/10 font-mono text-[9px] md:text-[10px] uppercase tracking-wider"
       initial={{ opacity: 0 }}
       animate={{ opacity: showContent ? 1 : 0 }}
       transition={{ delay: 0.3, duration: 0.4 }}
@@ -47,28 +47,28 @@ export const SystemStatusBar = ({ showContent, statusColor, robustness: propRobu
           animate={{ opacity: blinkOn ? 1 : 0.4 }}
           transition={{ duration: 0.15 }}
         />
-        <span className="text-white/50">
+        <span className="text-[#2E2E2E]">
           Sensor: <span style={{ color: BRAND_COLOR }}>Active</span>
         </span>
       </div>
 
       {/* Divider */}
-      <span className="hidden md:block text-white/20">|</span>
+      <span className="hidden md:block text-[#4B2700]/50">|</span>
 
       {/* Sample Rate */}
       <div className="hidden md:flex items-center gap-2">
-        <span className="text-white/50">
-          Sample Rate: <span className="text-white/70">48kHz</span>
+        <span className="text-[#2E2E2E]">
+          Sample Rate: <span className="text-[#231200] font-medium">48kHz</span>
         </span>
       </div>
 
       {/* Divider */}
-      <span className="text-white/20">|</span>
+      <span className="text-[#4B2700]/50">|</span>
 
       {/* Model Version */}
       <div className="hidden md:flex items-center gap-2">
-        <span className="text-white/50">
-          Model: <span className="text-white/70">SONA-2.0</span>
+        <span className="text-[#2E2E2E]">
+          Model: <span className="text-[#231200] font-medium">SONA-2.0</span>
         </span>
       </div>
     </motion.div>

@@ -42,7 +42,9 @@ describe("headlineFor", () => {
 
   it("degrades gently rather than turning negative", () => {
     expect(h("ATHLETIC", ["low", "moderate", "moderate"])).toBe("STEADY ATHLETIC BASELINE");
-    expect(h("ATHLETIC", ["moderate", "elevated", "consider"])).toBe("ATHLETIC PROFILE IN FOCUS");
+    expect(h("ATHLETIC", ["moderate", "elevated", "consider"])).toBe(
+      "ATHLETIC PROFILE NEEDS IMPROVEMENT"
+    );
   });
 
   it("reserves an optimal-whole claim for a clean result", () => {
@@ -84,7 +86,7 @@ describe("headlineFor", () => {
 
   it("handles a single signal", () => {
     expect(h("COGNITIVE", ["low"])).toBe("OPTIMAL COGNITIVE FUNCTION");
-    expect(h("COGNITIVE", ["moderate"])).toBe("COGNITIVE PROFILE IN FOCUS");
+    expect(h("COGNITIVE", ["moderate"])).toBe("COGNITIVE PROFILE NEEDS IMPROVEMENT");
   });
 
   it("honours the strong-signal floor", () => {

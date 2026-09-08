@@ -49,7 +49,7 @@ export const BiometricLabGrid = ({ pathway, statusColor, showContent, labMetrics
 
   return (
     <motion.div
-      className="grid grid-cols-2 md:grid-cols-3 gap-px bg-white/5 rounded-lg overflow-hidden"
+      className="grid grid-cols-2 md:grid-cols-3 gap-px bg-[#231200]/15 rounded-lg overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: showContent ? 1 : 0 }}
       transition={{ delay: 1.4, duration: 0.5 }}
@@ -60,7 +60,7 @@ export const BiometricLabGrid = ({ pathway, statusColor, showContent, labMetrics
         return (
           <motion.div
             key={`${metric.label}-${index}`}
-            className={`bg-black/60 ${
+            className={`bg-black/85 ${
               isSeniorMode ? 'px-3 py-4 md:px-4 md:py-5' : isHighVis ? 'px-2.5 py-3 md:px-3 md:py-3' : 'px-2.5 py-2 md:px-3 md:py-2.5'
             }`}
             initial={{ opacity: 0, y: 10 }}
@@ -70,10 +70,10 @@ export const BiometricLabGrid = ({ pathway, statusColor, showContent, labMetrics
             {/* Label */}
             <span className={`block font-mono uppercase tracking-wider mb-1 ${
               isSeniorMode 
-                ? 'text-xs md:text-sm font-semibold text-white/80' 
+                ? 'text-xs md:text-sm font-semibold text-white' 
                 : isHighVis 
-                  ? 'text-[9px] md:text-[10px] font-medium text-white/70' 
-                  : 'text-[7px] md:text-[8px] text-white/40'
+                  ? 'text-[9px] md:text-[10px] font-medium text-white' 
+                  : 'text-[7px] md:text-[8px] text-white'
             }`}>
               {metric.label}
             </span>
@@ -89,7 +89,7 @@ export const BiometricLabGrid = ({ pathway, statusColor, showContent, labMetrics
                 {metric.value}
               </span>
               <span className={`font-mono ${
-                isSeniorMode ? 'text-sm text-white/70' : isHighVis ? 'text-[10px] text-white/60' : 'text-[9px] text-white/40'
+                isSeniorMode ? 'text-sm text-white' : isHighVis ? 'text-[10px] text-white' : 'text-[9px] text-white'
               }`}>
                 {metric.unit}
               </span>
@@ -106,14 +106,14 @@ export const BiometricLabGrid = ({ pathway, statusColor, showContent, labMetrics
             {/* Reference Range - Enhanced clinical styling */}
             <span className={`block font-mono tracking-wide border-t border-white/5 pt-1 mt-1 ${
               isSeniorMode 
-                ? 'text-sm md:text-base font-medium text-white/70' 
+                ? 'text-sm md:text-base font-medium text-white' 
                 : isHighVis 
-                  ? 'text-[10px] md:text-xs font-medium text-white/60' 
-                  : 'text-[8px] text-white/40'
+                  ? 'text-[10px] md:text-xs font-medium text-white' 
+                  : 'text-[8px] text-white'
             }`}>
               {index === 0 ? (
                 <>
-                  <span className="text-white/50">Typical: </span>
+                  <span className="text-white">Typical: </span>
                   {metric.reference}
                 </>
               ) : (

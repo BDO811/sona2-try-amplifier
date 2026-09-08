@@ -15,8 +15,10 @@
 export interface ScaleOption {
   key: string;
   label: string;
-  /** Hex, so the tints below can be derived from it. */
+  /** Hex for a dark surface. Tints below are derived from it. */
   color: string;
+  /** Hex for a light surface. The dark ramp is unreadable on beige. */
+  colorLight?: string;
 }
 
 interface OptionScaleProps {
@@ -25,6 +27,8 @@ interface OptionScaleProps {
   activeKey: string | null;
   /** "lg" for the assessment scale at the top, "sm" for a signal row. */
   size?: "sm" | "lg";
+  /** Which ground the scale sits on. Picks the legible half of each colour. */
+  surface?: "dark" | "light";
   ariaLabel: string;
 }
 
@@ -42,6 +46,7 @@ export const OptionScale = ({
   options,
   activeKey,
   size = "sm",
+  surface = "dark",
   ariaLabel,
 }: OptionScaleProps) => {
   const isLarge = size === "lg";
@@ -55,22 +60,24 @@ export const OptionScale = ({
     >
       {options.map((option) => {
         const isActive = option.key === activeKey;
+        const color =
+          surface === "light" ? option.colorLight ?? option.color : option.color;
         return (
           <span
             key={option.key}
             aria-current={isActive ? "true" : undefined}
-            className={`text-center font-mono uppercase whitespace-nowrap rounded ${
+            className={`text-center font-mono uppercase rounded leading-tight ${
               isLarge
-                ? "text-[11px] md:text-[13px] tracking-[0.1em] py-2 px-1"
-                : "text-[8px] md:text-[9px] tracking-[0.06em] py-1 px-0.5"
+                ? "text-[10px] md:text-[12px] tracking-[0.08em] py-2 px-1"
+                : "text-[8px] md:text-[9px] tracking-[0.06em] py-1 px-0.5 whitespace-nowrap"
             } ${isActive ? "animate-scale-breathe" : ""}`}
             style={{
-              color: option.color,
+              color,
               opacity: isActive ? 1 : DIM,
               // Read by the keyframes; harmless on the dimmed options.
-              ["--scale-color" as string]: option.color,
-              ["--scale-tint-lo" as string]: tint(option.color, 0.1),
-              ["--scale-tint-hi" as string]: tint(option.color, isLarge ? 0.24 : 0.2),
+              ["--scale-color" as string]: color,
+              ["--scale-tint-lo" as string]: tint(color, 0.1),
+              ["--scale-tint-hi" as string]: tint(color, isLarge ? 0.24 : 0.2),
               ["--scale-glow" as string]: isLarge ? "14px" : "9px",
             }}
           >

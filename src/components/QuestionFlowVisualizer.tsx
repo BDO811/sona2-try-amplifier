@@ -436,9 +436,14 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         setAudioBlob(blob);
         console.log(`[QuestionFlowVisualizer] Final audio (${format}):`, blob.size, "bytes");
         
+        // processAudioAnalysis sets apiStatus to processing synchronously before
+        // its first await, so the analysis screen has the state it needs the
+        // moment it mounts. The wait here only covers the button fading out;
+        // it used to be 800ms on top of the encode, which left the finished
+        // capture screen sitting there.
         processAudioAnalysis(blob, format, extension, mimeType);
-        
-        setTimeout(onComplete, 800);
+
+        setTimeout(onComplete, 200);
       } catch (error) {
         console.error("[QuestionFlowVisualizer] Error processing final audio:", error);
         setApiStatus("failed");
@@ -775,7 +780,15 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
           </div>
         )}
 
-        {/* The Record Button */}
+        {/*
+          The Record Button.
+
+          Hidden outright once the last recording is in, not merely disabled.
+          isComplete is set before the audio is merged and encoded, so a button
+          that only greys out sits there through the encode and the handoff -
+          long enough to read as "press START again" when the capture is
+          actually already finished.
+        */}
         <motion.button
           className="relative rounded-full flex items-center justify-center cursor-pointer select-none touch-none"
           style={{
@@ -783,15 +796,16 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
             height: BUTTON_SIZE,
             border: `1px solid ${isRecording ? '#1E5631' : 'rgba(0, 0, 0, 0.3)'}`,
             backgroundColor: isRecording ? 'rgba(30, 86, 49, 0.15)' : '#FFFFFF',
-            transition: 'border-color 0.2s ease, background-color 0.2s ease'
+            transition: 'border-color 0.2s ease, background-color 0.2s ease',
+            pointerEvents: isComplete ? 'none' : 'auto',
           }}
           onClick={handleRecordClick}
           whileTap={{ scale: 0.98 }}
           initial={{ opacity: 0, y: 20 }}
           animate={{
-            opacity: 1,
+            opacity: isComplete ? 0 : 1,
             y: 0,
-            scale: 1,
+            scale: isComplete ? 0.92 : 1,
             boxShadow: isRecording
               ? [
                   '0 0 24px rgba(30, 86, 49, 0.55), 0 0 48px rgba(30, 86, 49, 0.3), inset 0 0 16px rgba(30, 86, 49, 0.15)',
@@ -801,7 +815,9 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
               : '0 2px 20px rgba(0, 0, 0, 0.08)',
           }}
           transition={{
-            default: { delay: 0.6, duration: 0.5 },
+            default: isComplete
+              ? { duration: 0.2, ease: 'easeOut' }
+              : { delay: 0.6, duration: 0.5 },
             boxShadow: isRecording
               ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
               : { duration: 0.3 },

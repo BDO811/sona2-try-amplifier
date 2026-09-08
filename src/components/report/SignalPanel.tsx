@@ -33,14 +33,14 @@ export const SignalPanel = ({
   }
 
   return (
-    <div className="flex flex-col gap-px bg-white/5 rounded-lg overflow-hidden">
+    <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
         const band = bandForLevel(signal.level);
 
         return (
           <motion.div
             key={signal.name}
-            className={`bg-black/60 ${
+            className={`bg-black/85 ${
               isSeniorMode ? "px-4 py-4" : isHighVis ? "px-3.5 py-3" : "px-3 py-2.5"
             }`}
             initial={{ opacity: 0, y: 8 }}
@@ -51,10 +51,10 @@ export const SignalPanel = ({
               <span
                 className={`font-mono uppercase tracking-wider truncate ${
                   isSeniorMode
-                    ? "text-sm font-semibold text-white/90"
+                    ? "text-sm font-semibold text-white"
                     : isHighVis
-                      ? "text-[11px] font-medium text-white/80"
-                      : "text-[10px] text-white/60"
+                      ? "text-[11px] font-medium text-white"
+                      : "text-[10px] font-medium text-white"
                 }`}
               >
                 {signal.label}
@@ -62,7 +62,7 @@ export const SignalPanel = ({
               {/* Only surfaced when the scale has nothing to light. */}
               {band === "INCONCLUSIVE" && (
                 <span
-                  className={`font-mono uppercase tracking-widest flex-shrink-0 text-white/40 ${
+                  className={`font-mono uppercase tracking-widest flex-shrink-0 text-white ${
                     isSeniorMode ? "text-xs" : "text-[9px]"
                   }`}
                 >

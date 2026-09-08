@@ -45,15 +45,15 @@ export const SinceLastVisitPanel = ({
     <motion.div
       className="rounded-lg overflow-hidden"
       style={{
-        background: "rgba(255, 255, 255, 0.02)",
-        border: "1px solid rgba(255, 255, 255, 0.08)",
+        background: "rgba(11, 11, 10, 0.9)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
       }}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 8 }}
       transition={{ duration: 0.5, delay: 1.5 }}
     >
       <div className="flex items-baseline justify-between gap-3 px-4 pt-3.5 pb-2 flex-wrap">
-        <h3 className="font-mono text-xs uppercase tracking-widest text-white/60">
+        <h3 className="font-mono text-xs uppercase tracking-widest text-white">
           Since your last visit
         </h3>
         <span className="font-mono text-[9px] uppercase tracking-[0.15em]" style={{ color: TAN }}>
@@ -74,12 +74,12 @@ export const SinceLastVisitPanel = ({
           return (
             <div
               key={signal.name}
-              className={`flex items-baseline justify-between gap-3 bg-black/40 ${
+              className={`flex items-baseline justify-between gap-3 bg-black/70 ${
                 isSeniorMode ? "px-4 py-3.5" : "px-4 py-2.5"
               }`}
             >
               <span
-                className={`font-mono uppercase tracking-wider text-white/70 truncate ${
+                className={`font-mono uppercase tracking-wider text-white truncate ${
                   isSeniorMode ? "text-xs" : "text-[10px]"
                 }`}
               >
@@ -89,7 +89,7 @@ export const SinceLastVisitPanel = ({
               <span className="flex items-baseline gap-2 flex-shrink-0">
                 <span
                   className={`font-mono tabular-nums ${isSeniorMode ? "text-[11px]" : "text-[10px]"}`}
-                  style={{ color: "rgba(255,255,255,0.35)" }}
+                  style={{ color: "rgba(255,255,255,0.75)" }}
                 >
                   {previous.toFixed(2)} → {latest.toFixed(2)}
                 </span>

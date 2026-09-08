@@ -62,6 +62,31 @@ const BAND_COLOR: Record<SignalBand, string> = {
   INCONCLUSIVE: "#CECECE",
 };
 
+/**
+ * The same ramp for a light surface. The colours above are tuned for the black
+ * data canvas and wash out on beige: #FFC163 measures 1.02:1 against #DBCCB1,
+ * which is invisible, and #F5EF79 is 1.32:1.
+ *
+ * Every value below was measured against the beige page and clears 4.5:1. Three
+ * of them needed darkening past the first hue I picked — NONE, MEDIUM and
+ * INCONCLUSIVE came in at 4.41, 3.96 and 4.23 before being taken down.
+ */
+const BAND_COLOR_LIGHT: Record<SignalBand, string> = {
+  NONE: "#665233", // 4.71:1
+  LOW: "#1E5631", // 5.47:1
+  MEDIUM: "#6D5200", // 4.65:1
+  HIGH: "#8A3B08", // 4.90:1
+  "VERY HIGH": "#8E1220", // 5.88:1
+  INCONCLUSIVE: "#565656", // 4.64:1
+};
+
+export type Surface = "dark" | "light";
+
+/** Band colour for the surface it will actually sit on. */
+export function bandColorOn(band: SignalBand, surface: Surface): string {
+  return surface === "light" ? BAND_COLOR_LIGHT[band] : BAND_COLOR[band];
+}
+
 /** Severity order, for ranking and for tests that assert the scale is monotonic. */
 export const BAND_ORDER: SignalBand[] = ["NONE", "LOW", "MEDIUM", "HIGH", "VERY HIGH"];
 
@@ -125,6 +150,16 @@ export function collapseAction(apiAction: string | null | undefined): ResultActi
  * INCONCLUSIVE is deliberately absent: it is not a rung on this scale, so an
  * unreadable signal lights nothing rather than borrowing a severity.
  */
-export function bandScaleOptions(): Array<{ key: SignalBand; label: string; color: string }> {
-  return BAND_ORDER.map((band) => ({ key: band, label: band, color: bandColor(band) }));
+export function bandScaleOptions(): Array<{
+  key: SignalBand;
+  label: string;
+  color: string;
+  colorLight: string;
+}> {
+  return BAND_ORDER.map((band) => ({
+    key: band,
+    label: band,
+    color: bandColor(band),
+    colorLight: bandColorOn(band, "light"),
+  }));
 }

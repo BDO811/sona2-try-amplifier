@@ -328,6 +328,18 @@ function levelToColorScore(level: string | undefined): number | undefined {
   }
 }
 
+/**
+ * Signs withheld from every surface, by product decision rather than anything
+ * the API says. elevated-blood-pressure is dropped outright: it reads as a
+ * clinical measurement the voice model is not making, and a consumer screen is
+ * the wrong place to imply one.
+ *
+ * Filtered at the mapper so there is a single choke point. Screens, the PDF
+ * export and the saved voice history all read from its output, so none of them
+ * can reintroduce it.
+ */
+const SUPPRESSED_SIGNS = new Set(["elevated-blood-pressure"]);
+
 const LEVEL_RANK: Record<string, number> = {
   none: 0,
   low: 1,
@@ -454,20 +466,28 @@ export function transformV2ResultToVisualization(
     [];
 
   const labMetrics = mapVocalFeaturesToLabMetrics(vocalFeatures);
+
+  // Signals dropped before anything downstream sees them, so they cannot reach
+  // a screen, the PDF, the saved history or the headline grading.
+  const shownSignals = signals.filter((s) => !SUPPRESSED_SIGNS.has(s.name));
+
   // Most-severe signal first, so the reveal screen leads with what matters.
-  const orderedSignals = [...signals].sort(
+  const orderedSignals = [...shownSignals].sort(
     (a, b) =>
       (LEVEL_RANK[(b.level || "").toLowerCase()] ?? -1) -
         (LEVEL_RANK[(a.level || "").toLowerCase()] ?? -1) || b.score - a.score
   );
   const biomarkers = mapSignalsToBiomarkers(orderedSignals);
 
-  const flaggedCount = summary?.flagged_count ?? signals.filter((s) => s.flagged).length;
+  // Counted from the signals actually shown, not from summary.flagged_count.
+  // The API counts what it measured, so a suppressed sign would leave the
+  // screen reading "6 of 6 flagged" above five rows.
+  const flaggedCount = shownSignals.filter((s) => s.flagged).length;
 
-  const score = calculateWellnessScore(signals, likelihoodTier);
+  const score = calculateWellnessScore(shownSignals, likelihoodTier);
   // One source of levels for both the phrase and the scale, so the lit rung
   // and the wording can never disagree.
-  const signalLevels = signals.map((s) => s.level || "");
+  const signalLevels = shownSignals.map((s) => s.level || "");
   const classification = getV2Classification(likelihoodTier, pathway, signalLevels);
   const headlineRung = signalLevels.length > 0 ? rungFor({ levels: signalLevels }) : undefined;
 
@@ -501,13 +521,13 @@ export function transformV2ResultToVisualization(
     })),
     recommendedAction: summary?.recommended_action || result.signal?.recommended_action,
     flaggedCount,
-    totalSignals: signals.length,
+    totalSignals: shownSignals.length,
     modelName: job.model_name,
     clinicalSubtext,
     keyStat: {
       label: "Signals Flagged",
       value: String(flaggedCount),
-      suffix: signals.length ? ` / ${signals.length}` : "",
+      suffix: shownSignals.length ? ` / ${shownSignals.length}` : "",
     },
     confidence: Math.round(
       typeof audioClarity === "number" ? Math.max(0, Math.min(100, audioClarity)) : 90

@@ -66,7 +66,7 @@ export const HEADLINE_COPY: Record<HeadlineRung, string> = {
   clean: "OPTIMAL {NAME} FUNCTION",
   good: "STRONG {NAME} FOUNDATION",
   steady: "STEADY {NAME} BASELINE",
-  focus: "{NAME} PROFILE IN FOCUS",
+  focus: "{NAME} PROFILE NEEDS IMPROVEMENT",
   unreadable: "{NAME} ASSESSMENT INCONCLUSIVE",
 };
 
@@ -100,7 +100,7 @@ export const HEADLINE_VARIANTS: Record<HeadlineRung, string[]> = {
     "{NAME} FOUNDATION PRESENT",
   ],
   focus: [
-    "{NAME} PROFILE IN FOCUS",
+    "{NAME} PROFILE NEEDS IMPROVEMENT",
     "{NAME} PROFILE IN TRANSITION",
     "ACTIVE {NAME} MONITORING",
     "{NAME} PROFILE UNDER OBSERVATION",
@@ -125,9 +125,14 @@ export function headlineFor({ name, levels }: HeadlineInput): string {
  * does that. Clean and good share a green because both are good outcomes, and
  * inventing a gradient between them would imply a gap the grading never makes.
  */
-export const RUNG_SCALE: Array<{ key: HeadlineRung; label: string; color: string }> = [
-  { key: "clean", label: "OPTIMAL", color: "#4CAF6E" },
-  { key: "good", label: "STRONG", color: "#4CAF6E" },
-  { key: "steady", label: "STEADY", color: "#F5EF79" },
-  { key: "focus", label: "IN FOCUS", color: "#FFC163" },
+export const RUNG_SCALE: Array<{
+  key: HeadlineRung;
+  label: string;
+  color: string;
+  colorLight: string;
+}> = [
+  { key: "clean", label: "OPTIMAL", color: "#4CAF6E", colorLight: "#1E5631" },
+  { key: "good", label: "STRONG", color: "#4CAF6E", colorLight: "#1E5631" },
+  { key: "steady", label: "STEADY", color: "#F5EF79", colorLight: "#6D5200" },
+  { key: "focus", label: "NEEDS IMPROVEMENT", color: "#FFC163", colorLight: "#8A3B08" },
 ];

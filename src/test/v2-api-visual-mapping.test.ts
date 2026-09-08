@@ -37,6 +37,13 @@ describe("v2 level → likelihood tier", () => {
 describe("transformV2ResultToVisualization on a real pulse response", () => {
   const visualized = transformV2ResultToVisualization(job, "WELLNESS");
 
+  it("counts flags over the shown signals, not the API total", () => {
+    // summary.flagged_count on this sample is 5 across six measured signals.
+    // With one suppressed, a screen reading "5 of 6" would sit above five rows.
+    expect(visualized.totalSignals).toBe(5);
+    expect(visualized.flaggedCount).toBe(5);
+  });
+
   it("carries job metadata through", () => {
     expect(visualized.jobId).toBe("36a1f294-376e-45f6-9f34-6bbc3a6059c3");
     expect(visualized.status).toBe("done");
@@ -49,21 +56,23 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
   });
 
   it("leads the headline with what is holding up, without a risk verdict", () => {
-    // This sample has one signal reading low and five flagged, two of them at
-    // moderate. The headline used to read ELEVATED WELLNESS RISK; it now names
-    // the one signal that is holding, and withholds OPTIMAL because signals are
-    // flagged high directly beneath it.
-    expect(visualized.classification).toBe("STEADY WELLNESS BASELINE");
+    // On this sample the only signal reading low was elevated-blood-pressure,
+    // which is now suppressed. With it gone nothing reads clean, so the result
+    // grades down a rung: it read STEADY WELLNESS BASELINE while that signal
+    // was still shown. Suppressing a sign changes the grading, not just the
+    // list of rows.
+    expect(visualized.classification).toBe("WELLNESS PROFILE NEEDS IMPROVEMENT");
     for (const word of ["ELEVATED", "RISK", "OPTIMAL", "STABLE"]) {
       expect(visualized.classification).not.toContain(word);
     }
   });
 
-  it("maps all six pulse signals into biomarkers, most severe first", () => {
-    expect(visualized.biomarkers).toHaveLength(6);
-    expect(visualized.signals).toHaveLength(6);
-    // elevated-blood-pressure is the only non-flagged, "low" signal, so it sorts last
-    expect(visualized.signals?.[visualized.signals.length - 1].name).toBe(
+  it("maps the shown pulse signals into biomarkers, most severe first", () => {
+    // pulse returns six; elevated-blood-pressure is suppressed, so five show.
+    expect(visualized.biomarkers).toHaveLength(5);
+    expect(visualized.signals).toHaveLength(5);
+    expect(visualized.signals?.map((s) => s.name)).not.toContain("elevated-blood-pressure");
+    expect(visualized.biomarkers.map((b) => b.technicalName)).not.toContain(
       "elevated-blood-pressure"
     );
     // every biomarker has real display copy, not a placeholder
@@ -102,19 +111,23 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     expect(visualized.clinicalSubtext).not.toContain("Analysis shows");
   });
 
-  it("reports the flagged count as the key stat", () => {
+  it("reports the flagged count over the shown signals", () => {
+    // The API measured six and flagged five. One is suppressed, so the stat
+    // must read over the five that appear, not the six that were measured.
     expect(visualized.flaggedCount).toBe(5);
-    expect(visualized.totalSignals).toBe(6);
+    expect(visualized.totalSignals).toBe(5);
     expect(visualized.keyStat).toEqual({
       label: "Signals Flagged",
       value: "5",
-      suffix: " / 6",
+      suffix: " / 5",
     });
   });
 
   it("derives the score from actual signal strength, not the tier alone", () => {
-    // max signal 0.5555 (anxiety), mean 0.3350 → burden 0.4676 → 53
-    expect(visualized.score).toBe(53);
+    // Scored over the shown signals only, so dropping the suppressed one moves
+    // this: max 0.5555 (anxiety) with a higher mean now that the lowest signal
+    // is gone.
+    expect(visualized.score).toBe(52);
     // a tier-only mapping would have produced a flat 50
     expect(visualized.score).not.toBe(50);
   });
