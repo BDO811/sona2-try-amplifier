@@ -1,176 +1,240 @@
 import { describe, expect, it } from "vitest";
 import {
+  LEVEL_ORDER,
+  actionLabel,
+  actionOf,
+  isFlaggedLevel,
+  levelColor,
+  levelLabel,
+  levelOf,
+  levelRank,
+  levelTreatment,
   BAND_ORDER,
   bandColor,
-  bandFill,
-  bandForLevel,
-  bandRank,
-  collapseAction,
-  type SignalBand,
+  bandOf,
+  bandScaleOptions,
+  type SignalLevel,
 } from "@/lib/signal-band";
 
-/** Every level the v2 API documents, with whether it sets flagged=true. */
-const API_LEVELS: Array<{ level: string; flagged: boolean; band: SignalBand }> = [
-  { level: "none", flagged: false, band: "NONE" },
-  { level: "low", flagged: false, band: "LOW" },
-  { level: "consider", flagged: true, band: "MEDIUM" },
-  { level: "moderate", flagged: true, band: "HIGH" },
-  { level: "elevated", flagged: true, band: "VERY HIGH" },
-  { level: "inconclusive", flagged: false, band: "INCONCLUSIVE" },
-];
+/**
+ * The six levels exactly as the v2 Display Guidelines publish them, with the
+ * flagged rule from the schema: flagged is true at consider, moderate and
+ * elevated.
+ */
+const DOCUMENTED = [
+  { level: "none", label: "Within normal range", treatment: "neutral", flagged: false },
+  { level: "low", label: "Faint indicator", treatment: "informational", flagged: false },
+  { level: "consider", label: "Worth considering", treatment: "caution", flagged: true },
+  { level: "moderate", label: "Notable indicator", treatment: "caution", flagged: true },
+  { level: "elevated", label: "Significant indicator", treatment: "alert", flagged: true },
+  { level: "inconclusive", label: "Analysis inconclusive", treatment: "neutral", flagged: false },
+] as const;
 
-describe("bandForLevel", () => {
-  it("maps every documented level to its band", () => {
-    for (const { level, band } of API_LEVELS) {
-      expect(bandForLevel(level)).toBe(band);
+describe("levelOf", () => {
+  it("accepts every documented level", () => {
+    for (const { level } of DOCUMENTED) {
+      expect(levelOf(level)).toBe(level);
     }
   });
 
   it("is case insensitive, since level casing is not guaranteed", () => {
-    expect(bandForLevel("MODERATE")).toBe("HIGH");
-    expect(bandForLevel("Consider")).toBe("MEDIUM");
+    expect(levelOf("MODERATE")).toBe("moderate");
+    expect(levelOf("Consider")).toBe("consider");
   });
 
   it("reads an unknown or missing level as inconclusive, never as none", () => {
     // "none" is a claim that nothing was detected. An unrecognised level is not
     // evidence of that, so it must not borrow the claim.
-    for (const value of ["", null, undefined, "severe", "critical"]) {
-      expect(bandForLevel(value)).toBe("INCONCLUSIVE");
-    }
-  });
-
-  it("keeps none distinct from low", () => {
-    expect(bandForLevel("none")).not.toBe(bandForLevel("low"));
-  });
-
-  it("never puts a flagged level in a band below an unflagged one", () => {
-    const worstUnflagged = Math.max(
-      ...API_LEVELS.filter((l) => !l.flagged && l.band !== "INCONCLUSIVE").map((l) =>
-        bandRank(l.band)
-      )
-    );
-    const bestFlagged = Math.min(...API_LEVELS.filter((l) => l.flagged).map((l) => bandRank(l.band)));
-    expect(bestFlagged).toBeGreaterThan(worstUnflagged);
-  });
-});
-
-describe("bandFill", () => {
-  it("rises monotonically across the severity scale", () => {
-    const fills = BAND_ORDER.map(bandFill);
-    for (let i = 1; i < fills.length; i++) {
-      expect(fills[i]).toBeGreaterThan(fills[i - 1]);
-    }
-  });
-
-  it("runs from empty to full", () => {
-    expect(bandFill("NONE")).toBe(0);
-    expect(bandFill("VERY HIGH")).toBe(100);
-  });
-
-  it("draws nothing for an unreadable signal", () => {
-    expect(bandFill("INCONCLUSIVE")).toBe(0);
-  });
-
-  it("stays within the width of the bar", () => {
-    for (const band of [...BAND_ORDER, "INCONCLUSIVE" as SignalBand]) {
-      expect(bandFill(band)).toBeGreaterThanOrEqual(0);
-      expect(bandFill(band)).toBeLessThanOrEqual(100);
+    for (const value of ["", null, undefined, "severe", "critical", "MEDIUM"]) {
+      expect(levelOf(value)).toBe("inconclusive");
     }
   });
 });
 
-describe("bandColor", () => {
-  it("gives every band its own colour", () => {
-    const all: SignalBand[] = [...BAND_ORDER, "INCONCLUSIVE"];
-    const colors = all.map(bandColor);
-    expect(new Set(colors).size).toBe(all.length);
-  });
-
-  it("uses no lime green", () => {
-    const banned = ["#c8f579", "#c7f25e", "#9cc73a", "#abd150", "#8eff84"];
-    for (const band of [...BAND_ORDER, "INCONCLUSIVE" as SignalBand]) {
-      expect(banned).not.toContain(bandColor(band).toLowerCase());
+describe("levelLabel", () => {
+  it("returns the documented display label verbatim", () => {
+    for (const { level, label } of DOCUMENTED) {
+      expect(levelLabel(level)).toBe(label);
     }
   });
 
-  it("uses no retired cyan or emerald", () => {
-    const retired = ["#22d3ee", "#10b981"];
-    for (const band of [...BAND_ORDER, "INCONCLUSIVE" as SignalBand]) {
-      expect(retired).not.toContain(bandColor(band).toLowerCase());
+  it("uses none of the invented severity words it replaced", () => {
+    // The previous ramp renamed two documented levels, calling consider MEDIUM
+    // and moderate HIGH, which overstated both.
+    const all = DOCUMENTED.map((d) => levelLabel(d.level)).join(" ").toUpperCase();
+    for (const word of ["MEDIUM", "VERY HIGH", "OPTIMAL"]) {
+      expect(all).not.toContain(word);
     }
   });
 });
 
-describe("collapseAction", () => {
-  it("collapses the API's five actions onto three", () => {
-    expect(collapseAction("none")).toBe("NONE");
-    expect(collapseAction("monitor")).toBe("MONITOR");
-    expect(collapseAction("consider")).toBe("MONITOR");
-    expect(collapseAction("review")).toBe("MONITOR");
-    expect(collapseAction("escalate")).toBe("ESCALATE");
+describe("levelTreatment", () => {
+  it("matches the documented UI treatment for every level", () => {
+    for (const { level, treatment } of DOCUMENTED) {
+      expect(levelTreatment(level)).toBe(treatment);
+    }
   });
 
-  it("keeps inconclusive out of the three", () => {
-    // Audio that could not be read is not the same as nothing being found.
-    expect(collapseAction("inconclusive")).toBe("INCONCLUSIVE");
-    expect(collapseAction("inconclusive")).not.toBe("NONE");
+  it("gives consider and moderate the same treatment, as the docs do", () => {
+    // The docs list "Informational / Caution" for consider and "Caution" for
+    // moderate, which is the one adjacent pair they do not fully separate.
+    expect(levelTreatment("consider")).toBe(levelTreatment("moderate"));
+  });
+});
+
+describe("isFlaggedLevel", () => {
+  it("flags exactly consider, moderate and elevated", () => {
+    for (const { level, flagged } of DOCUMENTED) {
+      expect(isFlaggedLevel(level)).toBe(flagged);
+    }
   });
 
-  it("is case insensitive", () => {
-    expect(collapseAction("ESCALATE")).toBe("ESCALATE");
-    expect(collapseAction("Review")).toBe("MONITOR");
+  it("puts the flag boundary between low and consider", () => {
+    expect(isFlaggedLevel("low")).toBe(false);
+    expect(isFlaggedLevel("consider")).toBe(true);
+  });
+});
+
+describe("levelRank", () => {
+  it("orders the five graded levels as the docs list them", () => {
+    expect(LEVEL_ORDER).toEqual(["none", "low", "consider", "moderate", "elevated"]);
+    for (let i = 1; i < LEVEL_ORDER.length; i++) {
+      expect(levelRank(LEVEL_ORDER[i])).toBeGreaterThan(levelRank(LEVEL_ORDER[i - 1]));
+    }
   });
 
-  it("treats an unknown or missing action as inconclusive, never as none", () => {
+  it("sorts inconclusive below every graded level", () => {
+    for (const level of LEVEL_ORDER) {
+      expect(levelRank("inconclusive")).toBeLessThan(levelRank(level));
+    }
+  });
+});
+
+describe("levelColor", () => {
+  it("gives every level a colour on both grounds", () => {
+    for (const { level } of DOCUMENTED) {
+      expect(levelColor(level, "dark")).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(levelColor(level, "light")).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+  });
+
+  it("colours by treatment, so levels sharing one share a colour", () => {
+    expect(levelColor("consider", "light")).toBe(levelColor("moderate", "light"));
+  });
+
+  it("uses no lime green and no retired cyan or emerald", () => {
+    const banned = ["#c8f579", "#c7f25e", "#9cc73a", "#abd150", "#8eff84", "#84cc16", "#22d3ee", "#10b981"];
+    for (const { level } of DOCUMENTED) {
+      for (const surface of ["dark", "light"] as const) {
+        expect(banned).not.toContain(levelColor(level, surface).toLowerCase());
+      }
+    }
+  });
+});
+
+describe("the merged display bands", () => {
+  it("merges none and low into NORMAL and renames the rest", () => {
+    expect(bandOf("none")).toBe("NORMAL");
+    expect(bandOf("low")).toBe("NORMAL");
+    expect(bandOf("consider")).toBe("LOW");
+    expect(bandOf("moderate")).toBe("MODERATE");
+    expect(bandOf("elevated")).toBe("ELEVATED");
+  });
+
+  it("lands the merge exactly on the API's flagged boundary", () => {
+    // NORMAL is precisely the unflagged levels, so one word covers both.
+    for (const level of LEVEL_ORDER) {
+      expect(bandOf(level) === "NORMAL").toBe(!isFlaggedLevel(level));
+    }
+  });
+
+  it("keeps inconclusive off the scale", () => {
+    expect(bandOf("inconclusive")).toBe("INCONCLUSIVE");
+    expect(bandScaleOptions().map((o) => o.key)).not.toContain("INCONCLUSIVE");
+  });
+
+  it("offers the four graded bands in order", () => {
+    expect(bandScaleOptions().map((o) => o.key)).toEqual([
+      "NORMAL",
+      "LOW",
+      "MODERATE",
+      "ELEVATED",
+    ]);
+  });
+
+  it("gives LOW and MODERATE different colours despite one shared treatment", () => {
+    // The docs group consider and moderate under Caution, but they display as
+    // two named bands here, so a shared colour would make them look identical.
+    expect(bandColor("LOW", "light")).not.toBe(bandColor("MODERATE", "light"));
+  });
+
+  it("uses no lime green or retired colour on either ground", () => {
+    const banned = ["#c8f579", "#c7f25e", "#9cc73a", "#abd150", "#8eff84", "#84cc16", "#22d3ee", "#10b981"];
+    for (const band of [...BAND_ORDER, "INCONCLUSIVE" as const]) {
+      for (const surface of ["dark", "light"] as const) {
+        expect(banned).not.toContain(bandColor(band, surface).toLowerCase());
+      }
+    }
+  });
+});
+
+describe("actionOf and actionLabel", () => {
+  it("passes every documented action through unchanged", () => {
+    for (const action of ["none", "monitor", "consider", "review", "escalate", "inconclusive"]) {
+      expect(actionOf(action)).toBe(action);
+    }
+  });
+
+  it("does not collapse review into monitor", () => {
+    // A previous version folded consider, monitor and review into one word,
+    // discarding the distinction the field exists to carry.
+    expect(actionOf("review")).not.toBe(actionOf("monitor"));
+    expect(actionLabel("review")).not.toBe(actionLabel("monitor"));
+  });
+
+  it("reads an unknown action as inconclusive, never as none", () => {
     for (const value of ["", null, undefined, "urgent"]) {
-      expect(collapseAction(value)).toBe("INCONCLUSIVE");
+      expect(actionOf(value)).toBe("inconclusive");
     }
   });
 
-  it("never downgrades escalate", () => {
-    // The API documents escalate as taking precedence over every other
-    // condition, so it must survive the collapse intact.
-    expect(collapseAction("escalate")).toBe("ESCALATE");
-  });
-
-  it("matches the action both live models returned", () => {
-    // pulse and apex both returned "review" on the speech sample and
-    // "inconclusive" on the no-speech sample.
-    expect(collapseAction("review")).toBe("MONITOR");
-    expect(collapseAction("inconclusive")).toBe("INCONCLUSIVE");
+  it("gives every action a distinct label", () => {
+    const labels = (["none", "monitor", "consider", "review", "escalate", "inconclusive"] as const).map(
+      actionLabel
+    );
+    expect(new Set(labels).size).toBe(labels.length);
   });
 });
 
-describe("the calibration trap", () => {
-  it("keeps a low-scoring flagged signal above a higher-scoring unflagged one", () => {
-    // Straight from a real apex run: cognitive load scored 0.120 and came back
-    // "consider"; head impact scored 0.144 and came back "low". Banding by score
-    // would invert these. Banding by level must not.
-    const cognitiveLoad = bandForLevel("consider");
-    const headImpact = bandForLevel("low");
-
-    expect(bandRank(cognitiveLoad)).toBeGreaterThan(bandRank(headImpact));
-    expect(bandFill(cognitiveLoad)).toBeGreaterThan(bandFill(headImpact));
+describe("the calibration the docs describe", () => {
+  it("never derives a level from a score", () => {
+    // Straight from a real apex run: anxiety scored 0.359 and came back
+    // consider, while cognitive load scored 0.273 and came back moderate. A
+    // higher score in the lower band. levelOf takes only the level, so a score
+    // cannot reach it.
+    const anxiety = levelOf("consider");
+    const cognitiveLoad = levelOf("moderate");
+    expect(levelRank(cognitiveLoad)).toBeGreaterThan(levelRank(anxiety));
   });
 
-  it("bands a whole real payload without reading the score at all", () => {
+  it("bands a whole real apex payload from its levels alone", () => {
     const run = [
-      { label: "Anxiety", score: 0.57, level: "moderate" },
-      { label: "Fatigue", score: 0.39, level: "moderate" },
-      { label: "Dehydration", score: 0.273, level: "consider" },
-      { label: "Stress", score: 0.163, level: "consider" },
-      { label: "Head Impact", score: 0.144, level: "low" },
-      { label: "Cardiovascular Strain", score: 0.14, level: "low" },
-      { label: "Cognitive Load", score: 0.12, level: "consider" },
+      { label: "Cardiovascular Strain", level: "moderate" },
+      { label: "Dehydration", level: "moderate" },
+      { label: "Cognitive Load", level: "moderate" },
+      { label: "Anxiety", level: "consider" },
+      { label: "Fatigue", level: "consider" },
+      { label: "Stress", level: "consider" },
+      { label: "Head Impact", level: "low" },
     ];
-    expect(run.map((s) => bandForLevel(s.level))).toEqual([
-      "HIGH",
-      "HIGH",
-      "MEDIUM",
-      "MEDIUM",
+    expect(run.map((s) => bandOf(levelOf(s.level)))).toEqual([
+      "MODERATE",
+      "MODERATE",
+      "MODERATE",
       "LOW",
       "LOW",
-      "MEDIUM",
+      "LOW",
+      "NORMAL",
     ]);
   });
 });

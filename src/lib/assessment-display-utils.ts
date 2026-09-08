@@ -1,5 +1,5 @@
 import { AssessmentPathway } from "@/context/AssessmentContext";
-import { levelColor, levelOf, type Surface } from "@/lib/signal-band";
+import { bandColor, bandOfLevel, type Surface } from "@/lib/signal-band";
 
 export function getProtocolId(pathway: AssessmentPathway): string {
   if (pathway === "BRAIN_AGE") return "COGNITIVE-01";
@@ -24,5 +24,5 @@ export function getStatusColorFromLikelihoodTier(
   tier: string,
   surface: Surface = "light"
 ): string {
-  return levelColor(levelOf(tier), surface);
+  return bandColor(bandOfLevel(tier), surface);
 }

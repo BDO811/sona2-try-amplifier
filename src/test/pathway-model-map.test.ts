@@ -71,12 +71,12 @@ describe("the two live assessments", () => {
     }
   });
 
-  it("gives Sports the athletic signs apex measures, minus the withheld one", () => {
+  it("gives Sports all seven signs apex measures", () => {
     const signs = getStageContent(getModelForPathway(HEALTH_FOCUS_TO_PATHWAY.sports))[3].details;
+    expect(signs).toHaveLength(7);
     expect(signs).toContain("COGNITIVE LOAD");
     expect(signs).toContain("CARDIOVASCULAR STRAIN");
-    // head-impact is suppressed, so the analysis screen must not announce it.
-    expect(signs).not.toContain("HEAD IMPACT");
+    expect(signs).toContain("HEAD IMPACT");
   });
 
   it("headlines each assessment by what it measures, at every tier", () => {
@@ -100,9 +100,8 @@ describe("the two live assessments", () => {
   it("gives Wellness pulse's signs and none of the athletic ones", () => {
     const signs = getStageContent(getModelForPathway(HEALTH_FOCUS_TO_PATHWAY.wellness))[3].details;
     expect(signs).toContain("MOOD DISRUPTION");
-    expect(signs).toContain("DEHYDRATION");
-    // elevated-blood-pressure is suppressed on every surface.
-    expect(signs).not.toContain("ELEVATED BLOOD PRESSURE");
+    expect(signs).toContain("ELEVATED BLOOD PRESSURE");
+    // apex-only signs must not appear on a pulse run.
     expect(signs).not.toContain("HEAD IMPACT");
     expect(signs).not.toContain("CARDIOVASCULAR STRAIN");
   });

@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/cognitive-api-visual-mapping";
 import { jsPDF } from "jspdf";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
-import { levelColor, levelLabel, levelOf, levelScaleOptions } from "@/lib/signal-band";
+import { bandColor, bandOfLevel, bandScaleOptions } from "@/lib/signal-band";
 import { RUNG_SCALE } from "@/lib/result-headline";
 import { OptionScale } from "@/components/report/OptionScale";
 
@@ -64,12 +64,12 @@ const DetailedAnalysisView = () => {
    * band colours instead.
    */
   const getBiomarkerColor = (zScore?: number, level?: string): string => {
-    if (level) return levelColor(levelOf(level), "light");
+    if (level) return bandColor(bandOfLevel(level), "light");
     if (zScore === undefined) return BRAND_COLOR;
     const absZScore = Math.abs(zScore);
-    if (absZScore < 2.0) return levelColor("low", "light");
-    if (absZScore < 3.0) return levelColor("moderate", "light");
-    return levelColor("elevated", "light");
+    if (absZScore < 2.0) return bandColor("NORMAL", "light");
+    if (absZScore < 3.0) return bandColor("MODERATE", "light");
+    return bandColor("ELEVATED", "light");
   };
 
   const handleDownloadPDF = () => {
@@ -593,7 +593,7 @@ const DetailedAnalysisView = () => {
                         className="font-mono text-base font-semibold"
                         style={{
                           color: biomarker.level
-                            ? levelColor(levelOf(biomarker.level), "dark")
+                            ? bandColor(bandOfLevel(biomarker.level), "dark")
                             : BRAND_COLOR,
                         }}
                       >
@@ -612,13 +612,13 @@ const DetailedAnalysisView = () => {
                   {biomarker.level && (
                     <div className="mb-3">
                       <OptionScale
-                        options={levelScaleOptions()}
+                        options={bandScaleOptions()}
                         activeKey={
-                          levelOf(biomarker.level) === "inconclusive"
+                          bandOfLevel(biomarker.level) === "INCONCLUSIVE"
                             ? null
-                            : levelOf(biomarker.level)
+                            : bandOfLevel(biomarker.level)
                         }
-                        ariaLabel={`${biomarker.title}: ${levelLabel(levelOf(biomarker.level))}`}
+                        ariaLabel={`${biomarker.title}: ${bandOfLevel(biomarker.level)}`}
                       />
                     </div>
                   )}

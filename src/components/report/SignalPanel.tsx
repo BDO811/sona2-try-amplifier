@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/cognitive-api-visual-mapping";
-import { levelLabel, levelOf, levelScaleOptions } from "@/lib/signal-band";
+import { bandOf, bandScaleOptions, levelOf } from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
@@ -36,6 +36,7 @@ export const SignalPanel = ({
     <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
       {signals.map((signal, index) => {
         const level = levelOf(signal.level);
+        const band = bandOf(level);
 
         return (
           <motion.div
@@ -65,14 +66,14 @@ export const SignalPanel = ({
                   isSeniorMode ? "text-xs" : "text-[10px]"
                 }`}
               >
-                {levelLabel(level)}
+                {band}
               </span>
             </div>
 
             <OptionScale
-              options={levelScaleOptions()}
-              activeKey={level === "inconclusive" ? null : level}
-              ariaLabel={`${signal.label}: ${levelLabel(level)}`}
+              options={bandScaleOptions()}
+              activeKey={band === "INCONCLUSIVE" ? null : band}
+              ariaLabel={`${signal.label}: ${band}`}
             />
           </motion.div>
         );

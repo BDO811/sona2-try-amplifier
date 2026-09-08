@@ -36,13 +36,10 @@ describe("getStageContent", () => {
     }
   });
 
-  it("never names a withheld sign in the stage copy", () => {
-    // The screen must not announce work whose result it then withholds.
-    for (const model of ALL_MODELS) {
-      const signs = getStageContent(model)[3].details;
-      expect(signs).not.toContain("ELEVATED BLOOD PRESSURE");
-      expect(signs).not.toContain("HEAD IMPACT");
-    }
+  it("names every sign its model measures, withholding none", () => {
+    // Suppression is empty, so stage 4 announces the model's full sign list.
+    expect(getStageContent("pulse")[3].details).toContain("ELEVATED BLOOD PRESSURE");
+    expect(getStageContent("apex")[3].details).toContain("HEAD IMPACT");
   });
 
   it("has no blank or duplicate lines within a stage", () => {
