@@ -1,92 +1,43 @@
 import { describe, expect, it } from "vitest";
 import {
-  HEADLINE_COPY,
-  HEADLINE_VARIANTS,
+  RUNG_LABEL_VARIANTS,
+  RUNG_SCALE,
   STRONG_SIGNAL_FLOOR,
-  headlineFor,
   rungFor,
   type HeadlineRung,
 } from "@/lib/result-headline";
 
-const h = (name: string, levels: string[]) => headlineFor({ name, levels });
+const rung = (levels: string[]) => rungFor({ levels });
 
-describe("headlineFor", () => {
-  it("says OPTIMAL only when nothing is flagged", () => {
-    expect(h("ATHLETIC", ["low", "low", "none", "low"])).toBe("OPTIMAL ATHLETIC FUNCTION");
-    expect(h("WELLNESS", ["none", "none"])).toBe("OPTIMAL WELLNESS FUNCTION");
+describe("rungFor", () => {
+  it("reaches the clean rung only when nothing is flagged", () => {
+    expect(rung(["low", "low", "none", "low"])).toBe("clean");
+    expect(rung(["none", "none"])).toBe("clean");
   });
 
   it("gives a good outcome whenever two signals are reading well", () => {
     // The brief. Reached regardless of how high the remaining signals went.
-    expect(h("ATHLETIC", ["low", "low", "consider"])).toBe("STRONG ATHLETIC FOUNDATION");
-    expect(h("ATHLETIC", ["low", "low", "moderate", "moderate", "consider"])).toBe(
-      "STRONG ATHLETIC FOUNDATION"
-    );
-    expect(h("ATHLETIC", ["none", "low", "elevated", "elevated"])).toBe(
-      "STRONG ATHLETIC FOUNDATION"
-    );
-  });
-
-  it("never claims OPTIMAL while a signal is at HIGH or above", () => {
-    // The headline prints directly above the flagged rows; claiming optimal
-    // function there contradicts the screen it sits on.
-    const withHigh = [
-      ["low", "low", "moderate"],
-      ["low", "low", "low", "elevated"],
-      ["none", "none", "none", "none", "elevated"],
-    ];
-    for (const levels of withHigh) {
-      expect(h("ATHLETIC", levels)).not.toContain("OPTIMAL");
-    }
+    expect(rung(["low", "low", "consider"])).toBe("good");
+    expect(rung(["low", "low", "moderate", "moderate", "consider"])).toBe("good");
+    expect(rung(["none", "low", "elevated", "elevated"])).toBe("good");
   });
 
   it("degrades gently rather than turning negative", () => {
-    expect(h("ATHLETIC", ["low", "moderate", "moderate"])).toBe("STEADY ATHLETIC BASELINE");
-    expect(h("ATHLETIC", ["moderate", "elevated", "consider"])).toBe(
-      "ATHLETIC PROFILE NEEDS IMPROVEMENT"
-    );
+    expect(rung(["low", "moderate", "moderate"])).toBe("steady");
+    expect(rung(["moderate", "elevated", "consider"])).toBe("focus");
   });
 
-  it("reserves an optimal-whole claim for a clean result", () => {
-    // The good rung sits above flagged rows, so it must not claim the whole
-    // picture is optimal. Only the clean rung may.
-    expect(rungFor({ levels: ["low", "low", "moderate"] })).toBe("good");
-    expect(HEADLINE_COPY.good).not.toContain("OPTIMAL");
-    expect(HEADLINE_COPY.clean).toContain("OPTIMAL");
-  });
-
-  it("uses no negative or diagnostic wording at any rung", () => {
-    const banned = ["RISK", "ELEVATED", "POOR", "ABNORMAL", "DEFICIENT", "IMPAIRED", "FAILURE"];
-    const cases = [
-      ["none", "none"],
-      ["low", "low", "consider"],
-      ["low", "low", "moderate", "moderate"],
-      ["low", "moderate", "moderate"],
-      ["moderate", "elevated"],
-      ["inconclusive", "inconclusive"],
-    ];
-    for (const levels of cases) {
-      const headline = h("ATHLETIC", levels);
-      for (const word of banned) {
-        expect(headline).not.toContain(word);
-      }
-    }
-  });
-
-  it("reports inconclusive when nothing is readable, without implying a finding", () => {
-    const headline = h("WELLNESS", ["inconclusive", "inconclusive", "inconclusive"]);
-    expect(headline).toBe("WELLNESS ASSESSMENT INCONCLUSIVE");
-    expect(headline).not.toContain("OPTIMAL");
+  it("reports unreadable when nothing can be read", () => {
+    expect(rung(["inconclusive", "inconclusive"])).toBe("unreadable");
   });
 
   it("ignores inconclusive signals when grading the readable ones", () => {
-    // Two readable signals both clean, plus noise that could not be read.
-    expect(h("ATHLETIC", ["low", "none", "inconclusive"])).toBe("OPTIMAL ATHLETIC FUNCTION");
+    expect(rung(["low", "none", "inconclusive"])).toBe("clean");
   });
 
   it("handles a single signal", () => {
-    expect(h("COGNITIVE", ["low"])).toBe("OPTIMAL COGNITIVE FUNCTION");
-    expect(h("COGNITIVE", ["moderate"])).toBe("COGNITIVE PROFILE NEEDS IMPROVEMENT");
+    expect(rung(["low"])).toBe("clean");
+    expect(rung(["moderate"])).toBe("focus");
   });
 
   it("honours the strong-signal floor", () => {
@@ -94,38 +45,83 @@ describe("headlineFor", () => {
       .fill("low")
       .concat(["moderate", "moderate"]);
     const atFloor = Array(STRONG_SIGNAL_FLOOR).fill("low").concat(["moderate", "moderate"]);
-    expect(rungFor({ levels: justUnder })).not.toBe("good");
-    expect(rungFor({ levels: atFloor })).toBe("good");
+    expect(rung(justUnder)).not.toBe("good");
+    expect(rung(atFloor)).toBe("good");
+  });
+
+  it("treats an empty signal list as unreadable, not as clean", () => {
+    // No signals is not evidence that nothing was found.
+    expect(rung([])).toBe("unreadable");
   });
 });
 
-describe("the vocabulary catalogue", () => {
+describe("RUNG_SCALE", () => {
+  const GRADEABLE: HeadlineRung[] = ["clean", "good", "steady", "focus"];
+
+  it("covers every gradeable rung, strongest first", () => {
+    expect(RUNG_SCALE.map((r) => r.key)).toEqual(GRADEABLE);
+  });
+
+  it("leaves the unreadable state off the scale", () => {
+    // It describes the recording, not the result, so it is not a rung.
+    expect(RUNG_SCALE.map((r) => r.key)).not.toContain("unreadable");
+  });
+
+  it("gives every rung a colour for both grounds", () => {
+    for (const r of RUNG_SCALE) {
+      expect(r.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(r.colorLight).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+  });
+
+  it("shares one green across the two good rungs", () => {
+    // Left to right carries the order, so colour is free to carry good versus
+    // caution. A gradient between clean and good would imply a gap the grading
+    // never makes.
+    const clean = RUNG_SCALE.find((r) => r.key === "clean")!;
+    const good = RUNG_SCALE.find((r) => r.key === "good")!;
+    expect(clean.colorLight).toBe(good.colorLight);
+  });
+
+  it("uses no risk or diagnostic wording in any label", () => {
+    const banned = ["RISK", "ELEVATED", "POOR", "ABNORMAL", "DEFICIENT", "IMPAIRED", "DISEASE"];
+    for (const r of RUNG_SCALE) {
+      for (const word of banned) {
+        expect(r.label).not.toContain(word);
+      }
+    }
+  });
+});
+
+describe("RUNG_LABEL_VARIANTS", () => {
   const RUNGS: HeadlineRung[] = ["clean", "good", "steady", "focus", "unreadable"];
 
-  it("offers alternatives for every rung", () => {
-    for (const rung of RUNGS) {
-      expect(HEADLINE_VARIANTS[rung].length).toBeGreaterThanOrEqual(3);
+  it("offers alternates for every rung", () => {
+    for (const r of RUNGS) {
+      expect(RUNG_LABEL_VARIANTS[r].length).toBeGreaterThanOrEqual(3);
     }
   });
 
-  it("keeps the copy in use inside its own rung's variants", () => {
-    for (const rung of RUNGS) {
-      expect(HEADLINE_VARIANTS[rung]).toContain(HEADLINE_COPY[rung]);
+  it("keeps each label in use inside its own rung's alternates", () => {
+    for (const entry of RUNG_SCALE) {
+      expect(RUNG_LABEL_VARIANTS[entry.key]).toContain(entry.label);
     }
   });
 
-  it("gives every variant a name slot to fill", () => {
-    for (const rung of RUNGS) {
-      for (const variant of HEADLINE_VARIANTS[rung]) {
-        expect(variant).toContain("{NAME}");
+  it("claims optimal or peak condition only on the clean rung", () => {
+    for (const r of RUNGS) {
+      if (r === "clean") continue;
+      for (const variant of RUNG_LABEL_VARIANTS[r]) {
+        expect(variant).not.toContain("OPTIMAL");
+        expect(variant).not.toContain("PEAK");
       }
     }
   });
 
-  it("uses no risk or diagnostic wording in any variant", () => {
+  it("uses no risk or diagnostic wording in any alternate", () => {
     const banned = ["RISK", "ELEVATED", "POOR", "ABNORMAL", "DEFICIENT", "IMPAIRED", "DISEASE"];
-    for (const rung of RUNGS) {
-      for (const variant of HEADLINE_VARIANTS[rung]) {
+    for (const r of RUNGS) {
+      for (const variant of RUNG_LABEL_VARIANTS[r]) {
         for (const word of banned) {
           expect(variant).not.toContain(word);
         }
@@ -133,18 +129,8 @@ describe("the vocabulary catalogue", () => {
     }
   });
 
-  it("claims optimal or peak condition only on the clean rung", () => {
-    for (const rung of RUNGS) {
-      if (rung === "clean") continue;
-      for (const variant of HEADLINE_VARIANTS[rung]) {
-        expect(variant).not.toContain("OPTIMAL");
-        expect(variant).not.toContain("PEAK");
-      }
-    }
-  });
-
   it("has no duplicate wording across rungs", () => {
-    const all = RUNGS.flatMap((r) => HEADLINE_VARIANTS[r]);
+    const all = RUNGS.flatMap((r) => RUNG_LABEL_VARIANTS[r]);
     expect(new Set(all).size).toBe(all.length);
   });
 });

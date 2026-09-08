@@ -15,20 +15,13 @@ import { bandForLevel, type SignalBand } from "@/lib/signal-band";
  * "review". So the good rung names a strong foundation, which stays true
  * printed above flagged rows, and OPTIMAL FUNCTION is kept for a clean result.
  *
- * Wording is separate from grading. HEADLINE_COPY holds the line in use per
- * rung; HEADLINE_VARIANTS holds the approved alternatives. Swapping copy is a
- * one-line edit and needs no change to how a result is graded.
+ * Wording is separate from grading. RUNG_SCALE holds the label in use per rung
+ * and RUNG_LABEL_VARIANTS the approved alternates, so changing a word needs no
+ * change to how a result is graded.
  */
 
 /** How many signals must be reading well before the headline leans positive. */
 export const STRONG_SIGNAL_FLOOR = 2;
-
-export interface HeadlineInput {
-  /** Domain word, already uppercased: ATHLETIC, WELLNESS, COGNITIVE... */
-  name: string;
-  /** Raw API level per signal, in any order. */
-  levels: string[];
-}
 
 /** A signal at NONE or LOW is not flagged and is reading well. */
 function isStrong(band: SignalBand): boolean {
@@ -61,60 +54,24 @@ export function rungFor({ levels }: { levels: string[] }): HeadlineRung {
   return "focus";
 }
 
-/** The wording in use per rung. Swap from HEADLINE_VARIANTS below. */
-export const HEADLINE_COPY: Record<HeadlineRung, string> = {
-  clean: "OPTIMAL {NAME} FUNCTION",
-  good: "STRONG {NAME} FOUNDATION",
-  steady: "STEADY {NAME} BASELINE",
-  focus: "{NAME} PROFILE NEEDS IMPROVEMENT",
-  unreadable: "{NAME} ASSESSMENT INCONCLUSIVE",
-};
-
 /**
- * Approved alternatives per rung, strongest first within each. Any of these can
- * be dropped into HEADLINE_COPY above; all are informational rather than
- * diagnostic, and none carries a risk verdict.
+ * Approved alternates for the scale labels, strongest first within each rung.
+ *
+ * These were originally full phrases for a headline that sat under the scale
+ * and repeated its grade in words. That line now names the subject only, so the
+ * rung word in RUNG_SCALE below is the single place a grade is stated, and
+ * these are the swap-in options for it.
+ *
+ * All are informational rather than diagnostic, and none carries a risk
+ * verdict. OPTIMAL and PEAK are constrained by test to the clean rung.
  */
-export const HEADLINE_VARIANTS: Record<HeadlineRung, string[]> = {
-  clean: [
-    "OPTIMAL {NAME} FUNCTION",
-    "PEAK {NAME} CONDITION",
-    "EXEMPLARY {NAME} PROFILE",
-    "{NAME} READINESS CONFIRMED",
-    "{NAME} FUNCTION OPTIMAL",
-  ],
-  good: [
-    "STRONG {NAME} FOUNDATION",
-    "SOLID {NAME} FOUNDATION",
-    "FAVORABLE {NAME} PROFILE",
-    "RESILIENT {NAME} BASELINE",
-    "WELL-REGULATED {NAME} PROFILE",
-    "SOUND {NAME} CONDITIONING",
-    "{NAME} CAPACITY INTACT",
-    "{NAME} RESILIENCE CONFIRMED",
-  ],
-  steady: [
-    "STEADY {NAME} BASELINE",
-    "MEASURED {NAME} PROFILE",
-    "{NAME} BASELINE HOLDING",
-    "{NAME} FOUNDATION PRESENT",
-  ],
-  focus: [
-    "{NAME} PROFILE NEEDS IMPROVEMENT",
-    "{NAME} PROFILE IN TRANSITION",
-    "ACTIVE {NAME} MONITORING",
-    "{NAME} PROFILE UNDER OBSERVATION",
-  ],
-  unreadable: [
-    "{NAME} ASSESSMENT INCONCLUSIVE",
-    "{NAME} SIGNALS UNREADABLE",
-    "{NAME} ASSESSMENT INCOMPLETE",
-  ],
+export const RUNG_LABEL_VARIANTS: Record<HeadlineRung, string[]> = {
+  clean: ["OPTIMAL", "PEAK", "EXEMPLARY", "READY"],
+  good: ["STRONG", "SOLID", "FAVORABLE", "RESILIENT", "WELL-REGULATED", "SOUND"],
+  steady: ["STEADY", "MEASURED", "HOLDING", "PRESENT"],
+  focus: ["NEEDS IMPROVEMENT", "IN TRANSITION", "UNDER OBSERVATION", "MONITORING"],
+  unreadable: ["INCONCLUSIVE", "UNREADABLE", "INCOMPLETE"],
 };
-
-export function headlineFor({ name, levels }: HeadlineInput): string {
-  return HEADLINE_COPY[rungFor({ levels })].replace("{NAME}", name);
-}
 
 /**
  * The four gradeable rungs as a scale, strongest first, for OptionScale.

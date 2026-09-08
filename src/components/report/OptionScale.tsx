@@ -55,7 +55,7 @@ export const OptionScale = ({
     <div
       role="group"
       aria-label={ariaLabel}
-      className="grid gap-1"
+      className="grid gap-1 items-stretch"
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       {options.map((option) => {
@@ -63,21 +63,41 @@ export const OptionScale = ({
         const color =
           surface === "light" ? option.colorLight ?? option.color : option.color;
         return (
+          /*
+            Flex-centred and full height. As a plain text span the cell
+            stretched to the tallest option in the row, and any single-line
+            label sat at the top of its own box - so the lit box looked like it
+            had its word offset upward while "NEEDS IMPROVEMENT" wrapped to two
+            lines next to it.
+          */
           <span
             key={option.key}
             aria-current={isActive ? "true" : undefined}
-            className={`text-center font-mono uppercase rounded leading-tight ${
+            className={`flex items-center justify-center h-full text-center font-mono uppercase rounded leading-tight ${
               isLarge
-                ? "text-[10px] md:text-[12px] tracking-[0.08em] py-2 px-1"
-                : "text-[8px] md:text-[9px] tracking-[0.06em] py-1 px-0.5 whitespace-nowrap"
+                ? `tracking-[0.08em] py-2.5 px-1.5 ${
+                    isActive
+                      ? "text-[13px] md:text-[16px] font-semibold"
+                      : "text-[12px] md:text-[14px] font-medium"
+                  }`
+                : `tracking-[0.06em] py-1 px-0.5 whitespace-nowrap ${
+                    isActive
+                      ? "text-[9px] md:text-[10px] font-semibold"
+                      : "text-[8px] md:text-[9px]"
+                  }`
             } ${isActive ? "animate-scale-breathe" : ""}`}
             style={{
               color,
               opacity: isActive ? 1 : DIM,
               // Read by the keyframes; harmless on the dimmed options.
               ["--scale-color" as string]: color,
-              ["--scale-tint-lo" as string]: tint(color, 0.1),
-              ["--scale-tint-hi" as string]: tint(color, isLarge ? 0.24 : 0.2),
+              // A touch more fill on a light ground: the same alpha that reads
+              // as a glow on black barely registers against beige.
+              ["--scale-tint-lo" as string]: tint(color, surface === "light" ? 0.14 : 0.1),
+              ["--scale-tint-hi" as string]: tint(
+                color,
+                surface === "light" ? (isLarge ? 0.3 : 0.24) : isLarge ? 0.24 : 0.2
+              ),
               ["--scale-glow" as string]: isLarge ? "14px" : "9px",
             }}
           >

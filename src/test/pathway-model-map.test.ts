@@ -80,10 +80,11 @@ describe("the two live assessments", () => {
 
   it("headlines each assessment by what it measures, at every tier", () => {
     // The headline is tier-independent by design: it names the assessment, and
-    // severity is carried by the tier word and the per-signal bands instead.
+    // the grade is carried by the assessment scale above it plus the per-signal
+    // bands below.
     for (const [pathway, expected] of [
-      ["WELLNESS", "WELLNESS SIGNALS"],
-      ["SPORTS", "ATHLETIC SIGNALS"],
+      ["WELLNESS", "WELLNESS PROFILE"],
+      ["SPORTS", "ATHLETIC PROFILE"],
     ] as const) {
       for (const tier of ["NO_RISK", "LOW", "MODERATE", "HIGH", "INCONCLUSIVE"]) {
         const headline = classificationFor(tier, pathway);

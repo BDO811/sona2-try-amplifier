@@ -27,7 +27,7 @@
  */
 
 import { AssessmentPathway } from "@/context/AssessmentContext";
-import { headlineFor, rungFor } from "@/lib/result-headline";
+import { rungFor } from "@/lib/result-headline";
 import {
   VisualizedResult,
   LabMetric,
@@ -338,7 +338,7 @@ function levelToColorScore(level: string | undefined): number | undefined {
  * export and the saved voice history all read from its output, so none of them
  * can reintroduce it.
  */
-const SUPPRESSED_SIGNS = new Set(["elevated-blood-pressure"]);
+const SUPPRESSED_SIGNS = new Set(["elevated-blood-pressure", "head-impact"]);
 
 const LEVEL_RANK: Record<string, number> = {
   none: 0,
@@ -597,11 +597,12 @@ function pathwayDomainName(pathway: AssessmentPathway): string {
 export function getV2Classification(
   likelihoodTier: string,
   pathway: AssessmentPathway,
-  levels: string[] = []
+  _levels: string[] = []
 ): string {
-  const name = pathwayDomainName(pathway);
-  if (levels.length === 0) return `${name} SIGNALS`;
-  return headlineFor({ name, levels });
+  // Names the subject, nothing more. The assessment scale directly above this
+  // line already lights the grade, so carrying the rung word here too read as
+  // "ATHLETIC PROFILE NEEDS IMPROVEMENT" underneath a lit NEEDS IMPROVEMENT.
+  return `${pathwayDomainName(pathway)} PROFILE`;
 }
 
 function buildFallbackSubtext(signals: V2Signal[], flaggedCount: number): string {

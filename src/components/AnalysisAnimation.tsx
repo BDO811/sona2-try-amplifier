@@ -974,13 +974,27 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
         DETAIL_ROTATE_MS and a 1.5s fade would still be running.
       */}
       <div
-        className="absolute left-1/2 text-center pointer-events-none"
-        style={{ top: "50%", transform: "translate(-50%, 168px)" }}
+        className="absolute left-1/2 w-full px-6 text-center pointer-events-none"
+        style={{
+          /*
+            The midpoint between the graphic's lower edge and the headline's top
+            edge, so the line sits evenly between the two rather than crowding
+            one of them.
+
+            Graphic is 300px tall centred on the viewport, so its bottom edge is
+            at 50% + 150px. The headline is anchored bottom-36 (144px) and runs
+            about 29px tall, putting its top edge at 100% - 173px. The midpoint
+            of those two is 75% - 11.5px, and it holds at any viewport height
+            rather than only the one it was eyeballed on.
+          */
+          top: "calc(75% - 12px)",
+          transform: "translate(-50%, -50%)",
+        }}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={`${stage}-${safeDetailIndex}`}
-            className="font-mono text-[20px] tracking-[0.2em] uppercase whitespace-nowrap"
+            className="font-mono text-[16px] md:text-[20px] tracking-[0.2em] uppercase"
             style={{ color: stageColorSoft }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -996,14 +1010,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       <AnimatePresence mode="sync">
         <motion.div
           key={stage}
-          className="absolute bottom-36 left-0 right-0 text-center"
+          className="absolute bottom-36 left-0 right-0 px-6 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
         >
           <span
-            className="font-mono text-[24px] tracking-[0.25em] uppercase"
+            className="font-mono text-[18px] md:text-[24px] tracking-[0.25em] uppercase"
             style={{ color: stageColor }}
           >
             {currentConfig.text}

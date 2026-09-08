@@ -55,16 +55,21 @@ describe("transformV2ResultToVisualization on a real pulse response", () => {
     expect(visualized.likelihoodTier).toBe("MODERATE");
   });
 
-  it("leads the headline with what is holding up, without a risk verdict", () => {
-    // On this sample the only signal reading low was elevated-blood-pressure,
-    // which is now suppressed. With it gone nothing reads clean, so the result
-    // grades down a rung: it read STEADY WELLNESS BASELINE while that signal
-    // was still shown. Suppressing a sign changes the grading, not just the
-    // list of rows.
-    expect(visualized.classification).toBe("WELLNESS PROFILE NEEDS IMPROVEMENT");
+  it("names the subject in the headline and leaves the grade to the scale", () => {
+    // The grade is lit on the assessment scale directly above this line, so
+    // repeating it here produced "WELLNESS PROFILE NEEDS IMPROVEMENT" beneath a
+    // lit NEEDS IMPROVEMENT.
+    expect(visualized.classification).toBe("WELLNESS PROFILE");
     for (const word of ["ELEVATED", "RISK", "OPTIMAL", "STABLE"]) {
       expect(visualized.classification).not.toContain(word);
     }
+  });
+
+  it("grades down once the only clean signal is suppressed", () => {
+    // elevated-blood-pressure was the one signal reading low on this sample.
+    // With it withheld nothing reads clean, so the rung drops from steady.
+    // Suppressing a sign changes the grade, not just the list of rows.
+    expect(visualized.headlineRung).toBe("focus");
   });
 
   it("maps the shown pulse signals into biomarkers, most severe first", () => {
