@@ -164,6 +164,17 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   // noise floor), not just ambient room noise. Checked against MIN_SPEECH_SECONDS
   // when a take ends, so a mostly-silent recording gets re-asked instead of accepted.
   const speechSecondsRef = useRef(0);
+  /**
+   * Whether the analyser ever saw a non-silent sample this take. Distinguishes
+   * a broken audio graph from a quiet speaker — see the tick loop.
+   */
+  const heardAnySignalRef = useRef(false);
+  /** Loudest rms the analyser saw this take, for the diagnostic on a short take. */
+  const peakRmsSeenRef = useRef(0);
+  /** Frames the tick loop ran this take. Zero means the loop never started. */
+  const tickCountRef = useRef(0);
+  /** AudioContext state as of the last frame, for the same diagnostic. */
+  const audioCtxStateRef = useRef<string>("none");
 
   const BUTTON_SIZE = isSeniorMode ? 168 : 120;
   const RING_SIZE = Math.round(BUTTON_SIZE * 0.85);
@@ -333,6 +344,29 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     const stream = audioStreamRef.current;
     const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
     const audioCtx = new AudioContextCtor();
+
+    /*
+      An AudioContext constructed outside a user gesture starts suspended, and a
+      suspended context feeds the analyser silence: getByteTimeDomainData fills
+      with 128, rms comes out 0, gain never clears SPEECH_GAIN_THRESHOLD, and
+      speechSecondsRef stays at 0 for the whole take. Every recording then failed
+      the MIN_SPEECH_SECONDS check with "Only 0s of speech captured" — while
+      MediaRecorder, which does not run through this graph, was capturing the
+      audio correctly the whole time.
+
+      This effect runs from an isRecording state change rather than from inside
+      the click handler, so the context does start suspended. Resuming it is what
+      the implementation this was ported from does (template_try.html:233) and the
+      port dropped. The statechange handler is from the same source: the context
+      can be suspended again by the browser mid-take.
+    */
+    void audioCtx.resume().catch(() => {
+      // Nothing to do here. The gate below reports a deaf analyser on its own.
+    });
+    audioCtx.onstatechange = () => {
+      if (audioCtx.state === "suspended") void audioCtx.resume().catch(() => {});
+    };
+
     const src = audioCtx.createMediaStreamSource(stream);
     const analyser = audioCtx.createAnalyser();
     analyser.fftSize = 1024;
@@ -355,6 +389,9 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     waveScalesRef.current = new Array(WAVE_BARS).fill(0);
     lastFrameTimeRef.current = 0;
     speechSecondsRef.current = 0;
+    heardAnySignalRef.current = false;
+    peakRmsSeenRef.current = 0;
+    tickCountRef.current = 0;
 
     const tick = () => {
       const now = performance.now();
@@ -385,6 +422,15 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         0,
         Math.min(1, (waveLevelRef.current - base) / Math.max(wavePeakRef.current * 0.75 - base, 0.006))
       );
+
+      // Tracked separately from speech time so a graph that never delivers a
+      // sample can be told apart from a speaker who said very little. Without
+      // that distinction the suspended-context bug above looked identical to
+      // the user not talking, which is why it survived as long as it did.
+      if (rms > 0) heardAnySignalRef.current = true;
+      if (rms > peakRmsSeenRef.current) peakRmsSeenRef.current = rms;
+      tickCountRef.current += 1;
+      audioCtxStateRef.current = audioCtx.state;
 
       if (gain > SPEECH_GAIN_THRESHOLD) {
         speechSecondsRef.current += dt;
@@ -488,20 +534,54 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     
     // Stop media recorder and process audio
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-      mediaRecorderRef.current.stop();
-      
+      // Handler first, then stop. Assigning it after the stop() call left the
+      // segment's processing riding on the stop event not having dispatched yet.
       mediaRecorderRef.current.onstop = async () => {
         try {
           const spokeSeconds = speechSecondsRef.current;
           if (spokeSeconds < MIN_SPEECH_SECONDS) {
-            console.warn(`[QuestionFlowVisualizer] Only ${spokeSeconds.toFixed(1)}s of speech detected, re-asking`);
+            /*
+              Two different failures used to print the same sentence. If the
+              analyser never received a sample, the fault is the audio graph and
+              telling the speaker to try another question is both wrong and
+              unactionable — asking them to keep talking cannot fix it.
+            */
+            const deafAnalyser = !heardAnySignalRef.current;
+            /*
+              Everything needed to tell the causes apart on a real device, since
+              this class of failure cannot be reproduced in a headless browser
+              (where an AudioContext starts running rather than suspended).
+
+              tickFrames 0      -> the tick loop never ran; the stream was
+                                   missing when the effect fired.
+              audioCtxState     -> "suspended" means the graph was never pulling
+                                   audio, so rms could only ever read 0.
+              peakRms 0         -> graph delivered nothing.
+              peakRms above 0
+                with low speech -> the gate is real audio failing the threshold.
+            */
+            console.warn("[QuestionFlowVisualizer] short take, re-asking", {
+              speechSeconds: +spokeSeconds.toFixed(2),
+              requiredSeconds: MIN_SPEECH_SECONDS,
+              windowSeconds: RECORDING_DURATION_SECONDS,
+              tickFrames: tickCountRef.current,
+              audioCtxState: audioCtxStateRef.current,
+              peakRms: +peakRmsSeenRef.current.toFixed(4),
+              gainThreshold: SPEECH_GAIN_THRESHOLD,
+              audioChunks: audioChunksRef.current.length,
+              streamTracks: audioStreamRef.current?.getAudioTracks().length ?? 0,
+              trackEnabled: audioStreamRef.current?.getAudioTracks()[0]?.enabled ?? null,
+              trackMuted: audioStreamRef.current?.getAudioTracks()[0]?.muted ?? null,
+            });
             setQuestions((prev) => {
               const next = [...prev];
               next[currentQuestion] = getNextPoolQuestion();
               return next;
             });
             setInsufficientSpeechWarning(
-              `Only ${Math.round(spokeSeconds)}s of speech captured. Let's try a different question.`
+              deafAnalyser
+                ? "We could not hear the microphone. Check that this tab has microphone access, then try again."
+                : `Only ${Math.round(spokeSeconds)}s of speech captured. Let's try a different question.`
             );
             setHasRecordedCurrentQuestion(false);
             return;
@@ -522,6 +602,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
           console.error("[QuestionFlowVisualizer] Error processing segment:", error);
         }
       };
+      mediaRecorderRef.current.stop();
     }
   }, [isRecording, currentQuestion, advanceToNextQuestion, getNextPoolQuestion]);
 
