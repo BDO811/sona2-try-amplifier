@@ -261,6 +261,22 @@ const SIGN_LABEL_OVERRIDES: Record<string, string> = {
   "elevated-blood-pressure": "Blood Pressure",
 };
 
+/**
+ * Signs whose scale is drawn normal-first instead of most-severe-first.
+ *
+ * Every other row runs red to green, left to right. Blood pressure is read the
+ * way a blood-pressure chart is read — normal, then upward through the grades —
+ * so its row runs the other way, green on the left and red on the right.
+ */
+const NORMAL_FIRST_SCALE = new Set(["elevated-blood-pressure"]);
+
+/** The order to draw a sign's scale in, left to right. */
+export function bandDisplayOrderFor(name: string | null | undefined): DisplayBand[] {
+  return NORMAL_FIRST_SCALE.has((name || "").toLowerCase())
+    ? BAND_ORDER
+    : BAND_DISPLAY_ORDER;
+}
+
 /** What to call a sign on screen. Falls back to the API's label. */
 export function signLabel(
   name: string | null | undefined,
@@ -307,13 +323,13 @@ export function bandColor(band: DisplayBand, surface: Surface = "dark"): string 
 }
 
 /** The four graded bands as a scale, for OptionScale. */
-export function bandScaleOptions(): Array<{
+export function bandScaleOptions(name?: string | null): Array<{
   key: DisplayBand;
   label: string;
   color: string;
   colorLight: string;
 }> {
-  return BAND_DISPLAY_ORDER.map((band) => ({
+  return bandDisplayOrderFor(name).map((band) => ({
     key: band,
     label: band,
     color: bandColor(band, "dark"),
