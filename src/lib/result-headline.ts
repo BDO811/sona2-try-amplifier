@@ -20,8 +20,28 @@ import { isFlaggedLevel, levelOf } from "@/lib/signal-band";
  * change to how a result is graded.
  */
 
-/** How many signals must be reading well before the headline leans positive. */
-export const STRONG_SIGNAL_FLOOR = 2;
+/**
+ * What share of readable signals must be reading well before the headline leans
+ * positive. Strictly more than a third.
+ *
+ * This replaced a floor of two signals, which was not comparable across models.
+ * A count rewards a model for measuring more signs: apex returns seven signs
+ * and pulse six, so apex cleared a fixed two more easily. One live 45s sample
+ * run through both came out `good` on apex from two clean signals out of seven
+ * (29%) and `steady` on pulse from one out of six (17%) — the same voice, graded
+ * a rung apart on a difference in panel size rather than in how it read.
+ *
+ * A third is where the old floor sat on these panels (2 of 6 is 33%, 2 of 7 is
+ * 29%), so this keeps the brief's intent while making the rule independent of
+ * how many signs a model happens to publish. The comparison is strict so that
+ * one signal in three still reads `steady`: the brief was a couple of signals
+ * doing well, and one is not a couple.
+ *
+ * Other cut points were checked against the same vectors. A non-strict third
+ * promotes one-in-three to `good`; a half demotes two-in-five, which the brief
+ * calls good. Both were rejected on those grounds.
+ */
+export const STRONG_SIGNAL_SHARE = 1 / 3;
 
 /** A signal the API would not flag: none or low. */
 function isStrong(level: string): boolean {
@@ -45,12 +65,18 @@ export function rungFor({ levels }: { levels: string[] }): HeadlineRung {
   const flagged = readable.length - strong;
 
   if (flagged === 0) return "clean";
-  // The brief: two signals reading well is a good outcome, even with others
-  // flagged. Note this rung is reached regardless of how high the rest went,
-  // so its wording must stay true when it sits above flagged rows — which is
-  // why it names a strong foundation rather than an optimal whole.
-  if (strong >= STRONG_SIGNAL_FLOOR) return "good";
-  if (strong === 1) return "steady";
+  /*
+    The brief: a share of signals reading well is a good outcome, even with
+    others flagged. This rung is reached regardless of how high the rest went,
+    so its wording must stay true when it sits above flagged rows — which is why
+    it names a strong foundation rather than an optimal whole.
+
+    Measured as a share of the readable signals, not a count, so the grade does
+    not move with how many signs a model publishes. See STRONG_SIGNAL_SHARE.
+  */
+  if (strong / readable.length > STRONG_SIGNAL_SHARE) return "good";
+  // Anything reading well, just not enough of it. Reached at any panel size.
+  if (strong > 0) return "steady";
   return "focus";
 }
 

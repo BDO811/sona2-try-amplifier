@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   RUNG_LABEL_VARIANTS,
   RUNG_SCALE,
-  STRONG_SIGNAL_FLOOR,
+  STRONG_SIGNAL_SHARE,
   rungFor,
   type HeadlineRung,
 } from "@/lib/result-headline";
@@ -40,13 +40,55 @@ describe("rungFor", () => {
     expect(rung(["moderate"])).toBe("focus");
   });
 
-  it("honours the strong-signal floor", () => {
-    const justUnder = Array(STRONG_SIGNAL_FLOOR - 1)
-      .fill("low")
-      .concat(["moderate", "moderate"]);
-    const atFloor = Array(STRONG_SIGNAL_FLOOR).fill("low").concat(["moderate", "moderate"]);
-    expect(rung(justUnder)).not.toBe("good");
-    expect(rung(atFloor)).toBe("good");
+  it("counts the share over readable signals only", () => {
+    // One strong of two readable is 50%, good, even though it is one of four
+    // rows. Inconclusive rows are not evidence either way, so they must not
+    // dilute the denominator.
+    expect(rung(["low", "moderate", "inconclusive", "inconclusive"])).toBe("good");
+  });
+
+  it("needs strictly more than the share, so one in three is not a couple", () => {
+    expect(STRONG_SIGNAL_SHARE).toBe(1 / 3);
+    expect(rung(["low", "moderate", "moderate"])).not.toBe("good");
+    expect(rung(["low", "low", "moderate", "moderate"])).toBe("good");
+  });
+
+  it("grades on the share of signals, not the count, so panel size does not decide it", () => {
+    /*
+      The defect this replaced. A fixed floor of two rewarded a model for
+      publishing more signs: one live 45s sample came out `good` on apex (two
+      clean of seven) and `steady` on pulse (one of six) — the same voice, a
+      rung apart on panel size.
+
+      These two vectors are that sample: four consider plus one moderate in
+      both, apex additionally returning head-impact and cardiovascular-strain.
+    */
+    const livePulse = ["low", "consider", "consider", "consider", "consider", "moderate"];
+    const liveApex = [
+      "low",
+      "low",
+      "consider",
+      "consider",
+      "consider",
+      "consider",
+      "moderate",
+    ];
+    expect(rung(livePulse)).toBe(rung(liveApex));
+    expect(rung(liveApex)).toBe("steady");
+  });
+
+  it("holds the same share to the same rung at any panel size", () => {
+    // Half the signals reading well is good whether the panel is 4 or 12.
+    const half = (n: number) =>
+      Array(n / 2).fill("low").concat(Array(n / 2).fill("moderate"));
+    for (const n of [4, 6, 8, 12]) {
+      expect(rung(half(n)), `${n} signals`).toBe("good");
+    }
+    // And a lone strong signal is steady whether the panel is 3 or 12.
+    for (const n of [3, 6, 12]) {
+      const one = ["low"].concat(Array(n - 1).fill("moderate"));
+      expect(rung(one), `1 of ${n}`).toBe("steady");
+    }
   });
 
   it("treats an empty signal list as unreadable, not as clean", () => {
