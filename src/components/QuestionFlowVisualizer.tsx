@@ -17,7 +17,28 @@ const RECORDING_DURATION_SECONDS = 15;
 // draw from the pool, the re-ask cursor, the per-question audio buffers and the
 // "N of M" label — derives from this, so changing it here changes all of them.
 const QUESTION_COUNT = 2;
-const MIN_SPEECH_SECONDS = 10;
+/*
+  Client-side speech gate, currently off.
+
+  This rejected a take when its own analyser reported less than this much
+  speech, and it rejected every take: the analyser is driven by
+  requestAnimationFrame, and when that loop does not run — a background tab, a
+  throttled renderer, a suspended AudioContext — the counter stays at 0 while
+  the microphone is recording perfectly well. The take was then thrown away and
+  the user told to answer a different question, which cannot fix it.
+
+  It is off rather than repaired because it was never the thing enforcing the
+  audio minimums. The API does that, on the audio itself rather than on a
+  parallel measurement of it: under 15s is rejected outright, voice_percentage
+  below 30 comes back as insufficient_speech, and audio_clarity below 50 as
+  high_background_noise. AnalysisFailed already renders all three. So dropping
+  this cannot let a bad recording through — it just stops a second, unverified
+  measurement from vetoing a good one.
+
+  Set this above 0 to turn the gate back on, once the tick loop is trusted to
+  run wherever the app actually gets used.
+*/
+const MIN_SPEECH_SECONDS = 0;
 const SPEECH_GAIN_THRESHOLD = 0.15;
 const QUESTION_BACKGROUNDS = [
   asset("images/talk-laugh-outdoors.jpg"),
@@ -539,7 +560,18 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
       mediaRecorderRef.current.onstop = async () => {
         try {
           const spokeSeconds = speechSecondsRef.current;
-          if (spokeSeconds < MIN_SPEECH_SECONDS) {
+          // Kept for the diagnostic below even with the gate off, so a take that
+          // the API later calls insufficient can be traced back to what the
+          // analyser saw locally.
+          console.log("[QuestionFlowVisualizer] take finished", {
+            speechSeconds: +spokeSeconds.toFixed(2),
+            gateThreshold: MIN_SPEECH_SECONDS,
+            tickFrames: tickCountRef.current,
+            audioCtxState: audioCtxStateRef.current,
+            peakRms: +peakRmsSeenRef.current.toFixed(4),
+            audioChunks: audioChunksRef.current.length,
+          });
+          if (MIN_SPEECH_SECONDS > 0 && spokeSeconds < MIN_SPEECH_SECONDS) {
             /*
               Two different failures used to print the same sentence. If the
               analyser never received a sample, the fault is the audio graph and
