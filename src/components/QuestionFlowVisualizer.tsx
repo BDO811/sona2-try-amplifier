@@ -131,6 +131,13 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   const [isComplete, setIsComplete] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [insufficientSpeechWarning, setInsufficientSpeechWarning] = useState<string | null>(null);
+  /*
+    The recorder is only usable once getUserMedia has resolved and MediaRecorder
+    exists. Nothing gated the record button on that before: the button was live
+    from first paint, and a click landing before the stream arrived started
+    neither the recorder nor the analyser loop, which reports as a 0s take.
+  */
+  const [recorderReady, setRecorderReady] = useState(false);
 
   // Visual effects
   const [ripples, setRipples] = useState<Ripple[]>([]);
@@ -164,6 +171,14 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   // noise floor), not just ambient room noise. Checked against MIN_SPEECH_SECONDS
   // when a take ends, so a mostly-silent recording gets re-asked instead of accepted.
   const speechSecondsRef = useRef(0);
+  /** Loudest rms the analyser saw this take. 0 means the graph delivered nothing. */
+  const peakRmsSeenRef = useRef(0);
+  /** Frames the tick loop ran this take. 0 means the loop never started. */
+  const tickCountRef = useRef(0);
+  /** AudioContext state as of the last frame. */
+  const audioCtxStateRef = useRef<string>("none");
+  /** Whether the OS has the mic muted out from under the browser. */
+  const micMutedRef = useRef(false);
 
   const BUTTON_SIZE = isSeniorMode ? 168 : 120;
   const RING_SIZE = Math.round(BUTTON_SIZE * 0.85);
@@ -288,6 +303,28 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         mediaRecorder.onerror = (event) => {
           console.error("MediaRecorder error:", event);
         };
+
+        /*
+          Chrome can grant getUserMedia and still hand over a track that carries
+          no audio, when the OS-level microphone is unavailable to it or another
+          application holds the device. It marks that with track.muted, which is
+          separate from track.enabled and from permission being denied — a denial
+          rejects getUserMedia and is handled in the catch below.
+
+          Confirmed on 2026-09-09: the same build recorded correctly in Safari
+          while Chrome produced silent takes, which the speech gate then reported
+          as "Only 0s of speech captured" — blaming the speaker for a device
+          problem they cannot fix by answering a different question.
+        */
+        micMutedRef.current = audioTrack.muted;
+        audioTrack.onmute = () => {
+          micMutedRef.current = true;
+        };
+        audioTrack.onunmute = () => {
+          micMutedRef.current = false;
+        };
+
+        setRecorderReady(true);
       } catch (error) {
         console.error("Error initializing audio:", error);
         const reason = error instanceof DOMException && error.name === "NotAllowedError" ? "permission" : "codec";
@@ -355,6 +392,8 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     waveScalesRef.current = new Array(WAVE_BARS).fill(0);
     lastFrameTimeRef.current = 0;
     speechSecondsRef.current = 0;
+    peakRmsSeenRef.current = 0;
+    tickCountRef.current = 0;
 
     const tick = () => {
       const now = performance.now();
@@ -385,6 +424,10 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         0,
         Math.min(1, (waveLevelRef.current - base) / Math.max(wavePeakRef.current * 0.75 - base, 0.006))
       );
+
+      tickCountRef.current += 1;
+      audioCtxStateRef.current = audioCtx.state;
+      if (rms > peakRmsSeenRef.current) peakRmsSeenRef.current = rms;
 
       if (gain > SPEECH_GAIN_THRESHOLD) {
         speechSecondsRef.current += dt;
@@ -417,7 +460,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         // ignore
       }
     };
-  }, [isRecording]);
+  }, [isRecording, recorderReady]);
 
   // Advance to next question or complete
   const advanceToNextQuestion = useCallback(async () => {
@@ -494,14 +537,31 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         try {
           const spokeSeconds = speechSecondsRef.current;
           if (spokeSeconds < MIN_SPEECH_SECONDS) {
-            console.warn(`[QuestionFlowVisualizer] Only ${spokeSeconds.toFixed(1)}s of speech detected, re-asking`);
+            /*
+              A silent microphone and a quiet speaker are different failures and
+              used to print the same sentence. The microphone is the cause when
+              the track is muted, or when the analyser ran but never saw a
+              non-zero sample — either way, asking for another answer cannot fix
+              it, so the message names the device instead.
+            */
+            const noSignal = micMutedRef.current || peakRmsSeenRef.current === 0;
+            console.warn("[QuestionFlowVisualizer] short take, re-asking", {
+              speechSeconds: +spokeSeconds.toFixed(2),
+              tickFrames: tickCountRef.current,
+              audioCtxState: audioCtxStateRef.current,
+              peakRms: +peakRmsSeenRef.current.toFixed(4),
+              micMuted: micMutedRef.current,
+              audioChunks: audioChunksRef.current.length,
+            });
             setQuestions((prev) => {
               const next = [...prev];
               next[currentQuestion] = getNextPoolQuestion();
               return next;
             });
             setInsufficientSpeechWarning(
-              `Only ${Math.round(spokeSeconds)}s of speech captured. Let's try a different question.`
+              noSignal
+                ? "No sound is reaching this browser from your microphone. Check its microphone access in system settings, close any app that might be using the mic, or try Safari."
+                : `Only ${Math.round(spokeSeconds)}s of speech captured. Let's try a different question.`
             );
             setHasRecordedCurrentQuestion(false);
             return;
@@ -826,7 +886,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
               ? { duration: 2, repeat: Infinity, ease: 'easeInOut' }
               : { duration: 0.3 },
           }}
-          disabled={isComplete}
+          disabled={isComplete || !recorderReady}
         >
           {isRecording ? (
             <motion.span
