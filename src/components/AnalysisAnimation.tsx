@@ -390,6 +390,71 @@ function getMarkPath(shape: "star" | "triangle" | "square" | "diamond", size: nu
 // Stage copy lives in @/lib/analysis-stage-content, keyed to the v2 model the
 // pathway selected, so each stage names what the API actually reports.
 
+/**
+ * True below Tailwind's md breakpoint.
+ *
+ * This screen positions nine absolutely-placed elements against the viewport,
+ * several through inline calc() that a class prefix cannot reach, so the
+ * breakpoint is read here rather than expressed only in CSS. Listening to the
+ * query rather than reading width once keeps it correct through a rotation.
+ */
+const MOBILE_QUERY = "(max-width: 767px)";
+
+function useIsMobileViewport(): boolean {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia(MOBILE_QUERY).matches
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia(MOBILE_QUERY);
+    const onChange = () => setIsMobile(mql.matches);
+    onChange();
+    mql.addEventListener("change", onChange);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return isMobile;
+}
+
+/*
+  Vertical bands for this screen, mobile against desktop.
+
+  Every value below was checked against a 375 by 690 viewport, which is what an
+  iPhone leaves after the browser chrome. The elements are laid out as bands
+  with clearance between them: at 20px type and desktop offsets they all landed
+  in the same three bands and printed over each other. The graphic shrinks on
+  mobile as well, because 300px of it left no room for the four telemetry
+  blocks plus the headline and the rotating detail line.
+*/
+const LAYOUT = {
+  mobile: {
+    graphic: 200,
+    pillOffset: -135,
+    detailTop: "74%",
+    titleTop: "top-3",
+    cornerTop: "top-12",
+    cornerBottom: "bottom-14",
+    headlineBottom: "bottom-28",
+    dotsBottom: "bottom-6",
+    edgeX: "left-3",
+    edgeXRight: "right-3",
+    cornerWidth: "max-w-[45%]",
+  },
+  desktop: {
+    graphic: 300,
+    pillOffset: -230,
+    detailTop: "calc(75% - 12px)",
+    titleTop: "md:top-8",
+    cornerTop: "md:top-8",
+    cornerBottom: "md:bottom-24",
+    headlineBottom: "md:bottom-36",
+    dotsBottom: "md:bottom-12",
+    edgeX: "md:left-8",
+    edgeXRight: "md:right-8",
+    cornerWidth: "md:max-w-none",
+  },
+} as const;
+
 export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationProps) => {
   const { pathwayConfig, pathwayDisplayTitle, apiStatus, pathway, userProfile, audioBlob, language } = useAssessment();
   const isSeniorMode = getIsSeniorMode(userProfile.ageRange);
@@ -482,6 +547,9 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
   }, [selectedArchetype]);
 
   // Brownian motion state - slower, wider drift for viscous feel
+  const isMobile = useIsMobileViewport();
+  const L = isMobile ? LAYOUT.mobile : LAYOUT.desktop;
+
   const particlesRef = useRef<Particle[]>(
     Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
       id: i,
@@ -790,7 +858,7 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
 
       {/* Assessment Title - Top Center */}
       <motion.div
-        className="absolute top-8 left-1/2 transform -translate-x-1/2 font-mono text-[20px] uppercase tracking-[0.25em] text-center"
+        className="absolute top-3 md:top-8 left-1/2 -translate-x-1/2 max-w-[92%] font-mono text-[10px] md:text-[20px] uppercase tracking-[0.16em] md:tracking-[0.25em] text-center whitespace-nowrap"
         style={{ color: stageColorSoft }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.8 }}
@@ -800,14 +868,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       </motion.div>
 
       {/* Corner telemetry - Top Left - pathway specific */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div 
           key={`tl-${stage}`}
-          className="absolute top-8 left-8 font-mono text-[20px] uppercase tracking-wider"
+          className="absolute top-12 md:top-8 left-3 md:left-8 font-mono text-[10px] md:text-[20px] leading-tight uppercase tracking-wider max-w-[45%] md:max-w-none"
           style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.2 } }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
         >
           <div>{metadata.topLeft.label}: <span style={{ color: stageColor }}>{metadata.topLeft.value}</span></div>
@@ -816,14 +884,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       </AnimatePresence>
 
       {/* Corner telemetry - Top Right - pathway specific */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div 
           key={`tr-${stage}`}
-          className="absolute top-8 right-8 font-mono text-[20px] uppercase tracking-wider text-right"
+          className="absolute top-12 md:top-8 right-3 md:right-8 text-right font-mono text-[10px] md:text-[20px] leading-tight uppercase tracking-wider max-w-[45%] md:max-w-none"
           style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.2 } }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: 0.1 }}
         >
           <div>{metadata.topRight.label}: <span style={{ color: stageColor }}>{metadata.topRight.value}</span></div>
@@ -832,14 +900,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       </AnimatePresence>
 
       {/* Corner telemetry - Bottom Left - pathway specific */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div 
           key={`bl-${stage}`}
-          className="absolute bottom-24 left-8 font-mono text-[20px] uppercase tracking-wider"
+          className="absolute bottom-14 md:bottom-24 left-3 md:left-8 font-mono text-[10px] md:text-[20px] leading-tight uppercase tracking-wider max-w-[45%] md:max-w-none"
           style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.2 } }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: 0.2 }}
         >
           <div>{metadata.bottomLeft.label}: <span style={{ color: stageColor }}>{metadata.bottomLeft.value}</span></div>
@@ -848,14 +916,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       </AnimatePresence>
 
       {/* Corner telemetry - Bottom Right - pathway specific */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div 
           key={`br-${stage}`}
-          className="absolute bottom-24 right-8 font-mono text-[20px] uppercase tracking-wider text-right"
+          className="absolute bottom-14 md:bottom-24 right-3 md:right-8 text-right font-mono text-[10px] md:text-[20px] leading-tight uppercase tracking-wider max-w-[45%] md:max-w-none"
           style={{ color: stageColor }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.2 } }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1], delay: 0.15 }}
         >
           <div>{metadata.bottomRight.label}: <span style={{ color: stageColor }}>{metadata.bottomRight.value}</span></div>
@@ -865,10 +933,10 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
 
       {/* Stage indicator — prominent, directly above the particle graphic, so progress is unmistakable */}
       <div
-        className="absolute left-1/2 flex items-center gap-2 rounded-full border font-mono text-2xl font-bold px-5 py-2"
+        className="absolute left-1/2 flex items-center gap-2 rounded-full border font-mono text-lg md:text-2xl font-bold px-4 md:px-5 py-1.5 md:py-2"
         style={{
           top: '50%',
-          transform: 'translate(-50%, -230px)',
+          transform: `translate(-50%, ${L.pillOffset}px)`,
           borderColor: rgbaCss(stageRgb, 0.45),
           backgroundColor: rgbaCss(stageRgb, 0.12),
           color: stageColor,
@@ -881,8 +949,8 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       <motion.div 
         className="relative"
         style={{ 
-          width: 300, 
-          height: 300,
+          width: L.graphic,
+          height: L.graphic,
           transform: `scale(${pulseScale})`,
           transition: 'transform 0.3s ease-out',
         }}
@@ -987,14 +1055,14 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
             of those two is 75% - 11.5px, and it holds at any viewport height
             rather than only the one it was eyeballed on.
           */
-          top: "calc(75% - 12px)",
+          top: L.detailTop,
           transform: "translate(-50%, -50%)",
         }}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={`${stage}-${safeDetailIndex}`}
-            className="font-mono text-[16px] md:text-[20px] tracking-[0.2em] uppercase"
+            className="font-mono text-[10px] md:text-[20px] leading-snug tracking-[0.14em] md:tracking-[0.2em] uppercase"
             style={{ color: stageColorSoft }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1007,17 +1075,17 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       </div>
 
       {/* Stage text - smooth 1s fade transitions */}
-      <AnimatePresence mode="sync">
+      <AnimatePresence mode="wait">
         <motion.div
           key={stage}
-          className="absolute bottom-36 left-0 right-0 px-6 text-center"
+          className="absolute bottom-28 md:bottom-36 left-0 right-0 px-5 md:px-6 text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          exit={{ opacity: 0, transition: { duration: 0.2 } }}
           transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
         >
           <span
-            className="font-mono text-[18px] md:text-[24px] tracking-[0.25em] uppercase"
+            className="font-mono text-[13px] md:text-[24px] leading-snug tracking-[0.16em] md:tracking-[0.25em] uppercase"
             style={{ color: stageColor }}
           >
             {currentConfig.text}
@@ -1026,8 +1094,8 @@ export const AnalysisAnimation = ({ onComplete, onFailed }: AnalysisAnimationPro
       </AnimatePresence>
 
       {/* Progress dots - gentle breathing */}
-      <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
-        <div className="flex gap-3">
+      <div className="absolute bottom-6 md:bottom-12 left-1/2 -translate-x-1/2">
+        <div className="flex gap-2 md:gap-3">
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <motion.div
               key={i}
