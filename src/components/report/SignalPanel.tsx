@@ -45,7 +45,7 @@ export const SignalPanel = ({
         // unchanged so counts and the grade are unaffected.
         const bandWord = bandLabelForSignal(signal.name, band);
         const label = signLabel(signal.name, signal.label);
-        const scale = bandScaleOptions().map((o) => ({
+        const scale = bandScaleOptions(signal.name).map((o) => ({
           ...o,
           label: bandLabelForSignal(signal.name, o.key),
         }));

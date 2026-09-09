@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
 import { BiometricLabGrid } from "./report/BiometricLabGrid";
 import { SubDimensionPanel } from "./report/SubDimensionPanel";
+import { RecommendationsPanel } from "./report/RecommendationsPanel";
 import { SignalPanel } from "./report/SignalPanel";
 import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
@@ -16,6 +17,7 @@ import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { actionLabel, actionOf } from "@/lib/signal-band";
 import { RUNG_RECOMMENDATION, RUNG_SCALE, type HeadlineRung } from "@/lib/result-headline";
+import { bandForSignal, bandLabelForSignal, isFlaggedBand, signLabel } from "@/lib/signal-band";
 import { OptionScale } from "./report/OptionScale";
 import { t } from "@/lib/i18n";
 
@@ -88,6 +90,14 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   const rungPhrase = rung
     ? RUNG_RECOMMENDATION[rung]
     : formatLikelihoodTierForDisplay(likelihoodTier);
+  const actionableSigns = (visualizedResult.signals ?? [])
+    .map((sig) => {
+      const band = bandForSignal(sig.name, sig.level);
+      return { label: signLabel(sig.name, sig.label), band, word: bandLabelForSignal(sig.name, band) };
+    })
+    .filter((s) => isFlaggedBand(s.band))
+    .map((s) => ({ label: s.label, band: s.band as string }));
+
   const rungColor =
     RUNG_SCALE.find((r) => r.key === rung)?.color ??
     getStatusColorFromLikelihoodTier(likelihoodTier, "dark");
@@ -352,6 +362,20 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           }`}>
             {t("basedOnVocalAnalysis", language)}
           </p>
+
+          {/*
+            Offered on the NEEDS OPTIMIZATION rung only. That is the outcome that
+            names something to work on without saying what, so it is the one
+            where a reader is left without a next step.
+          */}
+          {rung === "steady" && (
+            <RecommendationsPanel
+              signs={actionableSigns}
+              assessment={pathway === "SPORTS" ? "athletic" : "wellness"}
+              showContent={showContent}
+              isSeniorMode={isSeniorMode}
+            />
+          )}
         </div>
 
         {/* Voice Signal Panel — the per-sign read from the v2 model */}

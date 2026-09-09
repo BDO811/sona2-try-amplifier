@@ -587,7 +587,7 @@ const DetailedAnalysisView = () => {
                   {biomarker.level && (
                     <div className="mb-3">
                       <OptionScale
-                        options={bandScaleOptions().map((o) => ({
+                        options={bandScaleOptions(biomarker.technicalName).map((o) => ({
                           ...o,
                           label: bandLabelForSignal(biomarker.technicalName, o.key),
                         }))}

@@ -14,6 +14,7 @@ import {
   bandOf,
   bandScaleOptions,
   BAND_DISPLAY_ORDER,
+  bandDisplayOrderFor,
   signLabel,
   bandLabelForSignal,
   bandForSignal,
@@ -168,6 +169,25 @@ describe("the merged display bands", () => {
       "LOW",
       "NORMAL",
     ]);
+    expect(bandScaleOptions("fatigue").map((o) => o.key)[0]).toBe("ELEVATED");
+  });
+
+  it("draws blood pressure the other way, the way a BP chart reads", () => {
+    // Green left, red right — the one row that runs against the page.
+    expect(bandScaleOptions("elevated-blood-pressure").map((o) => o.key)).toEqual([
+      "NORMAL",
+      "LOW",
+      "MODERATE",
+      "ELEVATED",
+    ]);
+    expect(bandDisplayOrderFor("elevated-blood-pressure")).toEqual(BAND_ORDER);
+  });
+
+  it("gives every sign all four bands whichever way it is drawn", () => {
+    for (const name of ["fatigue", "elevated-blood-pressure", "head-impact"]) {
+      const keys = bandScaleOptions(name).map((o) => o.key);
+      expect([...keys].sort(), name).toEqual([...BAND_ORDER].sort());
+    }
   });
 
   it("keeps the severity order ascending, since bandRank compares against it", () => {
