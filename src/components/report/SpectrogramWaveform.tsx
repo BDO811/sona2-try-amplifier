@@ -8,6 +8,16 @@ interface SpectrogramWaveformProps {
   showContent: boolean;
 }
 
+/**
+ * Bar heights as a percentage of the strip, fixed so the waveform behind the
+ * phrase does not reshuffle between renders.
+ */
+const BAR_HEIGHTS = [
+  22, 34, 18, 46, 72, 38, 88, 54, 30, 64, 96, 42, 26, 58, 80, 36, 20, 68, 92, 48,
+  28, 76, 40, 24, 84, 52, 32, 60, 100, 44, 20, 70, 36, 56, 86, 30, 24, 62, 78, 34,
+  18, 50, 74, 28, 40, 66, 22, 90, 46, 26,
+];
+
 export const SpectrogramWaveform = ({ score, displayText, statusColor, showContent }: SpectrogramWaveformProps) => {
   const [scanPosition, setScanPosition] = useState(0);
 
@@ -127,11 +137,34 @@ export const SpectrogramWaveform = ({ score, displayText, statusColor, showConte
         transition={{ duration: 3, repeat: Infinity }}
       />
 
+      {/*
+        Bar waveform behind the phrase, at 30%.
+
+        Heights come from a fixed table rather than Math.random so the shape is
+        the same on every render — a re-render mid-animation would otherwise
+        reshuffle the bars behind the text.
+      */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div
+          className="flex items-center justify-center gap-[2px] md:gap-[3px] h-16 md:h-20 w-[78%]"
+          style={{ opacity: 0.3 }}
+          aria-hidden="true"
+        >
+          {BAR_HEIGHTS.map((h, i) => (
+            <span
+              key={i}
+              className="flex-1 rounded-full"
+              style={{ height: `${h}%`, backgroundColor: statusColor, minWidth: 1 }}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Radial Lens Mask - Critical for readability */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `radial-gradient(ellipse 50% 60% at 50% 50%, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, transparent 70%)`,
+          background: `radial-gradient(ellipse 62% 68% at 50% 50%, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.9) 45%, rgba(0,0,0,0.55) 70%, transparent 100%)`,
         }}
       />
 
@@ -153,8 +186,10 @@ export const SpectrogramWaveform = ({ score, displayText, statusColor, showConte
           
           {/* Score or Text */}
           <motion.span
-            className={`font-extralight tracking-tight font-mono ${
-              displayText ? 'text-3xl md:text-4xl' : 'text-6xl md:text-7xl'
+            className={`font-extralight font-mono ${
+              displayText
+                ? 'text-xl md:text-2xl tracking-normal leading-tight text-center max-w-[15ch] mx-auto'
+                : 'text-6xl md:text-7xl tracking-tight'
             }`}
             style={{ 
               color: statusColor,

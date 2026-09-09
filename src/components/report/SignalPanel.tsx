@@ -1,6 +1,11 @@
 import { motion } from "framer-motion";
 import { SignalSummary } from "@/lib/result-types";
-import { bandForSignal, bandLabelForSignal, bandScaleOptions } from "@/lib/signal-band";
+import {
+  bandForSignal,
+  bandLabelForSignal,
+  bandScaleOptions,
+  signLabel,
+} from "@/lib/signal-band";
 import { OptionScale } from "./OptionScale";
 
 interface SignalPanelProps {
@@ -39,6 +44,7 @@ export const SignalPanel = ({
         // head-impact reads NONE rather than NORMAL; the band itself is
         // unchanged so counts and the grade are unaffected.
         const bandWord = bandLabelForSignal(signal.name, band);
+        const label = signLabel(signal.name, signal.label);
         const scale = bandScaleOptions().map((o) => ({
           ...o,
           label: bandLabelForSignal(signal.name, o.key),
@@ -64,7 +70,7 @@ export const SignalPanel = ({
                       : "text-[10px] font-medium text-white"
                 }`}
               >
-                {signal.label}
+                {label}
               </span>
               {/*
                 The band, plus the raw score. The docs class score as internal,
@@ -89,7 +95,7 @@ export const SignalPanel = ({
             <OptionScale
               options={scale}
               activeKey={band === "INCONCLUSIVE" ? null : band}
-              ariaLabel={`${signal.label}: ${bandWord}`}
+              ariaLabel={`${label}: ${bandWord}`}
             />
           </motion.div>
         );

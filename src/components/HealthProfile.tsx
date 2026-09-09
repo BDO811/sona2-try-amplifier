@@ -15,7 +15,7 @@ import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { actionLabel, actionOf } from "@/lib/signal-band";
-import { RUNG_SCALE } from "@/lib/result-headline";
+import { RUNG_RECOMMENDATION, RUNG_SCALE, type HeadlineRung } from "@/lib/result-headline";
 import { OptionScale } from "./report/OptionScale";
 import { t } from "@/lib/i18n";
 
@@ -67,6 +67,30 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
 
   const classification = visualizedResult.classification;
   const likelihoodTier = visualizedResult.likelihoodTier;
+
+  /*
+    The subject line above the spectrogram and the "Assessment" line below it
+    share one type scale so they bracket the result as a pair. Larger than the
+    9-10px they each used to carry on their own.
+  */
+  const HERO_PAIR_TYPE = isSeniorMode
+    ? "text-xl md:text-2xl font-bold tracking-[0.18em]"
+    : isHighVis
+      ? "text-lg md:text-xl font-semibold tracking-[0.18em]"
+      : "text-base md:text-lg font-semibold tracking-[0.18em]";
+
+  /*
+    Phrase and colour both keyed to the rung, which is what the scale above the
+    spectrogram lights. Reading one from the rung and the other from
+    overall_level is how a STRONG result could sit above "Continue to Monitor".
+  */
+  const rung = visualizedResult.headlineRung as HeadlineRung | undefined;
+  const rungPhrase = rung
+    ? RUNG_RECOMMENDATION[rung]
+    : formatLikelihoodTierForDisplay(likelihoodTier);
+  const rungColor =
+    RUNG_SCALE.find((r) => r.key === rung)?.color ??
+    getStatusColorFromLikelihoodTier(likelihoodTier, "dark");
   const protocolId = getProtocolId(pathway);
   const revealLabMetrics = visualizedResult.labMetrics.slice(0, REVEAL_METRICS_COUNT);
   const revealSignals = visualizedResult.signals ?? [];
@@ -254,33 +278,38 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           </span>
         </motion.div>
 
-        {/* Hero: Raw Signal Spectrogram - displays likelihood tier text */}
+        {/* Hero: subject, assessment scale, and the rung's phrase over the spectrogram */}
         <div className="relative px-4 py-4 md:py-5 border-b border-[#231200]/10">
           {/*
-            Labels the tier word underneath it. Deliberately the same type scale
-            as the classification line below the spectrogram, so the two read as
-            a matched pair bracketing the result rather than as a heading and a
-            caption.
+            The assessment subject, above the scale that grades it.
+
+            This and the "Assessment" line below the spectrogram were swapped:
+            the subject now opens the block and the word "Assessment" closes it,
+            labelling what the reader has just looked at. Both carry the same
+            type scale so they read as a matched pair bracketing the result
+            rather than as a heading and a caption.
           */}
-          <motion.div
-            className="text-center font-mono uppercase tracking-[0.2em] text-[9px] md:text-[10px] mb-2.5"
-            style={{ color: '#4B2700' }}
+          <motion.h2
+            className={`text-center font-mono uppercase ${HERO_PAIR_TYPE}`}
+            style={{
+              color: dataStatusColor,
+              textShadow: `0 0 20px ${dataStatusColor}40`,
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: showContent ? 1 : 0 }}
             transition={{ delay: 1.3, duration: 0.5 }}
           >
-            Assessment
-          </motion.div>
+            {classification}
+          </motion.h2>
 
           {/*
             Every possible outcome across the top, with the one this result
-            landed on lit and the rest at half opacity. The rung comes from the
-            mapper alongside the phrase below, so the lit word and the wording
-            are the same computation and cannot disagree.
+            landed on lit and the rest dimmed. Left to right runs LOW, MEDIUM,
+            STRONG, OPTIMAL, matching the direction of every band scale below.
           */}
           {visualizedResult.headlineRung && (
             <motion.div
-              className="mb-3"
+              className="mb-3 mt-2.5"
               initial={{ opacity: 0 }}
               animate={{ opacity: showContent ? 1 : 0 }}
               transition={{ delay: 1.35, duration: 0.5 }}
@@ -296,37 +325,33 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           )}
 
           <div className="rounded-xl overflow-hidden" style={{ backgroundColor: '#0B0B0A' }}>
+            {/*
+              The phrase and its colour both come from the rung, so they cannot
+              disagree with the lit word on the scale above. Previously the
+              phrase read the API's overall_level while the scale read the rung,
+              two computations describing one result.
+            */}
             <SpectrogramWaveform
-              displayText={formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)}
-              statusColor={getStatusColorFromLikelihoodTier(likelihoodTier, 'dark')}
+              displayText={rungPhrase}
+              statusColor={rungColor}
               showContent={showContent}
             />
           </div>
 
-          {/* Verdict Classification - data-driven color */}
           <motion.div
-            className="text-center mt-2"
+            className={`text-center font-mono uppercase mt-2 ${HERO_PAIR_TYPE}`}
+            style={{ color: '#4B2700' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: showContent ? 1 : 0 }}
             transition={{ delay: 1.4, duration: 0.5 }}
           >
-            <h2 
-              className={`font-mono uppercase tracking-[0.25em] ${
-                isSeniorMode ? 'text-lg md:text-xl font-bold' : isHighVis ? 'text-sm md:text-base font-semibold' : 'text-xs md:text-sm font-medium'
-              }`}
-              style={{ 
-                color: dataStatusColor,
-                textShadow: `0 0 20px ${dataStatusColor}40`,
-              }}
-            >
-              {classification}
-            </h2>
-            <p className={`font-mono uppercase tracking-widest mt-0.5 ${
-              isSeniorMode ? 'text-sm font-medium text-[#2E2E2E]' : isHighVis ? 'text-[10px] font-medium text-[#2E2E2E]' : 'text-[9px] text-[#2E2E2E]'
-            }`}>
-              {t("basedOnVocalAnalysis", language)}
-            </p>
+            Assessment
           </motion.div>
+          <p className={`text-center font-mono uppercase tracking-widest mt-0.5 ${
+            isSeniorMode ? 'text-sm font-medium text-[#2E2E2E]' : isHighVis ? 'text-[10px] font-medium text-[#2E2E2E]' : 'text-[9px] text-[#2E2E2E]'
+          }`}>
+            {t("basedOnVocalAnalysis", language)}
+          </p>
         </div>
 
         {/* Voice Signal Panel — the per-sign read from the v2 model */}

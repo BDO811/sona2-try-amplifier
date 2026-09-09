@@ -147,8 +147,22 @@ const LEVEL_TO_BAND: Record<SignalLevel, DisplayBand> = {
   inconclusive: "INCONCLUSIVE",
 };
 
-/** The four graded bands, in order. */
+/**
+ * The four graded bands in severity order, least to most.
+ *
+ * This is the semantic order: bandRank compares against it, so it must stay
+ * ascending. It is not the order a scale is drawn in — see BAND_DISPLAY_ORDER.
+ */
 export const BAND_ORDER: DisplayBand[] = ["NORMAL", "LOW", "MODERATE", "ELEVATED"];
+
+/**
+ * The order a scale is drawn in, left to right: most severe first, so red sits
+ * on the left and green on the right.
+ *
+ * Derived from BAND_ORDER rather than written out, so the two cannot drift apart
+ * and a band added to the severity order cannot go missing from the scale.
+ */
+export const BAND_DISPLAY_ORDER: DisplayBand[] = [...BAND_ORDER].reverse();
 
 export function bandOf(level: SignalLevel): DisplayBand {
   return LEVEL_TO_BAND[level];
@@ -235,6 +249,26 @@ export function bandForSignal(
  */
 const NONE_INSTEAD_OF_NORMAL = new Set(["head-impact"]);
 
+/**
+ * Display names that replace the API's own label for a sign.
+ *
+ * The API calls this one "Elevated Blood Pressure", which states the finding in
+ * the name itself: the row then reads "Elevated Blood Pressure — NORMAL", which
+ * contradicts itself. The sign is the measure, the band is the reading, so the
+ * name carries the measure only.
+ */
+const SIGN_LABEL_OVERRIDES: Record<string, string> = {
+  "elevated-blood-pressure": "Blood Pressure",
+};
+
+/** What to call a sign on screen. Falls back to the API's label. */
+export function signLabel(
+  name: string | null | undefined,
+  apiLabel: string | null | undefined
+): string {
+  return SIGN_LABEL_OVERRIDES[(name || "").toLowerCase()] || apiLabel || "";
+}
+
 export function bandLabelForSignal(
   name: string | null | undefined,
   band: DisplayBand
@@ -279,7 +313,7 @@ export function bandScaleOptions(): Array<{
   color: string;
   colorLight: string;
 }> {
-  return BAND_ORDER.map((band) => ({
+  return BAND_DISPLAY_ORDER.map((band) => ({
     key: band,
     label: band,
     color: bandColor(band, "dark"),

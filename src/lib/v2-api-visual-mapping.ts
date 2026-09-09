@@ -34,6 +34,7 @@ import {
   bandLabelForSignal,
   flaggingThresholdText,
   isFlaggedBand,
+  signLabel,
   type DisplayBand,
 } from "@/lib/signal-band";
 import {
@@ -385,7 +386,7 @@ export function mapSignalsToBiomarkers(
       : undefined;
 
     return {
-      title: s.label || titleCase(s.name),
+      title: signLabel(s.name, s.label) || titleCase(s.name),
       technicalName: s.name,
       value: String(pct),
       unit: "%",
@@ -491,6 +492,7 @@ export function transformV2ResultToVisualization(
     extendedMetrics: result.extended_metrics || [],
     signals: orderedSignals.map((s) => ({
       name: s.name,
+      // The API's own label. Screens run it through signLabel().
       label: s.label || titleCase(s.name),
       score: s.score,
       level: s.level,
@@ -583,7 +585,7 @@ function buildSubtext(signals: V2Signal[], bands: DisplayBand[]): string {
   // filtering on `flagged` listed seven names under a count of six.
   const flagged = signals
     .filter((_, i) => isFlaggedBand(bands[i]))
-    .map((s) => s.label || titleCase(s.name));
+    .map((s) => signLabel(s.name, s.label) || titleCase(s.name));
 
   if (flagged.length === 0) {
     return `None of the ${signals.length} voice signals measured were flagged.`;

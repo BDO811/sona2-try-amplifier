@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   RUNG_LABEL_VARIANTS,
+  RUNG_RECOMMENDATION,
   RUNG_SCALE,
   STRONG_SIGNAL_SHARE,
   rungFor,
@@ -98,9 +99,9 @@ describe("rungFor", () => {
 });
 
 describe("RUNG_SCALE", () => {
-  const GRADEABLE: HeadlineRung[] = ["clean", "good", "steady", "focus"];
+  const GRADEABLE: HeadlineRung[] = ["focus", "steady", "good", "clean"];
 
-  it("covers every gradeable rung, strongest first", () => {
+  it("covers every gradeable rung, weakest first so green sits on the right", () => {
     expect(RUNG_SCALE.map((r) => r.key)).toEqual(GRADEABLE);
   });
 
@@ -125,8 +126,14 @@ describe("RUNG_SCALE", () => {
     expect(clean.colorLight).toBe(good.colorLight);
   });
 
-  it("labels the four rungs OPTIMAL / STRONG / LOW / EXTREME", () => {
-    expect(RUNG_SCALE.map((r) => r.label)).toEqual(["OPTIMAL", "STRONG", "LOW", "EXTREME"]);
+  it("labels the four rungs LOW / MEDIUM / STRONG / OPTIMAL", () => {
+    expect(RUNG_SCALE.map((r) => r.label)).toEqual(["LOW", "MEDIUM", "STRONG", "OPTIMAL"]);
+  });
+
+  it("runs red on the left to green on the right", () => {
+    const colors = RUNG_SCALE.map((r) => r.colorLight);
+    expect(colors[0]).toBe("#8E1220");
+    expect(colors[colors.length - 1]).toBe("#1E5631");
   });
 
   it("uses no risk or diagnostic wording in any label", () => {
@@ -135,6 +142,33 @@ describe("RUNG_SCALE", () => {
       for (const word of banned) {
         expect(r.label).not.toContain(word);
       }
+    }
+  });
+});
+
+describe("RUNG_RECOMMENDATION", () => {
+  const RUNGS: HeadlineRung[] = ["clean", "good", "steady", "focus", "unreadable"];
+
+  it("gives every rung a phrase", () => {
+    for (const r of RUNGS) expect(RUNG_RECOMMENDATION[r].trim()).not.toBe("");
+  });
+
+  it("carries the wording as specified", () => {
+    expect(RUNG_RECOMMENDATION.clean).toBe("You are at Peak Performance");
+    expect(RUNG_RECOMMENDATION.good).toBe("You are Healthy");
+    expect(RUNG_RECOMMENDATION.steady).toBe("Needs Optimization");
+    expect(RUNG_RECOMMENDATION.focus).toBe("Consider Evaluation");
+  });
+
+  it("says something different on every rung", () => {
+    const all = RUNGS.map((r) => RUNG_RECOMMENDATION[r]);
+    expect(new Set(all).size).toBe(all.length);
+  });
+
+  it("claims peak condition only on the clean rung", () => {
+    for (const r of RUNGS) {
+      if (r === "clean") continue;
+      expect(RUNG_RECOMMENDATION[r].toUpperCase()).not.toContain("PEAK");
     }
   });
 });
