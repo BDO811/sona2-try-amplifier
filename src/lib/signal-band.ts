@@ -156,11 +156,10 @@ const LEVEL_TO_BAND: Record<SignalLevel, DisplayBand> = {
 export const BAND_ORDER: DisplayBand[] = ["NORMAL", "LOW", "MODERATE", "ELEVATED"];
 
 /**
- * The order a scale is drawn in, left to right: most severe first, so red sits
- * on the left and green on the right.
+ * BAND_ORDER reversed, most severe first.
  *
- * Derived from BAND_ORDER rather than written out, so the two cannot drift apart
- * and a band added to the severity order cannot go missing from the scale.
+ * Kept because the assessment rung scale still runs this way. Signal rows do
+ * not — see bandDisplayOrderFor.
  */
 export const BAND_DISPLAY_ORDER: DisplayBand[] = [...BAND_ORDER].reverse();
 
@@ -247,7 +246,7 @@ export function bandForSignal(
  * The band itself stays NORMAL, so the flag count, the grade and the sentence
  * are unaffected. Only the label differs.
  */
-const NONE_INSTEAD_OF_NORMAL = new Set(["head-impact"]);
+const NONE_INSTEAD_OF_NORMAL = new Set(["head-impact", "fatigue"]);
 
 /**
  * Display names that replace the API's own label for a sign.
@@ -262,19 +261,19 @@ const SIGN_LABEL_OVERRIDES: Record<string, string> = {
 };
 
 /**
- * Signs whose scale is drawn normal-first instead of most-severe-first.
+ * The order a signal's scale is drawn in, left to right: normal first, so green
+ * is on the left and red on the right.
  *
- * Every other row runs red to green, left to right. Blood pressure is read the
- * way a blood-pressure chart is read — normal, then upward through the grades —
- * so its row runs the other way, green on the left and red on the right.
+ * This matches BAND_ORDER, the severity order, so a signal row reads the way a
+ * clinical scale reads — normal, then upward through the grades. Blood pressure
+ * briefly had this as a per-sign exception while the rest of the rows ran the
+ * other way; every signal row reads this way now, so the exception is gone.
+ *
+ * Takes the sign name because the override hook is worth keeping: a direction
+ * decision belongs in one place rather than at each call site.
  */
-const NORMAL_FIRST_SCALE = new Set(["elevated-blood-pressure"]);
-
-/** The order to draw a sign's scale in, left to right. */
-export function bandDisplayOrderFor(name: string | null | undefined): DisplayBand[] {
-  return NORMAL_FIRST_SCALE.has((name || "").toLowerCase())
-    ? BAND_ORDER
-    : BAND_DISPLAY_ORDER;
+export function bandDisplayOrderFor(_name?: string | null): DisplayBand[] {
+  return BAND_ORDER;
 }
 
 /** What to call a sign on screen. Falls back to the API's label. */

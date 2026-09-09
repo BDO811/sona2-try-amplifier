@@ -162,25 +162,16 @@ describe("the merged display bands", () => {
     expect(bandScaleOptions().map((o) => o.key)).not.toContain("INCONCLUSIVE");
   });
 
-  it("draws the four graded bands most severe first, so red is on the left", () => {
-    expect(bandScaleOptions().map((o) => o.key)).toEqual([
-      "ELEVATED",
-      "MODERATE",
-      "LOW",
-      "NORMAL",
-    ]);
-    expect(bandScaleOptions("fatigue").map((o) => o.key)[0]).toBe("ELEVATED");
-  });
-
-  it("draws blood pressure the other way, the way a BP chart reads", () => {
-    // Green left, red right — the one row that runs against the page.
-    expect(bandScaleOptions("elevated-blood-pressure").map((o) => o.key)).toEqual([
-      "NORMAL",
-      "LOW",
-      "MODERATE",
-      "ELEVATED",
-    ]);
-    expect(bandDisplayOrderFor("elevated-blood-pressure")).toEqual(BAND_ORDER);
+  it("draws every signal row normal first, so green is on the left", () => {
+    for (const name of [undefined, "fatigue", "elevated-blood-pressure", "head-impact"]) {
+      expect(bandScaleOptions(name).map((o) => o.key), String(name)).toEqual([
+        "NORMAL",
+        "LOW",
+        "MODERATE",
+        "ELEVATED",
+      ]);
+    }
+    expect(bandDisplayOrderFor("fatigue")).toEqual(BAND_ORDER);
   });
 
   it("gives every sign all four bands whichever way it is drawn", () => {
@@ -319,7 +310,7 @@ describe("bandLabelForSignal", () => {
   });
 
   it("leaves every other sign reading NORMAL", () => {
-    for (const name of ["anxiety", "fatigue", "cardiovascular-strain"]) {
+    for (const name of ["anxiety", "stress", "cardiovascular-strain"]) {
       expect(bandLabelForSignal(name, "NORMAL")).toBe("NORMAL");
     }
   });
@@ -376,6 +367,17 @@ describe("flaggingThresholdText", () => {
     // The API sets flagged from `consider` up, and `consider` displays as LOW.
     expect(flaggingThresholdText("fatigue")).toBe("Flags at LOW and above");
     expect(flaggingThresholdText("anxiety")).toBe("Flags at LOW and above");
+  });
+
+  it("reads NONE rather than NORMAL where the measure names a finding", () => {
+    // "A normal amount of head trauma" and "normal fatigue" both invite a
+    // reading nobody intended; NONE is the plain statement.
+    expect(bandLabelForSignal("fatigue", "NORMAL")).toBe("NONE");
+    expect(bandLabelForSignal("head-impact", "NORMAL")).toBe("NONE");
+    expect(bandLabelForSignal("stress", "NORMAL")).toBe("NORMAL");
+    // Only the bottom band is renamed.
+    expect(bandLabelForSignal("fatigue", "LOW")).toBe("LOW");
+    expect(bandLabelForSignal("fatigue", "ELEVATED")).toBe("ELEVATED");
   });
 
   it("names the override band on every sign that is held back", () => {
