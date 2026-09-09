@@ -94,19 +94,39 @@ export function rungFor({ levels }: { levels: string[] }): HeadlineRung {
 export const RUNG_LABEL_VARIANTS: Record<HeadlineRung, string[]> = {
   clean: ["OPTIMAL", "PEAK", "EXEMPLARY", "READY"],
   good: ["STRONG", "SOLID", "FAVORABLE", "RESILIENT", "WELL-REGULATED", "SOUND"],
-  steady: ["LOW", "STEADY", "MEASURED", "HOLDING"],
-  focus: ["EXTREME", "NEEDS IMPROVEMENT", "IN TRANSITION", "UNDER OBSERVATION"],
+  steady: ["MEDIUM", "STEADY", "MEASURED", "HOLDING"],
+  focus: ["LOW", "EXTREME", "NEEDS IMPROVEMENT", "IN TRANSITION", "UNDER OBSERVATION"],
   unreadable: ["INCONCLUSIVE", "UNREADABLE", "INCOMPLETE"],
 };
 
 /**
- * The four gradeable rungs as a scale, strongest first, for OptionScale.
+ * The phrase shown over the spectrogram, one per rung.
+ *
+ * This used to be formatLikelihoodTierForDisplay(likelihoodTier), which read
+ * the API's overall_level while the scale directly above it read the rung. Two
+ * different computations describing one result could disagree — a result graded
+ * STRONG on the scale could carry "Continue to Monitor" underneath it. Keyed to
+ * the rung, the lit word and the phrase are the same computation.
+ */
+export const RUNG_RECOMMENDATION: Record<HeadlineRung, string> = {
+  clean: "You are at Peak Performance",
+  good: "You are Healthy",
+  steady: "Needs Optimization",
+  focus: "Consider Evaluation",
+  unreadable: "Inconclusive",
+};
+
+/**
+ * The four gradeable rungs as a scale, weakest first, for OptionScale.
+ *
+ * Left to right runs LOW, MEDIUM, STRONG, OPTIMAL, so red sits on the left and
+ * green on the right — the same direction as every band scale on the page.
+ *
  * "unreadable" is not on the scale for the same reason INCONCLUSIVE is not a
  * band: it describes the recording, not the result.
  *
- * Colour carries good versus caution, not ordinality — left to right already
- * does that. Clean and good share a green because both are good outcomes, and
- * inventing a gradient between them would imply a gap the grading never makes.
+ * Clean and good share a green because both are good outcomes, and inventing a
+ * gradient between them would imply a gap the grading never makes.
  */
 export const RUNG_SCALE: Array<{
   key: HeadlineRung;
@@ -114,8 +134,8 @@ export const RUNG_SCALE: Array<{
   color: string;
   colorLight: string;
 }> = [
-  { key: "clean", label: "OPTIMAL", color: "#4CAF6E", colorLight: "#1E5631" },
+  { key: "focus", label: "LOW", color: "#FF6173", colorLight: "#8E1220" },
+  { key: "steady", label: "MEDIUM", color: "#F5EF79", colorLight: "#6D5200" },
   { key: "good", label: "STRONG", color: "#4CAF6E", colorLight: "#1E5631" },
-  { key: "steady", label: "LOW", color: "#F5EF79", colorLight: "#6D5200" },
-  { key: "focus", label: "EXTREME", color: "#FF6173", colorLight: "#8E1220" },
+  { key: "clean", label: "OPTIMAL", color: "#4CAF6E", colorLight: "#1E5631" },
 ];

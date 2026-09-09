@@ -21,20 +21,33 @@ interface SubDimensionPanelProps {
  * all decided in lib/sub-dimensions.ts, not here.
  */
 
-/** Green at the favourable anchor, orange through the middle, red at the far end. */
+/**
+ * Colour by band index: green at the favourable anchor, orange in the middle,
+ * red at the unfavourable one. Indexed by the row's own band, not by screen
+ * position, so it stays correct however the scale is ordered.
+ */
 const DIRECTION_COLORS: Array<{ dark: string; light: string }> = [
   { dark: "#4CAF6E", light: "#1E5631" },
   { dark: "#FFC163", light: "#8A3B08" },
   { dark: "#FF6173", light: "#8E1220" },
 ];
 
+/**
+ * The three cells left to right: unfavourable, middle, favourable.
+ *
+ * Reversed from the config order, which runs low score to high score to line up
+ * with the API's anchors. Drawing it that way put green on the left, and every
+ * other scale on the page now runs red left to green right.
+ */
 function scaleFor(row: ReadableSubDimension): ScaleOption[] {
-  return row.levels.map((label, i) => ({
-    key: String(i),
-    label,
-    color: DIRECTION_COLORS[i].dark,
-    colorLight: DIRECTION_COLORS[i].light,
-  }));
+  return row.levels
+    .map((label, i) => ({
+      key: String(i),
+      label,
+      color: DIRECTION_COLORS[i].dark,
+      colorLight: DIRECTION_COLORS[i].light,
+    }))
+    .reverse();
 }
 
 export const SubDimensionPanel = ({

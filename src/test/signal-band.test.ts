@@ -13,6 +13,8 @@ import {
   bandColor,
   bandOf,
   bandScaleOptions,
+  BAND_DISPLAY_ORDER,
+  signLabel,
   bandLabelForSignal,
   bandForSignal,
   bandRank,
@@ -159,13 +161,21 @@ describe("the merged display bands", () => {
     expect(bandScaleOptions().map((o) => o.key)).not.toContain("INCONCLUSIVE");
   });
 
-  it("offers the four graded bands in order", () => {
+  it("draws the four graded bands most severe first, so red is on the left", () => {
     expect(bandScaleOptions().map((o) => o.key)).toEqual([
-      "NORMAL",
-      "LOW",
-      "MODERATE",
       "ELEVATED",
+      "MODERATE",
+      "LOW",
+      "NORMAL",
     ]);
+  });
+
+  it("keeps the severity order ascending, since bandRank compares against it", () => {
+    // Drawing order and severity order are separate. Reversing BAND_ORDER
+    // itself would silently invert every rank comparison.
+    expect(BAND_ORDER).toEqual(["NORMAL", "LOW", "MODERATE", "ELEVATED"]);
+    expect(bandRank("NORMAL")).toBeLessThan(bandRank("ELEVATED"));
+    expect(BAND_DISPLAY_ORDER).toEqual([...BAND_ORDER].reverse());
   });
 
   it("gives LOW and MODERATE different colours despite one shared treatment", () => {
@@ -322,6 +332,24 @@ const PULSE_SIGNS = [
   "anxiety",
   "elevated-blood-pressure",
 ];
+
+describe("signLabel", () => {
+  it("drops the finding out of the blood-pressure name", () => {
+    // "Elevated Blood Pressure — NORMAL" contradicted itself: the sign is the
+    // measure, the band is the reading.
+    expect(signLabel("elevated-blood-pressure", "Elevated Blood Pressure")).toBe("Blood Pressure");
+  });
+
+  it("passes every other sign through untouched", () => {
+    expect(signLabel("fatigue", "Fatigue")).toBe("Fatigue");
+    expect(signLabel("head-impact", "Head Impact")).toBe("Head Impact");
+  });
+
+  it("falls back to the API label when there is no override", () => {
+    expect(signLabel("brand-new-sign", "Brand New Sign")).toBe("Brand New Sign");
+    expect(signLabel(null, null)).toBe("");
+  });
+});
 
 describe("flaggingThresholdText", () => {
   it("reads LOW and above for a sign with no override", () => {

@@ -1,4 +1,9 @@
 import { SubDimensionPanel } from "@/components/report/SubDimensionPanel";
+import { SignalPanel } from "@/components/report/SignalPanel";
+import { SpectrogramWaveform } from "@/components/report/SpectrogramWaveform";
+import { OptionScale } from "@/components/report/OptionScale";
+import { RUNG_RECOMMENDATION, RUNG_SCALE, type HeadlineRung } from "@/lib/result-headline";
+import type { SignalSummary } from "@/lib/result-types";
 import type { ExtendedMetric } from "@/lib/result-types";
 
 /**
@@ -30,6 +35,53 @@ const AT_THE_EDGES: ExtendedMetric[] = APEX_RUN.map((m, i) => ({
   score_mean: i % 2 === 0 ? 0.12 : 0.88,
 }));
 
+/** The pulse signal set from a live run, including the renamed sign. */
+const LIVE_SIGNALS: SignalSummary[] = [
+  { name: "fatigue", label: "Fatigue", score: 0.318, level: "consider", flagged: true },
+  { name: "stress", label: "Stress", score: 0.284, level: "consider", flagged: true },
+  { name: "anxiety", label: "Anxiety", score: 0.512, level: "moderate", flagged: true },
+  { name: "head-impact", label: "Head Impact", score: 0.14, level: "low", flagged: false },
+  {
+    name: "elevated-blood-pressure",
+    label: "Elevated Blood Pressure",
+    score: 0.308,
+    level: "low",
+    flagged: false,
+  },
+];
+
+const HERO_TYPE = "text-base md:text-lg font-semibold tracking-[0.18em]";
+
+const Hero = ({ rung }: { rung: HeadlineRung }) => (
+  <div className="relative px-4 py-4">
+    <h2
+      className={`text-center font-mono uppercase ${HERO_TYPE}`}
+      style={{ color: "#8A3B08" }}
+    >
+      Athletic Profile
+    </h2>
+    <div className="mb-3 mt-2.5">
+      <OptionScale
+        options={RUNG_SCALE}
+        activeKey={rung}
+        size="lg"
+        surface="light"
+        ariaLabel="Assessment outcome"
+      />
+    </div>
+    <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "#0B0B0A" }}>
+      <SpectrogramWaveform
+        displayText={RUNG_RECOMMENDATION[rung]}
+        statusColor={RUNG_SCALE.find((r) => r.key === rung)!.color}
+        showContent
+      />
+    </div>
+    <div className={`text-center font-mono uppercase mt-2 ${HERO_TYPE}`} style={{ color: "#4B2700" }}>
+      Assessment
+    </div>
+  </div>
+);
+
 const PanelPreview = () => {
   const isDevMode = new URLSearchParams(window.location.search).get("dev") === "true";
 
@@ -59,6 +111,20 @@ const PanelPreview = () => {
       {/* 420px is the report's own content width. */}
       <div className="mx-auto" data-panel-preview style={{ maxWidth: 420 }}>
         <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 px-4">
+          Hero · every rung
+        </h1>
+        {(["clean", "good", "steady", "focus"] as HeadlineRung[]).map((r) => (
+          <Hero key={r} rung={r} />
+        ))}
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Signal rows · live pulse set
+        </h1>
+        <div className="px-4 py-3">
+          <SignalPanel signals={LIVE_SIGNALS} showContent />
+        </div>
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
           Sub-Dimensions · real apex run
         </h1>
         <div className="px-4 py-3">

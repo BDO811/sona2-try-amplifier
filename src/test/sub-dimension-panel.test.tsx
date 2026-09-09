@@ -66,12 +66,22 @@ describe("SubDimensionPanel", () => {
     expect(screen.getByText("±0.07")).toBeInTheDocument();
   });
 
-  it("runs green to orange to red across the three cells", () => {
+  it("keeps each word's colour tied to its meaning, not its position", () => {
     panel([APEX_RUN[1]]);
     const rgb = (el: HTMLElement) => getComputedStyle(el).color;
     expect(rgb(screen.getByText("ENERGETIC"))).toBe("rgb(76, 175, 110)");
     expect(rgb(screen.getByText("NORMAL"))).toBe("rgb(255, 193, 99)");
     expect(rgb(screen.getByText("TIRED"))).toBe("rgb(255, 97, 115)");
+  });
+
+  it("draws the unfavourable word first, so red is left and green is right", () => {
+    // Config order runs low score to high score to match the API's anchors.
+    // Drawing follows every other scale on the page instead.
+    const { container } = panel([APEX_RUN[1]]);
+    const cells = [...container.querySelectorAll('[role="group"] > span')].map(
+      (c) => c.textContent
+    );
+    expect(cells).toEqual(["TIRED", "NORMAL", "ENERGETIC"]);
   });
 
   it("holds the unlit cells at 80% rather than the half-opacity default", () => {
