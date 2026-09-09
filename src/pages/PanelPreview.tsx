@@ -1,4 +1,5 @@
 import { SubDimensionPanel } from "@/components/report/SubDimensionPanel";
+import { AnalysisAnimation } from "@/components/AnalysisAnimation";
 import { SignalPanel } from "@/components/report/SignalPanel";
 import { SpectrogramWaveform } from "@/components/report/SpectrogramWaveform";
 import { OptionScale } from "@/components/report/OptionScale";
@@ -89,6 +90,16 @@ const PanelPreview = () => {
     return (
       <div className="min-h-screen bg-[#F0EAE0] p-8">
         <p className="font-mono text-xs text-[#2E2E2E]">Add ?dev=true to enable.</p>
+      </div>
+    );
+  }
+
+  // ?screen=analysis renders the analysis screen full-bleed, which is the only
+  // way to inspect its layout without recording audio.
+  if (new URLSearchParams(window.location.search).get("screen") === "analysis") {
+    return (
+      <div className="fixed inset-0">
+        <AnalysisAnimation onComplete={() => {}} onFailed={() => {}} />
       </div>
     );
   }
