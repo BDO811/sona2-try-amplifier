@@ -11,6 +11,20 @@ interface RecommendationsPanelProps {
   isSeniorMode?: boolean;
 }
 
+/*
+  Off in production.
+
+  The button is live code and the endpoint is deployed, but the model behind it
+  returns 429 "prepayment credits are depleted" on every call, so tapping it can
+  only ever produce an error. A control that cannot succeed is worse than no
+  control, so it does not render until the backend can answer.
+
+  Flip this to true to bring it back. Nothing else needs to change: the client,
+  the Cloud Function and the CORS allowlist are all in place and were verified
+  end to end on 2026-09-09, up to the point where Gemini refused on billing.
+*/
+export const RECOMMENDATIONS_ENABLED = false;
+
 /**
  * The recommendations button and the text it fetches.
  *
@@ -28,6 +42,7 @@ export const RecommendationsPanel = ({
   const [text, setText] = useState<string | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
 
+  if (!RECOMMENDATIONS_ENABLED) return null;
   if (signs.length === 0) return null;
 
   const load = async () => {
