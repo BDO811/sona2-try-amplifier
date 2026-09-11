@@ -27,6 +27,9 @@ interface SignalPanelProps {
  * probability, not a common one, so comparing it across rows invited a false
  * reading. See lib/signal-band.ts.
  */
+/** Breath #99E4FF, the brand palette's blue. Dark rows only, which is all of these. */
+const READOUT_BLUE = "#99E4FF";
+
 export const SignalPanel = ({
   signals,
   showContent,
@@ -74,18 +77,25 @@ export const SignalPanel = ({
               </span>
               {/*
                 The band, plus the raw score. The docs class score as internal,
-                so it is deliberately the smaller of the two and labelled.
+                so it is deliberately the smaller of the two.
+
+                Both are Breath blue rather than white. It separates the readout
+                from the sign name on the left, which is also white, and keeps
+                the readout from competing with the lit cell below, which
+                already carries the band's own colour.
               */}
               <span className="flex items-baseline gap-2 flex-shrink-0">
                 <span
-                  className={`font-mono tabular-nums text-white/70 ${
+                  className={`font-mono tabular-nums ${
                     isSeniorMode ? "text-[11px]" : "text-[9px]"
                   }`}
+                  style={{ color: READOUT_BLUE, opacity: 0.75 }}
                 >
                   {Number.isFinite(signal.score) ? signal.score.toFixed(3) : "—"}
                 </span>
                 <span
-                  className={`font-mono text-white ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
+                  className={`font-mono ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
+                  style={{ color: READOUT_BLUE }}
                 >
                   {bandWord}
                 </span>
