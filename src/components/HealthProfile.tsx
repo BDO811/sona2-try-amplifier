@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArchetypeData } from "./AnalysisAnimation";
 import { useAssessment, AssessmentPathway, BRAND_COLOR, getIsHighVis, getIsSeniorMode } from "@/context/AssessmentContext";
-import { Bell, Calendar, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
 import { BiometricLabGrid } from "./report/BiometricLabGrid";
@@ -15,7 +15,6 @@ import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
 import { formatLikelihoodTierForDisplay } from "@/lib/result-types";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
-import { actionLabel, actionOf } from "@/lib/signal-band";
 import { RUNG_RECOMMENDATION, RUNG_SCALE, type HeadlineRung } from "@/lib/result-headline";
 import { bandForSignal, bandLabelForSignal, isFlaggedBand, signLabel } from "@/lib/signal-band";
 import { OptionScale } from "./report/OptionScale";
@@ -130,17 +129,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
   */
   const flaggedCount = visualizedResult.flaggedCount ?? 0;
   const totalSignals = visualizedResult.totalSignals ?? flaggedCount;
-  const resultAction = actionOf(visualizedResult.recommendedAction);
-  const monitoringCard = {
-    headline: actionLabel(resultAction),
-    body:
-      resultAction === "inconclusive"
-        ? "This recording could not be read reliably. Record again to get a result."
-        : flaggedCount > 0
-          ? `${flaggedCount} of ${totalSignals} voice signals were flagged. Record again to see whether the pattern holds.`
-          : `None of the ${totalSignals} voice signals measured were flagged. Record again anytime to track changes.`,
-  };
-
   // Initialize date from visualized result or current date
   useEffect(() => {
     if (visualizedResult?.createdAt) {
@@ -182,13 +170,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
 
   const handleViewHistory = () => {
     navigate('/history');
-  };
-
-  const handleSetReminder = () => {
-    toast.success("Reminder Set", {
-      description: "You'll be notified in 30 days for your next assessment",
-      duration: 3000,
-    });
   };
 
   return (
@@ -490,6 +471,16 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 10 }}
             transition={{ duration: 0.5, delay: 1.6 }}
           >
+            {/*
+              Only the inconclusive recapture card renders here now.
+
+              The monitoring card that sat on the other branch, headed by
+              recommended_action ("Clinical follow-up recommended") with a Set
+              Reminder button, is out of production: the reminder went nowhere,
+              and the headline reads as clinical direction the voice model is not
+              in a position to give. Its copy still exists in i18n and
+              signal-band, so nothing had to be deleted to take it off screen.
+            */}
             {isInconclusiveState ? (
               // Inconclusive State: Recapture Card
               <div 
@@ -529,50 +520,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
                   </div>
                 </div>
               </div>
-            ) : (
-              // Healthy State: Monitoring Card - uses BRAND color for UI elements
-              <div 
-                className="rounded-lg p-5"
-                style={{
-                  background: 'rgba(11, 11, 10, 0.9)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div 
-                    className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{
-                      background: `${BRAND_COLOR}15`,
-                      border: `1px solid ${BRAND_COLOR}30`,
-                    }}
-                  >
-                    <Calendar className="w-5 h-5" style={{ color: BRAND_COLOR }} />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <h3 className="font-mono text-xs uppercase tracking-widest font-semibold text-white mb-1">
-                      {monitoringCard.headline}
-                    </h3>
-                    <p className="font-mono text-[10px] text-white">
-                      {monitoringCard.body}
-                    </p>
-                  </div>
-                  
-                  <button
-                    onClick={handleSetReminder}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-all duration-300 hover:scale-[1.02]"
-                    style={{
-                      background: `${BRAND_COLOR}10`,
-                      border: `1px solid ${BRAND_COLOR}30`,
-                      color: BRAND_COLOR,
-                    }}
-                  >
-                    <Bell className="w-3 h-3" />
-                    Set Reminder
-                  </button>
-                </div>
-              </div>
-            )}
+            ) : null}
           </motion.div>
 
           {/* Secondary Actions */}
