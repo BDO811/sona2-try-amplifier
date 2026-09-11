@@ -14,21 +14,25 @@ interface SubDimensionPanelProps {
  * `result.extended_metrics`, one row per sub-dimension.
  *
  * A sub-dimension has no flag and no threshold, only a position between two
- * named anchors, so the three cells are coloured by direction: green at the
- * favourable anchor, orange in the middle, red at the far end.
+ * named anchors, so the three cells are coloured by direction: blue at the
+ * favourable anchor, green in the middle, red at the far end.
  *
  * Which rows appear, what they are called, and the three words each one uses are
  * all decided in lib/sub-dimensions.ts, not here.
  */
 
 /**
- * Colour by band index: green at the favourable anchor, orange in the middle,
- * red at the unfavourable one. Indexed by the row's own band, not by screen
+ * Colour by band index: blue at the favourable anchor, green in the middle, red
+ * at the unfavourable one. Indexed by the row's own band, not by screen
  * position, so it stays correct however the scale is ordered.
+ *
+ * Blue is Breath #99E4FF from the brand palette. It marks the favourable end as
+ * better than ordinary rather than merely safe, which green alone could not do
+ * once green moved to the middle.
  */
 const DIRECTION_COLORS: Array<{ dark: string; light: string }> = [
+  { dark: "#99E4FF", light: "#12657F" },
   { dark: "#4CAF6E", light: "#1E5631" },
-  { dark: "#FFC163", light: "#8A3B08" },
   { dark: "#FF6173", light: "#8E1220" },
 ];
 
@@ -36,8 +40,8 @@ const DIRECTION_COLORS: Array<{ dark: string; light: string }> = [
  * The three cells left to right: unfavourable, middle, favourable.
  *
  * Reversed from the config order, which runs low score to high score to line up
- * with the API's anchors. Drawing it that way put green on the left, and every
- * other scale on the page now runs red left to green right.
+ * with the API's anchors. Drawing it that way put the favourable end on the
+ * left, and every scale on the page runs unfavourable-left.
  */
 function scaleFor(row: ReadableSubDimension): ScaleOption[] {
   return row.levels

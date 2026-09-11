@@ -69,8 +69,9 @@ describe("SubDimensionPanel", () => {
   it("keeps each word's colour tied to its meaning, not its position", () => {
     panel([APEX_RUN[1]]);
     const rgb = (el: HTMLElement) => getComputedStyle(el).color;
-    expect(rgb(screen.getByText("ENERGETIC"))).toBe("rgb(76, 175, 110)");
-    expect(rgb(screen.getByText("NORMAL"))).toBe("rgb(255, 193, 99)");
+    // Blue at the favourable anchor, green in the middle, red at the far end.
+    expect(rgb(screen.getByText("ENERGETIC"))).toBe("rgb(153, 228, 255)");
+    expect(rgb(screen.getByText("NORMAL"))).toBe("rgb(76, 175, 110)");
     expect(rgb(screen.getByText("TIRED"))).toBe("rgb(255, 97, 115)");
   });
 
