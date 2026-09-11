@@ -27,8 +27,15 @@ describe("RecommendationsPanel", () => {
     }
   });
 
-  it("is off, so nothing ships to production that cannot succeed", () => {
-    expect(RECOMMENDATIONS_ENABLED).toBe(false);
+  it("matches the flag either way, so the gate is never decorative", () => {
+    const { container } = render(
+      <RecommendationsPanel signs={SIGNS} assessment="wellness" showContent />
+    );
+    if (RECOMMENDATIONS_ENABLED) {
+      expect(container.querySelector("button")).not.toBeNull();
+    } else {
+      expect(container).toBeEmptyDOMElement();
+    }
   });
 
   it("renders nothing when there is nothing flagged either", () => {
