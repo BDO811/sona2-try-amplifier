@@ -17,6 +17,8 @@ import {
   bandDisplayOrderFor,
   signLabel,
   bandLabelForSignal,
+  bandColor,
+  bandColorForSignal,
   bandForSignal,
   bandRank,
   flaggingThresholdBand,
@@ -359,6 +361,46 @@ describe("signLabel", () => {
   it("falls back to the API label when there is no override", () => {
     expect(signLabel("brand-new-sign", "Brand New Sign")).toBe("Brand New Sign");
     expect(signLabel(null, null)).toBe("");
+  });
+});
+
+describe("bandColorForSignal", () => {
+  const GREENED = ["fatigue", "stress", "anxiety"];
+
+  it("draws LOW in the NORMAL green on the signs where LOW is not a concern", () => {
+    for (const sign of GREENED) {
+      expect(bandColorForSignal(sign, "LOW", "dark"), sign).toBe(bandColor("NORMAL", "dark"));
+      expect(bandColorForSignal(sign, "LOW", "light"), sign).toBe(bandColor("NORMAL", "light"));
+    }
+  });
+
+  it("leaves LOW in its own colour everywhere else", () => {
+    for (const sign of ["head-impact", "dehydration", "cognitive-load"]) {
+      expect(bandColorForSignal(sign, "LOW", "dark"), sign).toBe(bandColor("LOW", "dark"));
+    }
+  });
+
+  it("changes nothing above LOW, so a real flag keeps its colour", () => {
+    for (const sign of GREENED) {
+      for (const band of ["NORMAL", "MODERATE", "ELEVATED", "INCONCLUSIVE"] as const) {
+        expect(bandColorForSignal(sign, band, "dark"), `${sign} ${band}`).toBe(
+          bandColor(band, "dark")
+        );
+      }
+    }
+  });
+
+  it("recolours only, leaving the band and its flag status untouched", () => {
+    /*
+      The colour override must not leak into severity. If it did, a LOW reading
+      on one of these signs would stop counting toward the flag total and the
+      header would disagree with the rows, which is the defect this codebase has
+      already hit twice.
+    */
+    for (const sign of GREENED) {
+      expect(bandForSignal(sign, "consider"), sign).toBe("LOW");
+      expect(isFlaggedBand(bandForSignal(sign, "consider")), sign).toBe(true);
+    }
   });
 });
 
