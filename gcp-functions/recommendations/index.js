@@ -69,6 +69,23 @@ const ALLOWED_ORIGINS = [
   "http://localhost:5173",
 ];
 
+/*
+  Private-network origins, so the local sandbox can be opened on a phone.
+
+  Vite binds every interface, so testing on a handset means loading
+  http://192.168.x.x:8080 and the browser sends that as the Origin. Without this
+  the call fails CORS on exactly the device the mobile layout needs testing on.
+
+  Restricted to RFC1918 and loopback ranges. This widens nothing that matters:
+  the endpoint is already unauthenticated, so CORS was never the security
+  boundary here, and a public origin still gets no header.
+*/
+const PRIVATE_ORIGIN = /^http:\/\/(localhost|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/;
+
+function originAllowed(origin) {
+  return ALLOWED_ORIGINS.includes(origin) || PRIVATE_ORIGIN.test(origin || "");
+}
+
 /** Bands worth writing about. NORMAL and INCONCLUSIVE are not actionable. */
 const ACTIONABLE_BANDS = new Set(["LOW", "MODERATE", "ELEVATED"]);
 
@@ -148,7 +165,7 @@ function buildPrompt(signs, assessment) {
 
 exports.recommendations = async (req, res) => {
   const origin = req.headers.origin;
-  if (ALLOWED_ORIGINS.includes(origin)) {
+  if (originAllowed(origin)) {
     res.set("Access-Control-Allow-Origin", origin);
   }
   res.set("Vary", "Origin");

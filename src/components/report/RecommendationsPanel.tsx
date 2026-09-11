@@ -12,24 +12,21 @@ interface RecommendationsPanelProps {
 }
 
 /*
-  Still off, but for a different reason than before.
+  On locally, off in production.
 
-  The backend now works: the free-tier key authenticates and the endpoint
-  returned real, well-formed suggestions repeatedly on 2026-09-11. What is not
-  settled is latency. Through the function a call took 40 to 48 seconds while
-  the identical request took 7 to 9 from a laptop, and one call exceeded the
-  request timeout and returned 504. A button that takes three quarters of a
-  minute, and sometimes fails outright, is not worth shipping.
+  import.meta.env.DEV is true under `npm run dev` and under vitest, and false in
+  any `vite build` output, so the local sandbox gets the feature and the
+  deployed site does not. That is the point of the split: the backend works but
+  its latency is not settled, so it is worth using and not worth shipping.
 
-  The cause looks like a stalled IPv6 connect on Cloud Run, and the function now
-  pins IPv4 with a keep-alive agent to avoid it. That fix is deployed but
-  unverified: measuring it exhausted the free tier's 20 requests per minute, so
-  the confirming run has to wait for the quota window.
-
-  Flip to true once a spaced set of calls comes back consistently in single
-  digit seconds.
+  VITE_RECOMMENDATIONS overrides in either direction. Set it to "0" to silence
+  the panel while working on something else, or to "1" in a build to ship it
+  once the latency question is closed.
 */
-export const RECOMMENDATIONS_ENABLED = false;
+const OVERRIDE = import.meta.env.VITE_RECOMMENDATIONS as string | undefined;
+
+export const RECOMMENDATIONS_ENABLED =
+  OVERRIDE === "1" ? true : OVERRIDE === "0" ? false : import.meta.env.DEV === true;
 
 /**
  * The recommendations button and the text it fetches.
