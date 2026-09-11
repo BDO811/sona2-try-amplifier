@@ -76,29 +76,21 @@ export const SignalPanel = ({
                 {label}
               </span>
               {/*
-                The band, plus the raw score. The docs class score as internal,
-                so it is deliberately the smaller of the two.
+                The band word only. The raw score used to sit beside it, and the
+                docs class score as internal use with `level` as the display
+                field, so printing three decimals invited a reader to compare
+                numbers that are calibrated per sign and not comparable across
+                rows.
 
-                Both are Breath blue rather than white. It separates the readout
-                from the sign name on the left, which is also white, and keeps
-                the readout from competing with the lit cell below, which
-                already carries the band's own colour.
+                Blue rather than white, so the readout separates from the sign
+                name on the left and does not compete with the lit cell below,
+                which already carries the band's own colour.
               */}
-              <span className="flex items-baseline gap-2 flex-shrink-0">
-                <span
-                  className={`font-mono tabular-nums ${
-                    isSeniorMode ? "text-[11px]" : "text-[9px]"
-                  }`}
-                  style={{ color: READOUT_BLUE, opacity: 0.75 }}
-                >
-                  {Number.isFinite(signal.score) ? signal.score.toFixed(3) : "—"}
-                </span>
-                <span
-                  className={`font-mono ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
-                  style={{ color: READOUT_BLUE }}
-                >
-                  {bandWord}
-                </span>
+              <span
+                className={`font-mono flex-shrink-0 ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
+                style={{ color: READOUT_BLUE }}
+              >
+                {bandWord}
               </span>
             </div>
 

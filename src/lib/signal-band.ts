@@ -322,6 +322,28 @@ export function bandColor(band: DisplayBand, surface: Surface = "dark"): string 
 }
 
 /** The four graded bands as a scale, for OptionScale. */
+/**
+ * Signs where LOW is still a good reading and is coloured like the band below it.
+ *
+ * On these three, a faint indicator is not something to act on, so LOW carries
+ * the same green as the bottom band rather than the caution yellow. The band
+ * itself is unchanged, so the flag count, the grade and the flagged-signal
+ * sentence all read LOW exactly as they did. Only the colour differs.
+ */
+const GREEN_THROUGH_LOW = new Set(["fatigue", "stress", "anxiety"]);
+
+/** The colour a band is drawn in for a given sign, applying any override. */
+export function bandColorForSignal(
+  name: string | null | undefined,
+  band: DisplayBand,
+  surface: Surface = "dark"
+): string {
+  if (band === "LOW" && GREEN_THROUGH_LOW.has((name || "").toLowerCase())) {
+    return bandColor("NORMAL", surface);
+  }
+  return bandColor(band, surface);
+}
+
 export function bandScaleOptions(name?: string | null): Array<{
   key: DisplayBand;
   label: string;
@@ -331,8 +353,8 @@ export function bandScaleOptions(name?: string | null): Array<{
   return bandDisplayOrderFor(name).map((band) => ({
     key: band,
     label: band,
-    color: bandColor(band, "dark"),
-    colorLight: bandColor(band, "light"),
+    color: bandColorForSignal(name, band, "dark"),
+    colorLight: bandColorForSignal(name, band, "light"),
   }));
 }
 
