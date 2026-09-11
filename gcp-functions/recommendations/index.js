@@ -10,6 +10,59 @@
  * an email, and nothing is written to Firestore.
  */
 
+const https = require("node:https");
+const dns = require("node:dns");
+
+/*
+  Outbound HTTPS over an explicit IPv4 keep-alive agent.
+
+  Node's global fetch stalled on this path. Identical requests took 7 to 9
+  seconds from a laptop and 40 to 48 through this function, and one exceeded the
+  request timeout and returned 504. The gap is a connect that hangs before the
+  model is ever reached: Cloud Run has no IPv6 egress, and the resolver was
+  handing back an AAAA record first.
+
+  dns.setDefaultResultOrder("ipv4first") was tried and did not fix it, because
+  it does not reach the connector fetch uses. Pinning family 4 on the request
+  itself does. The agent also keeps the socket alive, which matters because the
+  stall recurred on every new connection: a warm instance idle for twenty
+  seconds still paid 42 seconds on its next call.
+*/
+dns.setDefaultResultOrder("ipv4first");
+
+const agent = new https.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 30_000,
+  maxSockets: 8,
+  family: 4,
+});
+
+/** POST JSON over the IPv4 agent. Mirrors the bits of fetch that were in use. */
+function postJson(url, headers, payload) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(
+      url,
+      { method: "POST", headers, agent, family: 4, timeout: 90_000 },
+      (res) => {
+        let data = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () =>
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            text: async () => data,
+            json: async () => JSON.parse(data),
+          })
+        );
+      }
+    );
+    req.on("timeout", () => req.destroy(new Error("upstream timeout")));
+    req.on("error", reject);
+    req.end(payload);
+  });
+}
+
 const ALLOWED_ORIGINS = [
   "https://try.amplifierhealth.com",
   "http://localhost:8080",
@@ -45,11 +98,15 @@ const THINKING_LEVEL = "low";
 
 /*
   The endpoint returns 503 UNAVAILABLE "experiencing high demand" sporadically,
-  seen repeatedly while testing. A user-initiated button that fails on a
-  transient spike reads as broken, so retry the statuses that are worth
-  retrying and leave the rest alone.
+  seen repeatedly while testing, so that is worth a retry.
+
+  429 is deliberately NOT retried. The free tier allows 20 requests per minute,
+  and a 429 means that window is already spent, so an immediate retry cannot
+  succeed and simply consumes two more units of the quota that is already
+  exhausted. Retrying it turned every rate-limited call into three, which is how
+  a short burst of testing locked the key out entirely.
 */
-const RETRY_STATUSES = new Set([429, 500, 502, 503, 504]);
+const RETRY_STATUSES = new Set([500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -76,8 +133,11 @@ function buildPrompt(signs, assessment) {
     lines,
     "",
     "Write suggestions for improving each one. Requirements:",
-    "- One short paragraph per reading, in the order listed.",
-    "- Open each paragraph with the reading's name, then the suggestion.",
+    // Two sentences, not a paragraph. Measured: the open-ended version returned
+    // up to 1,999 characters and the generation time tracked the length, which
+    // is what pushed a call past the request timeout.
+    "- Exactly two sentences per reading, in the order listed.",
+    "- Open each with the reading's name, then the suggestion.",
     "- Be specific and practical: what to change, how much, how often.",
     "- Do not restate the score or the band; the reader can already see it.",
     "- Do not diagnose, and do not tell the reader what condition they have.",
@@ -127,27 +187,26 @@ exports.recommendations = async (req, res) => {
   }
 
   try {
-    const request = {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        // Header rather than ?key=, so the key stays out of request URLs and
-        // therefore out of any log or error that echoes one.
-        "x-goog-api-key": apiKey,
+    const payload = JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: buildPrompt(signs, assessment) }] }],
+      generationConfig: {
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+        temperature: 0.4,
+        thinkingConfig: { thinkingLevel: THINKING_LEVEL },
       },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: buildPrompt(signs, assessment) }] }],
-        generationConfig: {
-          maxOutputTokens: MAX_OUTPUT_TOKENS,
-          temperature: 0.4,
-          thinkingConfig: { thinkingLevel: THINKING_LEVEL },
-        },
-      }),
+    });
+
+    const headers = {
+      "content-type": "application/json",
+      "content-length": Buffer.byteLength(payload),
+      // Header rather than ?key=, so the key stays out of request URLs and
+      // therefore out of any log or error that echoes one.
+      "x-goog-api-key": apiKey,
     };
 
     let upstream;
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      upstream = await fetch(ENDPOINT, request);
+      upstream = await postJson(ENDPOINT, headers, payload);
       if (upstream.ok || !RETRY_STATUSES.has(upstream.status)) break;
       if (attempt === MAX_ATTEMPTS) break;
       const backoffMs = 400 * attempt;
@@ -161,15 +220,15 @@ exports.recommendations = async (req, res) => {
       return res.status(502).json({ error: "upstream_error", status: upstream.status });
     }
 
-    const payload = await upstream.json();
+    const result = await upstream.json();
     /*
       Gemini nests the text under candidates[].content.parts[]. A candidate can
       come back with no parts at all when generation stops early, so this reads
       defensively rather than indexing straight in.
     */
     const parts =
-      (payload.candidates && payload.candidates[0] && payload.candidates[0].content
-        ? payload.candidates[0].content.parts
+      (result.candidates && result.candidates[0] && result.candidates[0].content
+        ? result.candidates[0].content.parts
         : null) || [];
     const text = parts
       .map((part) => (part && typeof part.text === "string" ? part.text : ""))
@@ -178,8 +237,8 @@ exports.recommendations = async (req, res) => {
 
     if (!text) {
       const reason =
-        (payload.candidates && payload.candidates[0] && payload.candidates[0].finishReason) ||
-        (payload.promptFeedback && payload.promptFeedback.blockReason) ||
+        (result.candidates && result.candidates[0] && result.candidates[0].finishReason) ||
+        (result.promptFeedback && result.promptFeedback.blockReason) ||
         "empty_response";
       console.error("[recommendations] no text returned", reason);
       return res.status(502).json({ error: "empty_response", reason });

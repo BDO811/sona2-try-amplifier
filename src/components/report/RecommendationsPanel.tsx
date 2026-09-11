@@ -12,16 +12,22 @@ interface RecommendationsPanelProps {
 }
 
 /*
-  Off in production.
+  Still off, but for a different reason than before.
 
-  The button is live code and the endpoint is deployed, but the model behind it
-  returns 429 "prepayment credits are depleted" on every call, so tapping it can
-  only ever produce an error. A control that cannot succeed is worse than no
-  control, so it does not render until the backend can answer.
+  The backend now works: the free-tier key authenticates and the endpoint
+  returned real, well-formed suggestions repeatedly on 2026-09-11. What is not
+  settled is latency. Through the function a call took 40 to 48 seconds while
+  the identical request took 7 to 9 from a laptop, and one call exceeded the
+  request timeout and returned 504. A button that takes three quarters of a
+  minute, and sometimes fails outright, is not worth shipping.
 
-  Flip this to true to bring it back. Nothing else needs to change: the client,
-  the Cloud Function and the CORS allowlist are all in place and were verified
-  end to end on 2026-09-09, up to the point where Gemini refused on billing.
+  The cause looks like a stalled IPv6 connect on Cloud Run, and the function now
+  pins IPv4 with a keep-alive agent to avoid it. That fix is deployed but
+  unverified: measuring it exhausted the free tier's 20 requests per minute, so
+  the confirming run has to wait for the quota window.
+
+  Flip to true once a spaced set of calls comes back consistently in single
+  digit seconds.
 */
 export const RECOMMENDATIONS_ENABLED = false;
 
