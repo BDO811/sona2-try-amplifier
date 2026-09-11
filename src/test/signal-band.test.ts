@@ -17,7 +17,6 @@ import {
   bandDisplayOrderFor,
   signLabel,
   bandLabelForSignal,
-  bandColor,
   bandColorForSignal,
   bandForSignal,
   bandRank,
