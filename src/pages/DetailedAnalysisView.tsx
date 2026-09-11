@@ -8,7 +8,7 @@ import { BiomarkerDefinition, formatLikelihoodTierForDisplay } from "@/lib/resul
 import { jsPDF } from "jspdf";
 import { getProtocolId, getStatusColorFromLikelihoodTier } from "@/lib/assessment-display-utils";
 import { bandColor, bandForSignal, bandLabelForSignal, bandOfLevel, bandScaleOptions } from "@/lib/signal-band";
-import { RUNG_SCALE } from "@/lib/result-headline";
+import { RUNG_RECOMMENDATION, RUNG_SCALE, type HeadlineRung } from "@/lib/result-headline";
 import { OptionScale } from "@/components/report/OptionScale";
 
 // Descriptions for audio quality metrics (matching AnalysisFailed page)
@@ -22,6 +22,24 @@ const DetailedAnalysisView = () => {
       navigate("/");
     }
   }, [visualizedResult, navigate]);
+
+  /*
+    The outcome phrase and its colour both come from the rung, which is the same
+    source the results screen reads.
+
+    They used to come from formatLikelihoodTierForDisplay(likelihoodTier) here
+    while the results screen read RUNG_RECOMMENDATION, so one result was shown
+    as "Needs Optimization" on one page and "Continue to Monitor" on the other.
+    Two computations describing one result can always disagree; one cannot.
+  */
+  const rung = visualizedResult?.headlineRung as HeadlineRung | undefined;
+  const outcomePhrase = rung
+    ? RUNG_RECOMMENDATION[rung]
+    : formatLikelihoodTierForDisplay(visualizedResult?.likelihoodTier || "");
+  const outcomeColour = rung
+    ? RUNG_SCALE.find((r) => r.key === rung)?.color ??
+      getStatusColorFromLikelihoodTier(visualizedResult?.likelihoodTier || "")
+    : getStatusColorFromLikelihoodTier(visualizedResult?.likelihoodTier || "");
 
   const protocolId = getProtocolId(pathway || "BRAIN_AGE");
   const biomarkers: BiomarkerDefinition[] = visualizedResult?.biomarkers || [];
@@ -146,8 +164,8 @@ const DetailedAnalysisView = () => {
        // Prominent Outcome Section - After header, before biomarkers (matching dashboard style)
        if (visualizedResult) {
          checkPageBreak(30);
-         const outcomeColor = hexToRgb(getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier));
-         const outcomeText = formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier);
+         const outcomeColor = hexToRgb(outcomeColour);
+         const outcomeText = outcomePhrase;
          const classificationText = visualizedResult.classification;
          
          // Center the outcome section
@@ -233,7 +251,6 @@ const DetailedAnalysisView = () => {
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(100, 100, 100);
-        doc.text(`Flagging Threshold: ${biomarker.flaggingThreshold}`, margin, yPosition);
         yPosition += 5;
 
         // Value and Unit - with color coding matching BiometricLabGrid
@@ -481,7 +498,7 @@ const DetailedAnalysisView = () => {
                 {/* Left Bracket */}
                 <span 
                   className="text-4xl md:text-5xl font-extralight font-mono mr-2"
-                  style={{ color: `${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40` }}
+                  style={{ color: `${outcomeColour}40` }}
                 >
                   [
                 </span>
@@ -490,17 +507,17 @@ const DetailedAnalysisView = () => {
                 <span
                   className="font-mono text-2xl md:text-3xl font-extralight tracking-tight"
                   style={{ 
-                    color: getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier),
-                    textShadow: `0 0 40px ${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}80, 0 0 80px ${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40`,
+                    color: outcomeColour,
+                    textShadow: `0 0 40px ${outcomeColour}80, 0 0 80px ${outcomeColour}40`,
                   }}
                 >
-                  {formatLikelihoodTierForDisplay(visualizedResult.likelihoodTier)}
+                  {outcomePhrase}
                 </span>
                 
                 {/* Right Bracket */}
                 <span 
                   className="text-4xl md:text-5xl font-extralight font-mono ml-2"
-                  style={{ color: `${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40` }}
+                  style={{ color: `${outcomeColour}40` }}
                 >
                   ]
                 </span>
@@ -510,8 +527,8 @@ const DetailedAnalysisView = () => {
               <h2 
                 className="font-mono text-xs md:text-sm uppercase tracking-[0.25em] font-medium mt-2"
                 style={{ 
-                  color: getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier),
-                  textShadow: `0 0 20px ${getStatusColorFromLikelihoodTier(visualizedResult.likelihoodTier)}40`,
+                  color: outcomeColour,
+                  textShadow: `0 0 20px ${outcomeColour}40`,
                 }}
               >
                 {visualizedResult.classification}
@@ -624,15 +641,6 @@ const DetailedAnalysisView = () => {
                     </div>
                   )}
                   
-                  {/* Flagging Threshold */}
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-white">
-                      Flagging Threshold
-                    </span>
-                    <span className="font-mono text-[10px] text-white">
-                      {biomarker.flaggingThreshold}
-                    </span>
-                  </div>
                 </div>
               </motion.div>
             ))}
