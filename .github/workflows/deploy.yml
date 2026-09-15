@@ -34,7 +34,13 @@ jobs:
 
       # Served from the domain root at try.amplifierhealth.com. public/CNAME
       # carries the custom domain into dist so each deploy keeps it.
+      #
+      # VITE_RECOMMENDATIONS=1: the latency fix (IPv4 keep-alive agent on the
+      # recommendations function) is verified. Three calls at 6.4s, 7.1s,
+      # 12.9s, no timeouts, down from the prior 40-48s. Ships the button.
       - run: npm run build
+        env:
+          VITE_RECOMMENDATIONS: "1"
 
       # The app uses BrowserRouter, so /detailed-analysis and friends are
       # client-side routes with no file behind them. GitHub Pages serves
