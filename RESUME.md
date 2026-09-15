@@ -1,7 +1,40 @@
 # Resume brief
 
-Where the work stands as of 2026-09-15. Paste the prompt at the bottom into a
-new chat and it picks up from here.
+Updated 2026-09-15 (later same day): all five items below are closed. Left
+in place as a record of what the longitudinal API and recommendations button
+verification actually found, since both surfaced real, non-obvious API
+behavior worth not rediscovering.
+
+## What closed today
+
+1. `AMPLIFIER_API_KEY` is set on `voiceLongitudinal`. `gcloud functions
+   deploy --update-env-vars` timed out twice client-side (it rebuilds from
+   source and streams logs over a connection this sandbox's network drops);
+   `gcloud run services update --update-env-vars` on the same underlying
+   Cloud Run service (`voicelongitudinal`) set it in 18 seconds with no
+   rebuild.
+2. Proxy verified end to end: CORS headers correct for
+   `https://try.amplifierhealth.com`, POST/GET round trip resolved
+   `"running"` to `"done"` in about 20 seconds. One finding: a job already
+   claimed by one group cannot be re-registered under a new one (`added:
+   []`), so the three known job IDs couldn't be freshly linked into a test
+   group. That is Amplifier API behavior, not a proxy bug.
+3. Decision: the history view keeps the local `analyzeSignalHistory` engine
+   (`src/lib/longitudinal.ts`) for direction. The API's own `trajectory`
+   field returned `insufficient_data` at 20 real data points in testing, so
+   it cannot back a direction call regardless of history depth. No UI
+   change made. `population_z` (a cross-user percentile the local engine
+   cannot produce) is a real candidate for a future addition, not part of
+   this decision.
+4. Recommendations latency measured: three calls at 6.4s, 7.1s, 12.9s, no
+   timeouts. `VITE_RECOMMENDATIONS=1` is now set in the deploy workflow's
+   build step (`.github/workflows/deploy.yml`), shipping the button to
+   production. Commit `b28d150`.
+5. `sandbox-longitudinal-probe` deleted via `DELETE /v2/groups/{id}` (gcloud
+   cannot reach this endpoint). The test group created during step 2's
+   verification was also deleted.
+
+## Original brief follows, for context
 
 ## The project
 
