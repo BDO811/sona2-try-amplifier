@@ -46,10 +46,21 @@ function oneOf(value, allowed) {
   return found ?? null;
 }
 
+// The allowlist never gained the production custom domain when
+// try.amplifierhealth.com went live on top of the Lovable/GitHub Pages build.
+// Every real visitor's browser sent Origin: https://try.amplifierhealth.com,
+// which matched none of these patterns, so the preflight came back with
+// Access-Control-Allow-Origin: <the lovable.app fallback> instead. That
+// mismatch makes the browser abort the actual POST before it is ever sent —
+// no request reaches this function, so nothing is written to Firestore and
+// no email goes out. The earlier fix to this file was verified with curl,
+// which does not enforce CORS, so the break stayed invisible in testing
+// while blocking every genuine submission from the live site.
 function getCorsOrigin(requestOrigin) {
   const fallback = "https://energy-bloom-scan.lovable.app";
   if (!requestOrigin) return fallback;
   if (requestOrigin.endsWith(".lovable.app") && requestOrigin.startsWith("https://")) return requestOrigin;
+  if (/^https:\/\/(?:[a-z0-9-]+\.)*amplifierhealth\.com$/.test(requestOrigin)) return requestOrigin;
   if (/^https?:\/\/localhost(:\d+)?$/.test(requestOrigin)) return requestOrigin;
   return fallback;
 }
