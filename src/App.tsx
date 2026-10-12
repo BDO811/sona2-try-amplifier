@@ -12,6 +12,7 @@ import ApiDebugView from "./pages/ApiDebugView";
 import PanelPreview from "./pages/PanelPreview";
 import AnalysisFailed from "./pages/AnalysisFailed";
 import RecordingNotSupported from "./pages/RecordingNotSupported";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/panel-preview" element={<PanelPreview />} />
             <Route path="/analysis-failed" element={<AnalysisFailed onRestart={() => window.location.href = "/"} />} />
             <Route path="/recording-not-supported" element={<RecordingNotSupported onBack={() => window.location.href = "/"} />} />
+            <Route path="/admin" element={<AdminPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

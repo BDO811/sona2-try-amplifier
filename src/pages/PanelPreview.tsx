@@ -1,11 +1,12 @@
 import { SubDimensionPanel } from "@/components/report/SubDimensionPanel";
 import { AnalysisAnimation } from "@/components/AnalysisAnimation";
 import { SignalPanel } from "@/components/report/SignalPanel";
+import { BodyMapPanel } from "@/components/report/BodyMapPanel";
 import { SpectrogramWaveform } from "@/components/report/SpectrogramWaveform";
 import { OptionScale } from "@/components/report/OptionScale";
 import { RUNG_RECOMMENDATION, RUNG_SCALE, type HeadlineRung } from "@/lib/result-headline";
 import type { SignalSummary } from "@/lib/result-types";
-import type { ExtendedMetric } from "@/lib/result-types";
+import type { ExtendedMetric, LabMetric } from "@/lib/result-types";
 
 /**
  * Renders a report panel on its own, at the width it occupies in the report, so
@@ -49,6 +50,21 @@ const LIVE_SIGNALS: SignalSummary[] = [
     level: "low",
     flagged: false,
   },
+];
+
+/** One elevated reading (Jitter) so the body map's abnormal-only blink has something to show. */
+const SAMPLE_LAB_METRICS: LabMetric[] = [
+  { label: "PITCH", value: "142", unit: "Hz", reference: "85-255 Hz", status: "normal" },
+  { label: "PITCH VAR", value: "0.14", unit: "", reference: "0.05-0.25", status: "normal" },
+  { label: "LOUDNESS", value: "-18", unit: "dB", reference: "-30 to -10 dB", status: "normal" },
+  { label: "LOUD VAR", value: "0.52", unit: "", reference: "0.30-0.80", status: "normal" },
+  { label: "SPEECH RATE", value: "5.1", unit: "syl/s", reference: "3.5-7.5 syl/s", status: "normal" },
+  { label: "ARTIC RATE", value: "5.9", unit: "syl/s", reference: "4.0-8.0 syl/s", status: "normal" },
+  { label: "JITTER", value: "1.8", unit: "%", reference: "< 1.0 %", status: "elevated" },
+  { label: "SHIMMER", value: "2.1", unit: "dB", reference: "< 3.8 dB", status: "normal" },
+  { label: "HNR", value: "9.2", unit: "dB", reference: "> 7 dB", status: "normal" },
+  { label: "PAUSE", value: "0.31", unit: "s", reference: "0.15-0.60 s", status: "normal" },
+  { label: "BREATHINESS", value: "24", unit: "dB", reference: "20-35 dB", status: "normal" },
 ];
 
 const HERO_TYPE = "text-base md:text-lg font-semibold tracking-[0.18em]";
@@ -154,6 +170,18 @@ const PanelPreview = () => {
         </h1>
         <div className="px-4 py-3">
           <SubDimensionPanel metrics={APEX_RUN} showContent isSeniorMode />
+        </div>
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Body map · same data, grouped by icon · one abnormal per section
+        </h1>
+        <div className="px-4 py-3">
+          <BodyMapPanel
+            signals={LIVE_SIGNALS}
+            extendedMetrics={AT_THE_EDGES}
+            labMetrics={SAMPLE_LAB_METRICS}
+            showContent
+          />
         </div>
       </div>
     </div>

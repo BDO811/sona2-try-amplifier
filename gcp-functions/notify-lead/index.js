@@ -50,6 +50,10 @@ function getCorsOrigin(requestOrigin) {
   const fallback = "https://energy-bloom-scan.lovable.app";
   if (!requestOrigin) return fallback;
   if (requestOrigin.endsWith(".lovable.app") && requestOrigin.startsWith("https://")) return requestOrigin;
+  if (requestOrigin.endsWith(".amplifierhealth.com") && requestOrigin.startsWith("https://")) return requestOrigin;
+  if (requestOrigin === "https://tryswara.com" || requestOrigin === "https://www.tryswara.com") return requestOrigin;
+  if (requestOrigin === "https://tryserasona.com" || requestOrigin === "https://www.tryserasona.com") return requestOrigin;
+  if (requestOrigin === "https://bdo811.github.io") return requestOrigin;
   if (/^https?:\/\/localhost(:\d+)?$/.test(requestOrigin)) return requestOrigin;
   return fallback;
 }
@@ -60,15 +64,54 @@ function setCorsHeaders(req, res) {
   res.set("Access-Control-Allow-Headers", "Content-Type");
 }
 
+// The same function backs several frontends, so the notification email's
+// subject names whichever brand the submission actually came from rather
+// than a single hardcoded name.
+function brandFromOrigin(requestOrigin) {
+  if (requestOrigin === "https://tryserasona.com" || requestOrigin === "https://www.tryserasona.com") return "Serasona";
+  if (requestOrigin === "https://tryswara.com" || requestOrigin === "https://www.tryswara.com") return "Swara";
+  return "Sona-2";
+}
+
 function base64url(input) {
   return Buffer.from(input, "utf-8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 async function writeLeadToFirestore(lead) {
-  await firestore.collection("wellness_demo_leads").add({
+  const ref = await firestore.collection("wellness_demo_leads").add({
     ...lead,
     createdAt: new Date(),
+    emailSent: false,
+    emailAttempts: 0,
   });
+  return ref;
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// The Gmail send is a single OAuth refresh-token call with no fallback, so a
+// cold start, a transient token-refresh hiccup, or a momentary Gmail API error
+// used to be a silent, permanent loss of that one notification. Retrying
+// in-request covers the transient case; persisting the outcome to Firestore
+// (below) covers the case where all three attempts still fail, so the lead is
+// never just a line in Cloud Run logs nobody reads.
+async function sendLeadEmailWithRetry(lead, maxAttempts = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await sendLeadEmail(lead);
+      return { sent: true, attempts: attempt, error: null };
+    } catch (error) {
+      lastError = error;
+      console.error(`[notify-lead] Email attempt ${attempt}/${maxAttempts} failed:`, error);
+      if (attempt < maxAttempts) {
+        await sleep(500 * 2 ** (attempt - 1)); // 500ms, 1000ms
+      }
+    }
+  }
+  return { sent: false, attempts: maxAttempts, error: lastError ? String(lastError.message || lastError) : "unknown" };
 }
 
 async function getGmailAccessToken() {
@@ -97,7 +140,7 @@ async function getGmailAccessToken() {
 
 async function sendLeadEmail(lead) {
   const accessToken = await getGmailAccessToken();
-  const subject = `New Sona-2 demo submission: ${lead.fullName}`;
+  const subject = `New ${lead.brand || "Sona-2"} demo submission: ${lead.fullName}`;
   const body = [
     "New wellness demo submission.",
     "",
@@ -171,24 +214,44 @@ exports.notifyLead = async (req, res) => {
       ageRange: ageRange ?? null,
       language,
       consentGiven: true,
+      brand: brandFromOrigin(req.headers.origin),
     };
 
     const [firestoreResult, emailResult] = await Promise.allSettled([
       writeLeadToFirestore(lead),
-      sendLeadEmail(lead),
+      sendLeadEmailWithRetry(lead),
     ]);
 
     if (firestoreResult.status === "rejected") {
       console.error("[notify-lead] Firestore write failed:", firestoreResult.reason);
     }
-    if (emailResult.status === "rejected") {
-      console.error("[notify-lead] Email send failed:", emailResult.reason);
+    if (emailResult.status === "fulfilled" && !emailResult.value.sent) {
+      console.error("[notify-lead] Email send exhausted all retries:", emailResult.value.error);
+    } else if (emailResult.status === "rejected") {
+      console.error("[notify-lead] Email send threw unexpectedly:", emailResult.reason);
+    }
+
+    // Persist the real outcome onto the lead doc so a sweep job (or Amit,
+    // querying Firestore directly) can find anything the retries above still
+    // didn't manage to send, instead of it only existing in Cloud Run logs.
+    if (firestoreResult.status === "fulfilled") {
+      const emailOutcome =
+        emailResult.status === "fulfilled"
+          ? emailResult.value
+          : { sent: false, attempts: 0, error: String(emailResult.reason) };
+      firestoreResult.value
+        .update({
+          emailSent: emailOutcome.sent,
+          emailAttempts: emailOutcome.attempts,
+          emailError: emailOutcome.error,
+        })
+        .catch((err) => console.error("[notify-lead] Failed to persist email status:", err));
     }
 
     res.status(200).json({
       success: true,
       firestoreSaved: firestoreResult.status === "fulfilled",
-      emailSent: emailResult.status === "fulfilled",
+      emailSent: emailResult.status === "fulfilled" && emailResult.value.sent,
     });
   } catch (error) {
     console.error("[notify-lead] Error:", error);

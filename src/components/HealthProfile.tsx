@@ -6,10 +6,8 @@ import { useAssessment, AssessmentPathway, BRAND_COLOR, getIsHighVis, getIsSenio
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
-import { BiometricLabGrid } from "./report/BiometricLabGrid";
-import { SubDimensionPanel } from "./report/SubDimensionPanel";
+import { BodyMapPanel } from "./report/BodyMapPanel";
 import { RecommendationsPanel } from "./report/RecommendationsPanel";
-import { SignalPanel } from "./report/SignalPanel";
 import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
 import { SystemStatusBar } from "./report/SystemStatusBar";
 import { useVoiceHistory } from "@/hooks/use-voice-history";
@@ -359,65 +357,38 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
           )}
         </div>
 
-        {/* Voice Signal Panel — the per-sign read from the v2 model */}
-        {revealSignals.length > 0 && (
-          <div className="px-4 py-3 border-b border-[#231200]/10">
-            <motion.h3
-              className={`font-mono uppercase tracking-widest mb-2 ${
-                isHighVis ? 'text-[10px] md:text-xs font-semibold text-[#231200]' : 'text-[9px] font-medium text-[#231200]'
-              }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: showContent ? 1 : 0 }}
-              transition={{ delay: 1.1 }}
-            >
-              Voice Signals
-              {visualizedResult.totalSignals ? (
-                <span className="text-[#4B2700]">
-                  {" "}· {visualizedResult.flaggedCount ?? 0} of {visualizedResult.totalSignals} flagged
-                </span>
-              ) : null}
-            </motion.h3>
-            <SignalPanel
-              signals={revealSignals}
-              showContent={showContent}
-              isHighVis={isHighVis}
-              isSeniorMode={isSeniorMode}
-            />
-          </div>
-        )}
-
-        {/* Sub-dimensions from result.extended_metrics — direction, not severity */}
-        {(visualizedResult.extendedMetrics?.length ?? 0) > 0 && (
-          <div className="px-4 py-3 border-b border-[#231200]/10">
-            <motion.h3
-              className={`font-mono uppercase tracking-widest mb-1 ${
-                isHighVis ? 'text-[10px] md:text-xs font-semibold text-[#231200]' : 'text-[9px] font-medium text-[#231200]'
-              }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: showContent ? 1 : 0 }}
-              transition={{ delay: 1.18 }}
-            >
-              Sub-Dimensions
-            </motion.h3>
-            <motion.p
-              className={`font-mono text-[#2E2E2E] mb-2.5 ${
-                isHighVis ? 'text-[9px] md:text-[10px]' : isSeniorMode ? 'text-[10px]' : 'text-[8px]'
-              }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: showContent ? 1 : 0 }}
-              transition={{ delay: 1.19 }}
-            >
-              Each of these sits between two ends rather than against a threshold, so none of
-              them is flagged. They describe how the recording read, not what it found.
-            </motion.p>
-            <SubDimensionPanel
-              metrics={visualizedResult.extendedMetrics}
-              showContent={showContent}
-              isHighVis={isHighVis}
-              isSeniorMode={isSeniorMode}
-            />
-          </div>
-        )}
+        {/*
+          Body Map — every real measurement (signals, sub-dimensions, lab
+          metrics) grouped under the body-part icon it reads on, replacing the
+          three separate Voice Signals / Sub-Dimensions / Biometric Results
+          sections that used to list the same data as plain text rows. See
+          BodyMapPanel.tsx for the zone grouping and why it is single-column.
+        */}
+        <div className="px-4 py-3 border-b border-[#231200]/10">
+          <motion.h3
+            className={`font-mono uppercase tracking-widest mb-2 ${
+              isHighVis ? 'text-[10px] md:text-xs font-semibold text-[#231200]' : 'text-[9px] font-medium text-[#231200]'
+            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showContent ? 1 : 0 }}
+            transition={{ delay: 1.1 }}
+          >
+            Body Map
+            {visualizedResult.totalSignals ? (
+              <span className="text-[#4B2700]">
+                {" "}· {visualizedResult.flaggedCount ?? 0} of {visualizedResult.totalSignals} flagged
+              </span>
+            ) : null}
+          </motion.h3>
+          <BodyMapPanel
+            signals={revealSignals}
+            extendedMetrics={visualizedResult.extendedMetrics}
+            labMetrics={revealLabMetrics}
+            showContent={showContent}
+            isHighVis={isHighVis}
+            isSeniorMode={isSeniorMode}
+          />
+        </div>
 
         {/* Returning member: what moved since their previous visit */}
         {voiceHistory.isReturning && voiceHistory.signals.length > 0 && (
@@ -431,38 +402,6 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             />
           </div>
         )}
-
-        {/* Biometric Lab Grid */}
-        <div className="px-4 py-3 border-b border-[#231200]/10">
-          <motion.h3
-            className={`font-mono uppercase tracking-widest mb-2 ${
-              isHighVis ? 'text-[10px] md:text-xs font-semibold text-[#231200]' : 'text-[9px] font-medium text-[#231200]'
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: showContent ? 1 : 0 }}
-            transition={{ delay: 1.3 }}
-          >
-            Biometric Results
-          </motion.h3>
-          <motion.p
-            className={`font-mono text-[#2E2E2E] mb-3 ${
-              isHighVis ? 'text-[9px] md:text-[10px]' : isSeniorMode ? 'text-[10px]' : 'text-[8px]'
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: showContent ? 1 : 0 }}
-            transition={{ delay: 1.35 }}
-          >
-            Note: We analyze over 1,000 voice biomarkers. The markers shown here are a small subset that are easiest to interpret and most influential in your result.
-          </motion.p>
-          <BiometricLabGrid 
-            pathway={pathway} 
-            statusColor={dataStatusColor} 
-            showContent={showContent}
-            labMetrics={revealLabMetrics}
-            isHighVis={isHighVis}
-            isSeniorMode={isSeniorMode}
-          />
-        </div>
 
         {/* Care Bridge: Clinical Recommendation Footer */}
         <div className="px-4 py-4">
