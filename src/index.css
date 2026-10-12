@@ -358,4 +358,27 @@
       background: var(--scale-tint-hi);
     }
   }
+
+  /*
+    Body map: a slower, plainer opacity breathe for a row or marker that is
+    off-normal, distinct from .animate-scale-breathe (which runs on every
+    active scale cell regardless of band). This one is conditional — only
+    flagged signals, unfavourable sub-dimensions, and non-normal lab metrics
+    get it — so stillness itself reads as "nothing to flag here."
+  */
+  @keyframes gentle-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+
+  .animate-gentle-blink {
+    animation: gentle-blink 2.8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-gentle-blink {
+      animation: none;
+      opacity: 1;
+    }
+  }
 }

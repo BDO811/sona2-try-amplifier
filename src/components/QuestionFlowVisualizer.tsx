@@ -12,12 +12,26 @@ import { asset } from "@/lib/asset";
 
 const RECORDING_MIME_TYPE = "audio/webm;codecs=opus";
 const RECORDING_SAMPLE_RATE = 48000;
-const RECORDING_DURATION_SECONDS = 15;
-// How many questions the user is asked. Everything downstream — the initial
-// draw from the pool, the re-ask cursor, the per-question audio buffers and the
-// "N of M" label — derives from this, so changing it here changes all of them.
-const QUESTION_COUNT = 2;
-const MIN_SPEECH_SECONDS = 10;
+/*
+  Capture is two passes. The first pass asks PHASE1_QUESTION_COUNT questions at
+  PHASE1_DURATION_SECONDS each — short, so answering never feels like a chore.
+  The moment that pass ends, the speech actually captured across both takes is
+  checked against MIN_COMBINED_SPEECH_SECONDS. Enough, and the capture is done,
+  no third question, no more of the user's time than necessary. Short, and one
+  more question is asked at FOLLOWUP_DURATION_SECONDS to top it up — once, not
+  checked again, so this can never turn into an open-ended retry loop.
+
+  This replaces the previous design, which checked each take on its own against
+  a per-question MIN_SPEECH_SECONDS and silently swapped in a new question to
+  re-ask indefinitely until one passed. That could ask a quiet-but-genuine
+  speaker five or six questions in a row with no visible reason why, and it
+  checked a 15s question against a flat 10s bar regardless of how the model
+  actually uses the combined audio.
+*/
+const PHASE1_QUESTION_COUNT = 2;
+const PHASE1_DURATION_SECONDS = 10;
+const FOLLOWUP_DURATION_SECONDS = 15;
+const MIN_COMBINED_SPEECH_SECONDS = 10;
 const SPEECH_GAIN_THRESHOLD = 0.15;
 const QUESTION_BACKGROUNDS = [
   asset("images/talk-laugh-outdoors.jpg"),
@@ -102,12 +116,14 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   const navigate = useNavigate();
   const { pathwayConfig, setAudioBlob, pathway, userProfile, setApiStatus, setApiResult, setVisualizedResult, language } = useAssessment();
 
-  // Question pool: draw QUESTION_COUNT to start; a fresh unused one is pulled in
-  // if a take doesn't capture enough speech and that question needs re-asking.
+  // Question pool: draw PHASE1_QUESTION_COUNT to start; a fresh unused one is
+  // pulled in only for the one possible follow-up question (see
+  // MIN_COMBINED_SPEECH_SECONDS below), or if the microphone itself drops out
+  // mid-take and the same slot needs a genuine retry.
   const questionPoolRef = useRef<string[]>(getQuestionPool(language));
-  const poolCursorRef = useRef(QUESTION_COUNT);
+  const poolCursorRef = useRef(PHASE1_QUESTION_COUNT);
   const [QUESTIONS, setQuestions] = useState<string[]>(() =>
-    questionPoolRef.current.slice(0, QUESTION_COUNT)
+    questionPoolRef.current.slice(0, PHASE1_QUESTION_COUNT)
   );
 
   const getNextPoolQuestion = useCallback(() => {
@@ -125,12 +141,21 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   
   // Question flow state
   const [currentQuestion, setCurrentQuestion] = useState(0); // 0-indexed
+  // Phase 1 questions are short; a follow-up question (added only if phase 1
+  // didn't capture enough speech) runs longer. Recomputed from currentQuestion
+  // every render, so the countdown and the ring always match whichever
+  // question is actually up next.
+  const currentDurationSeconds =
+    currentQuestion < PHASE1_QUESTION_COUNT ? PHASE1_DURATION_SECONDS : FOLLOWUP_DURATION_SECONDS;
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingSecondsLeft, setRecordingSecondsLeft] = useState(RECORDING_DURATION_SECONDS);
+  const [recordingSecondsLeft, setRecordingSecondsLeft] = useState(currentDurationSeconds);
   const [hasRecordedCurrentQuestion, setHasRecordedCurrentQuestion] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [showContent, setShowContent] = useState(false);
-  const [insufficientSpeechWarning, setInsufficientSpeechWarning] = useState<string | null>(null);
+  // Doubles as the mic-hardware-failure notice and the "We need more audio"
+  // notice shown when phase 1 didn't capture enough speech and a follow-up
+  // question has been added.
+  const [userMessage, setUserMessage] = useState<string | null>(null);
   /*
     The recorder is only usable once getUserMedia has resolved and MediaRecorder
     exists. Nothing gated the record button on that before: the button was live
@@ -148,10 +173,14 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   const audioStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   
-  // Per-question accumulated audio buffers, one slot per asked question.
+  // Per-question accumulated audio buffers, one slot per asked question. Grows
+  // by one if a follow-up question gets added after phase 1.
   const questionAudioBuffersRef = useRef<AudioBuffer[][]>(
-    Array.from({ length: QUESTION_COUNT }, () => [])
+    Array.from({ length: PHASE1_QUESTION_COUNT }, () => [])
   );
+  // Speech-seconds actually captured in each of the two phase-1 takes, summed
+  // once phase 1 ends to decide whether a follow-up question is needed.
+  const phase1SpeechSecondsRef = useRef<number[]>([]);
   // All questions final audio buffers
   const allQuestionsAudioRef = useRef<AudioBuffer[]>([]);
   
@@ -168,8 +197,9 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   const waveScalesRef = useRef<number[]>(new Array(WAVE_BARS).fill(0));
   const lastFrameTimeRef = useRef(0);
   // Total seconds where mic input registered as actual speech (above the adaptive
-  // noise floor), not just ambient room noise. Checked against MIN_SPEECH_SECONDS
-  // when a take ends, so a mostly-silent recording gets re-asked instead of accepted.
+  // noise floor), not just ambient room noise, for whichever take is currently in
+  // progress. Captured into phase1SpeechSecondsRef when a phase-1 take ends, and
+  // summed against MIN_COMBINED_SPEECH_SECONDS once both phase-1 takes are in.
   const speechSecondsRef = useRef(0);
   /** Loudest rms the analyser saw this take. 0 means the graph delivered nothing. */
   const peakRmsSeenRef = useRef(0);
@@ -341,10 +371,11 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     };
   }, [navigate]);
 
-  // Recording auto-stops after a fixed 15 seconds
+  // Recording auto-stops after currentDurationSeconds (10s for the first two
+  // questions, 15s for the follow-up question if one is needed).
   useEffect(() => {
     if (!isRecording) {
-      setRecordingSecondsLeft(RECORDING_DURATION_SECONDS);
+      setRecordingSecondsLeft(currentDurationSeconds);
       return;
     }
 
@@ -359,7 +390,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRecording]);
+  }, [isRecording, currentDurationSeconds]);
 
   // Live mic waveform ring — analyser + adaptive noise-floor gain gating,
   // ported from amplifier-demo-sites/generator/template_try.html so the bars
@@ -464,6 +495,27 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
   // Advance to next question or complete
   const advanceToNextQuestion = useCallback(async () => {
+    /*
+      End of phase 1 (both short takes just recorded, no follow-up added yet):
+      decide here, once, whether a third question is needed. The QUESTIONS.length
+      check guards against re-entering this branch if advanceToNextQuestion is
+      ever called again at the same index after a follow-up already exists.
+    */
+    if (currentQuestion === PHASE1_QUESTION_COUNT - 1 && QUESTIONS.length === PHASE1_QUESTION_COUNT) {
+      const combinedSpeechSeconds = phase1SpeechSecondsRef.current.reduce((sum, s) => sum + s, 0);
+      if (combinedSpeechSeconds < MIN_COMBINED_SPEECH_SECONDS) {
+        console.log(
+          `[QuestionFlowVisualizer] Combined speech ${combinedSpeechSeconds.toFixed(1)}s under ${MIN_COMBINED_SPEECH_SECONDS}s after phase 1, asking one more question`
+        );
+        questionAudioBuffersRef.current = [...questionAudioBuffersRef.current, []];
+        setQuestions((prev) => [...prev, getNextPoolQuestion()]);
+        setUserMessage("We need more audio. One more question, then we're done.");
+        setCurrentQuestion((prev) => prev + 1);
+        setHasRecordedCurrentQuestion(false);
+        return;
+      }
+    }
+
     if (currentQuestion >= QUESTIONS.length - 1) {
       // All questions complete - merge all audio and send for analysis
       setIsComplete(true);
@@ -500,7 +552,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
       setCurrentQuestion(prev => prev + 1);
       setHasRecordedCurrentQuestion(false);
     }
-  }, [currentQuestion, setAudioBlob, processAudioAnalysis, onComplete, setApiStatus]);
+  }, [currentQuestion, QUESTIONS.length, getNextPoolQuestion, setAudioBlob, processAudioAnalysis, onComplete, setApiStatus]);
 
   // Start recording
   const startRecording = useCallback(() => {
@@ -518,34 +570,36 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
       mediaRecorderRef.current.start(100);
     }
 
-    setInsufficientSpeechWarning(null);
+    setUserMessage(null);
     setIsRecording(true);
   }, [isComplete]);
 
   // Stop recording
   const stopRecording = useCallback(async () => {
     if (!isRecording) return;
-    
+
     setIsRecording(false);
     setHasRecordedCurrentQuestion(true);
-    
+
     // Stop media recorder and process audio
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop();
-      
+
       mediaRecorderRef.current.onstop = async () => {
         try {
           const spokeSeconds = speechSecondsRef.current;
-          if (spokeSeconds < MIN_SPEECH_SECONDS) {
-            /*
-              A silent microphone and a quiet speaker are different failures and
-              used to print the same sentence. The microphone is the cause when
-              the track is muted, or when the analyser ran but never saw a
-              non-zero sample — either way, asking for another answer cannot fix
-              it, so the message names the device instead.
-            */
-            const noSignal = micMutedRef.current || peakRmsSeenRef.current === 0;
-            console.warn("[QuestionFlowVisualizer] short take, re-asking", {
+          /*
+            A genuine hardware failure — the track muted out from under the
+            browser, or the analyser never saw a non-zero sample — is the only
+            thing that re-asks the same question immediately. Low-but-real
+            speech from an actual answer is accepted and judged later, in
+            aggregate, against MIN_COMBINED_SPEECH_SECONDS: re-asking a quiet
+            speaker on the spot used to retry the same person indefinitely for
+            a trait of how they talk, not a problem with the recording.
+          */
+          const noSignal = micMutedRef.current || peakRmsSeenRef.current === 0;
+          if (noSignal) {
+            console.warn("[QuestionFlowVisualizer] no mic signal, re-asking same question", {
               speechSeconds: +spokeSeconds.toFixed(2),
               tickFrames: tickCountRef.current,
               audioCtxState: audioCtxStateRef.current,
@@ -553,15 +607,8 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
               micMuted: micMutedRef.current,
               audioChunks: audioChunksRef.current.length,
             });
-            setQuestions((prev) => {
-              const next = [...prev];
-              next[currentQuestion] = getNextPoolQuestion();
-              return next;
-            });
-            setInsufficientSpeechWarning(
-              noSignal
-                ? "No sound is reaching this browser from your microphone. Check its microphone access in system settings, close any app that might be using the mic, or try Safari."
-                : `Only ${Math.round(spokeSeconds)}s of speech captured. Let's try a different question.`
+            setUserMessage(
+              "No sound is reaching this browser from your microphone. Check its microphone access in system settings, close any app that might be using the mic, or try Safari."
             );
             setHasRecordedCurrentQuestion(false);
             return;
@@ -574,7 +621,12 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
           // Add to current question's audio buffers
           questionAudioBuffersRef.current[currentQuestion].push(decoded);
-          console.log(`[QuestionFlowVisualizer] Q${currentQuestion + 1} segment recorded`);
+          if (currentQuestion < PHASE1_QUESTION_COUNT) {
+            phase1SpeechSecondsRef.current[currentQuestion] = spokeSeconds;
+          }
+          console.log(
+            `[QuestionFlowVisualizer] Q${currentQuestion + 1} segment recorded (${spokeSeconds.toFixed(1)}s speech)`
+          );
 
           // Move straight to the next question, no countdown
           advanceToNextQuestion();
@@ -583,7 +635,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         }
       };
     }
-  }, [isRecording, currentQuestion, advanceToNextQuestion, getNextPoolQuestion]);
+  }, [isRecording, currentQuestion, advanceToNextQuestion]);
 
   // Click to start recording immediately, or stop if already recording
   const handleRecordClick = useCallback(() => {
@@ -729,8 +781,8 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
                 </motion.p>
               )}
 
-              {/* Insufficient speech warning — shown after a take with too little detected speech */}
-              {!isRecording && insufficientSpeechWarning && (
+              {/* Mic-hardware failure notice, or the "we need more audio" notice before the follow-up question */}
+              {!isRecording && userMessage && (
                 <motion.p
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -738,7 +790,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
                   className={getTextClasses(isSeniorMode, isHighVis, 'instruction')}
                   style={{ color: '#B45309' }}
                 >
-                  {insufficientSpeechWarning}
+                  {userMessage}
                 </motion.p>
               )}
 
@@ -801,7 +853,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
           />
         </motion.div>
 
-        {/* Recording duration ring (15s, counts down) */}
+        {/* Recording duration ring — counts down from currentDurationSeconds */}
         {isRecording && (
           <svg
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 pointer-events-none"
@@ -818,7 +870,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
               strokeWidth="2"
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 46}
-              strokeDashoffset={2 * Math.PI * 46 * (1 - recordingSecondsLeft / RECORDING_DURATION_SECONDS)}
+              strokeDashoffset={2 * Math.PI * 46 * (1 - recordingSecondsLeft / currentDurationSeconds)}
               style={{ filter: 'drop-shadow(0 0 6px rgba(30, 86, 49, 0.6))', transition: 'stroke-dashoffset 1s linear' }}
             />
           </svg>
