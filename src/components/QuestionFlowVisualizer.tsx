@@ -12,12 +12,22 @@ import { asset } from "@/lib/asset";
 
 const RECORDING_MIME_TYPE = "audio/webm;codecs=opus";
 const RECORDING_SAMPLE_RATE = 48000;
-const RECORDING_DURATION_SECONDS = 15;
-// How many questions the user is asked. Everything downstream — the initial
-// draw from the pool, the re-ask cursor, the per-question audio buffers and the
-// "N of M" label — derives from this, so changing it here changes all of them.
+const RECORDING_DURATION_SECONDS = 20;
+// How many questions the user is asked, at most. Everything downstream — the
+// initial draw from the pool, the re-ask cursor, the per-question audio
+// buffers and the "N of M" label — derives from this, so changing it here
+// changes all of them. The second question is skipped entirely when the
+// first take already clears SUFFICIENT_SPEECH_SECONDS and analysis succeeds
+// on it alone — see the Q1 branch in stopRecording's onstop handler.
 const QUESTION_COUNT = 2;
 const MIN_SPEECH_SECONDS = 10;
+/*
+  Speech in the first take beyond this is treated as enough to send to the
+  LAM on its own, so the user is asked a second question only when they
+  actually need it: either the first take didn't clear this bar, or it did
+  but the analysis call on that single sample failed anyway.
+*/
+const SUFFICIENT_SPEECH_SECONDS = 15;
 const SPEECH_GAIN_THRESHOLD = 0.15;
 const QUESTION_BACKGROUNDS = [
   asset("images/talk-laugh-outdoors.jpg"),
@@ -197,12 +207,14 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     return () => clearTimeout(timer);
   }, []);
 
-  // Process audio analysis
-  const processAudioAnalysis = useCallback(async (audioBlob: Blob, format?: string, extension?: string, mimeType?: string) => {
+  // Process audio analysis. Returns whether the call succeeded, so a caller
+  // trying a single sample first can decide whether to fall back to asking
+  // for a second one.
+  const processAudioAnalysis = useCallback(async (audioBlob: Blob, format?: string, extension?: string, mimeType?: string): Promise<boolean> => {
     if (!isAssessmentPathwayEnabled(pathway)) {
       console.warn(`[QuestionFlowVisualizer] Pathway ${pathway} is disabled`);
       setApiStatus("failed");
-      return;
+      return false;
     }
 
     setApiStatus("pending");
@@ -239,7 +251,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
               jobDetail.result
             );
             setApiStatus("failed");
-            return;
+            return false;
           }
 
           const visualized = transformV2ResultToVisualization(
@@ -253,13 +265,37 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
           console.error("[QuestionFlowVisualizer] Transformation failed:", transformError);
         }
       }
-      
+
       setApiStatus("done");
+      return true;
     } catch (apiError) {
       console.error("[QuestionFlowVisualizer] Analysis failed:", apiError);
       setApiStatus("failed");
+      return false;
     }
   }, [pathway, userProfile, setApiStatus, setApiResult, setVisualizedResult]);
+
+  // Encode a set of per-question audio buffers and run them through analysis.
+  // Shared by the single-sample attempt after Q1 and the final merge after
+  // whichever question actually ends up being the last one.
+  const finishWithBuffers = useCallback(async (buffers: AudioBuffer[]): Promise<boolean> => {
+    if (buffers.length === 0) {
+      console.error("[QuestionFlowVisualizer] No audio recorded");
+      setApiStatus("failed");
+      return false;
+    }
+    try {
+      const merged = mergeAudioBuffers(buffers);
+      const { blob, format, extension, mimeType } = await convertAudioBufferToBlob(merged);
+      setAudioBlob(blob);
+      console.log(`[QuestionFlowVisualizer] Audio (${format}):`, blob.size, "bytes");
+      return await processAudioAnalysis(blob, format, extension, mimeType);
+    } catch (error) {
+      console.error("[QuestionFlowVisualizer] Error processing audio:", error);
+      setApiStatus("failed");
+      return false;
+    }
+  }, [processAudioAnalysis, setAudioBlob, setApiStatus]);
 
   // Initialize audio recording
   useEffect(() => {
@@ -341,7 +377,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     };
   }, [navigate]);
 
-  // Recording auto-stops after a fixed 15 seconds
+  // Recording auto-stops after a fixed RECORDING_DURATION_SECONDS
   useEffect(() => {
     if (!isRecording) {
       setRecordingSecondsLeft(RECORDING_DURATION_SECONDS);
@@ -463,44 +499,23 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   }, [isRecording, recorderReady]);
 
   // Advance to next question or complete
-  const advanceToNextQuestion = useCallback(async () => {
+  const advanceToNextQuestion = useCallback(() => {
     if (currentQuestion >= QUESTIONS.length - 1) {
-      // All questions complete - merge all audio and send for analysis
+      // Last question answered - merge all audio recorded so far and send for
+      // analysis. Not awaited: processAudioAnalysis sets apiStatus to
+      // processing synchronously before its first await, so the analysis
+      // screen has the state it needs the moment it mounts. The wait here
+      // only covers the button fading out; it used to be 800ms on top of the
+      // encode, which left the finished capture screen sitting there.
       setIsComplete(true);
-      
-      try {
-        // Flatten all question audio buffers
-        const allBuffers = questionAudioBuffersRef.current.flat();
-        if (allBuffers.length === 0) {
-          console.error("[QuestionFlowVisualizer] No audio recorded");
-          setApiStatus("failed");
-          return;
-        }
-
-        const merged = mergeAudioBuffers(allBuffers);
-        const { blob, format, extension, mimeType } = await convertAudioBufferToBlob(merged);
-        
-        setAudioBlob(blob);
-        console.log(`[QuestionFlowVisualizer] Final audio (${format}):`, blob.size, "bytes");
-        
-        // processAudioAnalysis sets apiStatus to processing synchronously before
-        // its first await, so the analysis screen has the state it needs the
-        // moment it mounts. The wait here only covers the button fading out;
-        // it used to be 800ms on top of the encode, which left the finished
-        // capture screen sitting there.
-        processAudioAnalysis(blob, format, extension, mimeType);
-
-        setTimeout(onComplete, 200);
-      } catch (error) {
-        console.error("[QuestionFlowVisualizer] Error processing final audio:", error);
-        setApiStatus("failed");
-      }
+      finishWithBuffers(questionAudioBuffersRef.current.flat());
+      setTimeout(onComplete, 200);
     } else {
       // Move to next question
       setCurrentQuestion(prev => prev + 1);
       setHasRecordedCurrentQuestion(false);
     }
-  }, [currentQuestion, setAudioBlob, processAudioAnalysis, onComplete, setApiStatus]);
+  }, [currentQuestion, QUESTIONS.length, finishWithBuffers, onComplete]);
 
   // Start recording
   const startRecording = useCallback(() => {
@@ -574,7 +589,33 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
           // Add to current question's audio buffers
           questionAudioBuffersRef.current[currentQuestion].push(decoded);
-          console.log(`[QuestionFlowVisualizer] Q${currentQuestion + 1} segment recorded`);
+          console.log(
+            `[QuestionFlowVisualizer] Q${currentQuestion + 1} segment recorded (${spokeSeconds.toFixed(1)}s speech)`
+          );
+
+          /*
+            Q1 alone already carries enough speech for the LAM to work with.
+            Try the analysis on just that one sample instead of asking a
+            second question up front - Q2 exists only as a fallback, for when
+            Q1 is too short or when this very attempt fails.
+          */
+          if (currentQuestion === 0 && spokeSeconds > SUFFICIENT_SPEECH_SECONDS) {
+            console.log(
+              `[QuestionFlowVisualizer] Q1 alone has ${spokeSeconds.toFixed(1)}s of speech, trying analysis before asking Q2`
+            );
+            setIsComplete(true);
+            const success = await finishWithBuffers(questionAudioBuffersRef.current[0]);
+            if (success) {
+              setTimeout(onComplete, 200);
+              return;
+            }
+            console.warn("[QuestionFlowVisualizer] Single-sample analysis failed, falling back to a second question");
+            setApiStatus(null);
+            setIsComplete(false);
+            setCurrentQuestion(1);
+            setHasRecordedCurrentQuestion(false);
+            return;
+          }
 
           // Move straight to the next question, no countdown
           advanceToNextQuestion();
@@ -583,7 +624,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         }
       };
     }
-  }, [isRecording, currentQuestion, advanceToNextQuestion, getNextPoolQuestion]);
+  }, [isRecording, currentQuestion, advanceToNextQuestion, getNextPoolQuestion, finishWithBuffers, onComplete, setApiStatus]);
 
   // Click to start recording immediately, or stop if already recording
   const handleRecordClick = useCallback(() => {
@@ -801,7 +842,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
           />
         </motion.div>
 
-        {/* Recording duration ring (15s, counts down) */}
+        {/* Recording duration ring, counts down from RECORDING_DURATION_SECONDS */}
         {isRecording && (
           <svg
             className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 pointer-events-none"
