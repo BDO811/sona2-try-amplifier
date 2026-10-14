@@ -82,8 +82,8 @@ function getTextClasses(
       return `${baseClasses} text-sm tracking-[0.15em]`;
 
     case 'button':
-      if (isSeniorMode) return `${baseClasses} text-xl tracking-[0.15em]`;
-      return `${baseClasses} text-lg tracking-[0.15em]`;
+      if (isSeniorMode) return `${baseClasses} text-base tracking-[0.03em] leading-[1.2]`;
+      return `${baseClasses} text-[13px] tracking-[0.02em] leading-[1.2]`;
 
     case 'footer':
       if (isSeniorMode) return `${baseClasses} text-sm tracking-[0.1em]`;
@@ -900,10 +900,10 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
             </motion.span>
           ) : (
             <span
-              className={getTextClasses(isSeniorMode, isHighVis, 'button')}
-              style={{ color: 'rgba(0, 0, 0, 1)' }}
+              className={`${getTextClasses(isSeniorMode, isHighVis, 'button')} break-words`}
+              style={{ color: 'rgba(0, 0, 0, 1)', display: 'block', maxWidth: BUTTON_SIZE * 0.78, textAlign: 'center' }}
             >
-              START
+              CLICK HERE AND START SPEAKING
             </span>
           )}
         </motion.button>
