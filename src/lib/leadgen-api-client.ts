@@ -32,8 +32,16 @@ const getLocalL5Auth = (): { clientId: string; apiKey: string } => {
 };
 
 // Google Cloud Function proxy for audio analysis (Amplifier v2 credentials handled
-// server-side in that function's environment — see gcp-functions/analyze-audio).
-const DEFAULT_ANALYZE_AUDIO_URL = "https://us-central1-amits-playground-po.cloudfunctions.net/analyzeAudio";
+// server-side in that function's environment — see gcp-functions/analyze-audio),
+// on Amplifier Health's own LAM account (acct_Amplifier_Health_*).
+//
+// "analyzeAudioPublic", not "analyzeAudio": the latter is Serasona's own proxy,
+// gated behind a Firebase bearer token and running on Serasona's LAM tenant -
+// Serasona's site/app repos call it directly, and this demo has no sign-in
+// flow to satisfy that gate. Pointing here at "analyzeAudio" 401s every
+// request with "Sign in to run a check-in." and no way to resolve it from an
+// anonymous demo visitor.
+const DEFAULT_ANALYZE_AUDIO_URL = "https://us-central1-amits-playground-po.cloudfunctions.net/analyzeAudioPublic";
 const getGcpFunctionUrl = (): string =>
   (import.meta.env.VITE_ANALYZE_AUDIO_URL as string | undefined) || DEFAULT_ANALYZE_AUDIO_URL;
 

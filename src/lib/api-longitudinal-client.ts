@@ -11,8 +11,14 @@
  * read. The shape is pinned by tests against that captured payload.
  */
 
+// "voiceLongitudinalPublic", not "voiceLongitudinal": the latter runs on
+// Serasona's LAM tenant and groups are keyed by email hash there, so this
+// demo's traffic must not land in Serasona's groups. This demo's own copy
+// runs on Amplifier Health's own LAM account instead - see
+// leadgen-api-client.ts's DEFAULT_ANALYZE_AUDIO_URL for the matching reason
+// on the analyze side.
 const DEFAULT_URL =
-  "https://us-central1-amits-playground-po.cloudfunctions.net/voiceLongitudinal";
+  "https://us-central1-amits-playground-po.cloudfunctions.net/voiceLongitudinalPublic";
 
 const LONGITUDINAL_URL =
   (import.meta.env.VITE_LONGITUDINAL_URL as string | undefined) || DEFAULT_URL;

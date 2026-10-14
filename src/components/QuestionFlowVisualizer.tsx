@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useAssessment, getIsSeniorMode, getIsHighVis } from "@/context/AssessmentContext";
 import { convertAudioBufferToBlob, decodeBlobToAudioBuffer, mergeAudioBuffers } from "@/lib/audio-utils";
 import { leadgenWellnessAnalyzeAudioSync, leadgenRootHealthCheck } from "@/lib/leadgen-api-client";
+import { registerJob } from "@/lib/api-longitudinal-client";
 import { isAssessmentPathwayEnabled } from "@/lib/utils";
 import { isV2Result, transformV2ResultToVisualization, V2JobDetail } from "@/lib/v2-api-visual-mapping";
 import { getModelForPathway } from "@/lib/pathway-model-map";
@@ -235,6 +236,13 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
       console.log("[QuestionFlowVisualizer] Analysis completed:", jobDetail.job_id);
       setApiResult(jobDetail.result);
+
+      // Fire-and-forget: folds this job into the user's longitudinal group so
+      // repeat visits can show a trajectory, not just a single-point read.
+      // Silently skipped with no email (e.g. the dev bypass flow).
+      if (userProfile.email && jobDetail.job_id) {
+        registerJob(userProfile.email, jobDetail.job_id);
+      }
 
       if (pathway && jobDetail.result) {
         try {
