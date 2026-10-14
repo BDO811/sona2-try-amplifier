@@ -377,7 +377,11 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
     };
   }, [navigate]);
 
-  // Recording auto-stops after a fixed RECORDING_DURATION_SECONDS
+  // Recording auto-stops after a fixed RECORDING_DURATION_SECONDS. For Q1,
+  // once SUFFICIENT_SPEECH_SECONDS have elapsed it also re-checks every
+  // second after that - 15s, 16s, 17s... - and stops the moment the speech
+  // captured so far clears the bar, rather than always forcing the full
+  // window even when the answer was already long enough.
   useEffect(() => {
     if (!isRecording) {
       setRecordingSecondsLeft(RECORDING_DURATION_SECONDS);
@@ -386,16 +390,26 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
     const interval = window.setInterval(() => {
       setRecordingSecondsLeft((prev) => {
-        if (prev <= 1) {
+        const next = prev - 1;
+        if (next <= 0) {
           stopRecording();
           return 0;
         }
-        return prev - 1;
+        const elapsedSeconds = RECORDING_DURATION_SECONDS - next;
+        if (
+          currentQuestion === 0 &&
+          elapsedSeconds >= SUFFICIENT_SPEECH_SECONDS &&
+          speechSecondsRef.current > SUFFICIENT_SPEECH_SECONDS
+        ) {
+          stopRecording();
+          return 0;
+        }
+        return next;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRecording]);
+  }, [isRecording, currentQuestion]);
 
   // Live mic waveform ring — analyser + adaptive noise-floor gain gating,
   // ported from amplifier-demo-sites/generator/template_try.html so the bars
