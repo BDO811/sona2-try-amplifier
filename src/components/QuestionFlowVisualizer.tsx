@@ -617,25 +617,24 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
           /*
             Q1 alone already carries enough speech for the LAM to work with.
-            Try the analysis on just that one sample instead of asking a
-            second question up front - Q2 exists only as a fallback, for when
-            Q1 is too short or when this very attempt fails.
+            The sufficiency call is made entirely from the local speech-gain
+            heuristic (speechSecondsRef, checked live while they talk and
+            again here) - it does NOT wait on a real analyze call to decide.
+            A real analyze call means a job submit plus polling it to a
+            terminal status, which measured ~15s on its own; using that as a
+            gate before Q2 was exactly the slow "checking step" between the
+            two questions. So: enough locally means done, full stop, the same
+            as reaching the last question normally - fired and not awaited,
+            for the same reason as the merge-all branch below. Not enough
+            locally means Q2, immediately, no round trip either way.
           */
           if (currentQuestion === 0 && spokeSeconds > SUFFICIENT_SPEECH_SECONDS) {
             console.log(
-              `[QuestionFlowVisualizer] Q1 alone has ${spokeSeconds.toFixed(1)}s of speech, trying analysis before asking Q2`
+              `[QuestionFlowVisualizer] Q1 alone has ${spokeSeconds.toFixed(1)}s of speech, skipping Q2`
             );
             setIsComplete(true);
-            const success = await finishWithBuffers(questionAudioBuffersRef.current[0]);
-            if (success) {
-              setTimeout(onComplete, 200);
-              return;
-            }
-            console.warn("[QuestionFlowVisualizer] Single-sample analysis failed, falling back to a second question");
-            setApiStatus(null);
-            setIsComplete(false);
-            setCurrentQuestion(1);
-            setHasRecordedCurrentQuestion(false);
+            finishWithBuffers(questionAudioBuffersRef.current[0]);
+            setTimeout(onComplete, 200);
             return;
           }
 
@@ -646,7 +645,7 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
         }
       };
     }
-  }, [isRecording, currentQuestion, advanceToNextQuestion, getNextPoolQuestion, finishWithBuffers, onComplete, setApiStatus]);
+  }, [isRecording, currentQuestion, advanceToNextQuestion, getNextPoolQuestion, finishWithBuffers, onComplete]);
 
   // Click to start recording immediately, or stop if already recording
   const handleRecordClick = useCallback(() => {
