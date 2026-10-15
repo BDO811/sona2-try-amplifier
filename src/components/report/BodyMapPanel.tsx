@@ -24,6 +24,7 @@ import bodyFullFemale from "@/assets/bodymap/body-full-female.jpg";
 import iconBrain from "@/assets/bodymap/icon-brain.png";
 import iconMouth from "@/assets/bodymap/icon-mouth.png";
 import iconHeart from "@/assets/bodymap/icon-heart.png";
+import iconCore from "@/assets/bodymap/icon-core.png";
 import iconLungs from "@/assets/bodymap/icon-lungs.png";
 import iconBlood from "@/assets/bodymap/icon-blood.png";
 
@@ -42,18 +43,49 @@ const ZONE_ICON: Record<BodyZone, string> = {
   brain: iconBrain,
   mouth: iconMouth,
   heart: iconHeart,
+  core: iconCore,
   lungs: iconLungs,
   blood: iconBlood,
 };
 
-/** Position of each zone's marker on the body graphic, as a fraction of its box. */
+/**
+ * Position of each zone's marker on the body graphic, as a fraction of its
+ * box. Heart sits on the body's actual left side (the viewer's left, since
+ * the figure faces forward) rather than dead-center, since it is standing in
+ * for the heart specifically. Core sits at the solar plexus, between heart
+ * and blood, for the "body chakra" read.
+ */
 const ZONE_MARKER_POSITION: Record<BodyZone, { left: string; top: string }> = {
   brain: { left: "50%", top: "9.5%" },
   mouth: { left: "50%", top: "19.5%" },
-  heart: { left: "42%", top: "28.6%" },
+  heart: { left: "36%", top: "26%" },
+  core: { left: "50%", top: "33%" },
   lungs: { left: "58%", top: "28.6%" },
   blood: { left: "50%", top: "40.5%" },
 };
+
+/**
+ * Each zone gets its own identity color - Amplifier's existing model-accent
+ * palette, one hue per zone - so the marker on the figure and the tinted card
+ * behind its readouts are recognizably the same zone from across the screen,
+ * not just "red means bad, mint means fine" everywhere.
+ */
+const ZONE_COLOR: Record<BodyZone, string> = {
+  brain: "#9C76FF",
+  mouth: "#FFC163",
+  heart: "#FF6173",
+  core: "#F5EF79",
+  lungs: "#99E4FF",
+  blood: "#FF7DF6",
+};
+
+function hexToRgba(hex: string, alpha: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /**
  * Mirrors SubDimensionPanel's DIRECTION_COLORS (unfavourable, middle,
@@ -148,7 +180,7 @@ function buildZoneGroups(
   }
 
   for (const row of readableSubDimensions(extendedMetrics)) {
-    const zone = zoneForSubDimension();
+    const zone = zoneForSubDimension(row.id);
     const isAbnormal = !row.neutral && row.bandIndex === 2;
     /*
       row.levels is always [favourable, "NORMAL", unfavourable] (see
@@ -216,6 +248,8 @@ interface Line {
   x2: number;
   y2: number;
   abnormal: boolean;
+  /** The owning zone's identity color, so a line reads as the same zone as its marker. */
+  color: string;
 }
 
 /**
@@ -284,6 +318,7 @@ export const BodyMapPanel = ({
           x2: rowBox.left - rootBox.left,
           y2: rowBox.top + rowBox.height / 2 - rootBox.top,
           abnormal: row.isAbnormal,
+          color: ZONE_COLOR[zone],
         });
       }
     }
@@ -310,48 +345,50 @@ export const BodyMapPanel = ({
   if (zonesWithData.length === 0) return null;
 
   const labelSize = isSeniorMode
-    ? "text-sm font-semibold text-white"
+    ? "text-sm font-semibold text-[#1A1A1A]"
     : isHighVis
-      ? "text-[11px] font-medium text-white"
-      : "text-[10px] font-medium text-white";
+      ? "text-[11px] font-medium text-[#1A1A1A]"
+      : "text-[10px] font-medium text-[#1A1A1A]";
   const zoneNameSize = isSeniorMode ? "text-sm" : isHighVis ? "text-[11px]" : "text-[10px]";
 
   /*
-    `blink` is on for the stacked mobile layout (the row itself is the only
-    thing that can show a flag) and off for the desktop split layout, where
-    the body marker is already the thing that glows - blinking the finding
-    too reads as two separate things both insisting on attention instead of
-    one marker pointing at one plain readout.
+    Every row card is tinted with its zone's own color at ~10% opacity instead
+    of flat black, so a zone reads as one color from the marker through to its
+    readouts. Only an abnormal row flashes (animate-gentle-blink) - a normal
+    reading sitting in a colored card is not itself something to flag, so it
+    stays still regardless of layout.
   */
-  const renderRows = (rows: ZoneRow[], blink: boolean, getRowRef?: (key: string) => (el: HTMLDivElement | null) => void) =>
-    rows.map((row) => {
+  const renderRows = (rows: ZoneRow[], zone: BodyZone, getRowRef?: (key: string) => (el: HTMLDivElement | null) => void) => {
+    const cardBg = hexToRgba(ZONE_COLOR[zone], 0.1);
+    return rows.map((row) => {
       if (row.kind === "lab") {
         return (
           <div
             key={row.key}
             ref={getRowRef?.(row.key)}
-            className={`bg-black/85 flex items-baseline gap-2 ${
+            style={{ backgroundColor: cardBg }}
+            className={`flex items-baseline gap-2 ${
               isSeniorMode ? "px-4 py-3" : isHighVis ? "px-3.5 py-2.5" : "px-3 py-2"
-            } ${row.isAbnormal && blink ? "animate-gentle-blink" : ""}`}
+            } ${row.isAbnormal ? "animate-gentle-blink" : ""}`}
           >
             <span className={`font-mono uppercase tracking-wider ${labelSize}`}>{row.label}</span>
             <span
               className="font-mono text-[11px] font-semibold"
-              style={{ color: row.isAbnormal ? "#FFC163" : "#4CAF6E" }}
+              style={{ color: row.isAbnormal ? "#8A4B08" : "#1E5631" }}
             >
               {row.value}
             </span>
-            <span className="font-mono text-[9px] text-white/50">{row.unit}</span>
-            <span className="font-mono text-[8px] text-white/35 ml-auto">{row.reference}</span>
+            <span className="font-mono text-[9px] text-[#1A1A1A]/50">{row.unit}</span>
+            <span className="font-mono text-[8px] text-[#1A1A1A]/35 ml-auto">{row.reference}</span>
           </div>
         );
       }
 
       const scoreText =
         row.kind === "subdim" ? (
-          <span className="font-mono tabular-nums text-white/70 text-[9px] flex-shrink-0">
+          <span className="font-mono tabular-nums text-[#1A1A1A]/70 text-[9px] flex-shrink-0">
             {row.scoreMean.toFixed(2)}
-            <span className="text-white/50"> &plusmn;{row.scoreStd.toFixed(2)}</span>
+            <span className="text-[#1A1A1A]/50"> &plusmn;{row.scoreStd.toFixed(2)}</span>
           </span>
         ) : null;
 
@@ -359,16 +396,17 @@ export const BodyMapPanel = ({
         <div
           key={row.key}
           ref={getRowRef?.(row.key)}
-          className={`bg-black/85 ${
-            isSeniorMode ? "px-4 py-4" : isHighVis ? "px-3.5 py-3" : "px-3 py-2.5"
-          } ${row.isAbnormal && blink ? "animate-gentle-blink" : ""}`}
+          style={{ backgroundColor: cardBg }}
+          className={`${isSeniorMode ? "px-4 py-4" : isHighVis ? "px-3.5 py-3" : "px-3 py-2.5"} ${
+            row.isAbnormal ? "animate-gentle-blink" : ""
+          }`}
         >
           <div className="flex items-baseline justify-between gap-3 mb-2">
             <span className={`font-mono uppercase tracking-wider truncate ${labelSize}`}>{row.label}</span>
             {row.kind === "signal" ? (
               <span
                 className={`font-mono flex-shrink-0 ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
-                style={{ color: "#99E4FF" }}
+                style={{ color: "#12657F" }}
               >
                 {row.bandWord}
               </span>
@@ -379,12 +417,14 @@ export const BodyMapPanel = ({
           <OptionScale
             options={row.scale}
             activeKey={row.activeKey}
+            surface="light"
             ariaLabel={`${row.label}: ${row.kind === "signal" ? row.bandWord : ""}`}
             {...(row.kind === "subdim" ? { dimOpacity: 0.8 } : {})}
           />
         </div>
       );
     });
+  };
 
   return (
     <div>
@@ -398,20 +438,21 @@ export const BodyMapPanel = ({
           {zonesWithData.map((zone) => {
             const g = groups[zone];
             const pos = ZONE_MARKER_POSITION[zone];
+            const color = ZONE_COLOR[zone];
             return (
               <span
                 key={zone}
-                className={`absolute rounded-full ${g.hasAbnormal ? "animate-gentle-blink" : ""}`}
+                className={`absolute rounded-full ${g.hasAbnormal ? "animate-bodymap-marker-flash" : ""}`}
                 style={{
                   left: pos.left,
                   top: pos.top,
-                  width: 9,
-                  height: 9,
+                  width: 4.5,
+                  height: 4.5,
                   transform: "translate(-50%, -50%)",
-                  background: g.hasAbnormal ? "#FF6173" : "rgba(222,255,230,0.9)",
+                  background: color,
                   boxShadow: g.hasAbnormal
-                    ? "0 0 10px 3px rgba(255,97,115,0.6)"
-                    : "0 0 8px 3px rgba(222,255,230,0.4)",
+                    ? `0 0 10px 4px ${hexToRgba(color, 0.75)}`
+                    : `0 0 5px 1.5px ${hexToRgba(color, 0.45)}`,
                 }}
               />
             );
@@ -437,12 +478,12 @@ export const BodyMapPanel = ({
                   {/* Static, not blinking: the marker on the body graphic
                       above is the only thing on this screen that glows. */}
                   {g.hasAbnormal && (
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF6173" }} />
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: ZONE_COLOR[zone] }} />
                   )}
                 </div>
 
                 <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
-                  {renderRows(rows, false)}
+                  {renderRows(rows, zone)}
                 </div>
               </motion.div>
             );
@@ -461,7 +502,7 @@ export const BodyMapPanel = ({
                 y1={line.y1}
                 x2={line.x2}
                 y2={line.y2}
-                stroke={line.abnormal ? "#FF6173" : "rgba(35,18,0,0.25)"}
+                stroke={line.abnormal ? line.color : "rgba(35,18,0,0.25)"}
                 strokeWidth={1}
                 strokeDasharray="1.5 4"
                 strokeLinecap="round"
@@ -471,7 +512,7 @@ export const BodyMapPanel = ({
                 cx={line.x2}
                 cy={line.y2}
                 r={2.5}
-                fill={line.abnormal ? "#FF6173" : "rgba(35,18,0,0.25)"}
+                fill={line.abnormal ? line.color : "rgba(35,18,0,0.25)"}
                 className={line.abnormal ? "animate-bodymap-line-breathe" : undefined}
               />
             </g>
@@ -491,6 +532,7 @@ export const BodyMapPanel = ({
             {zonesWithData.map((zone) => {
               const g = groups[zone];
               const pos = ZONE_MARKER_POSITION[zone];
+              const color = ZONE_COLOR[zone];
               return (
                 <span
                   key={zone}
@@ -502,21 +544,21 @@ export const BodyMapPanel = ({
                     {
                       left: pos.left,
                       top: pos.top,
-                      width: 11,
-                      height: 11,
+                      width: 5.5,
+                      height: 5.5,
                       transform: "translate(-50%, -50%)",
-                      background: g.hasAbnormal ? "#FF6173" : "rgba(222,255,230,0.9)",
+                      background: color,
                       boxShadow: g.hasAbnormal
-                        ? "0 0 10px 4px rgba(255,97,115,0.55)"
-                        : "0 0 8px 3px rgba(222,255,230,0.4)",
-                      "--bodymap-glow-color": "rgba(255,97,115,0.55)",
+                        ? `0 0 10px 4px ${hexToRgba(color, 0.65)}`
+                        : `0 0 6px 2px ${hexToRgba(color, 0.4)}`,
+                      "--bodymap-glow-color": hexToRgba(color, 0.65),
                     } as CSSProperties
                   }
                 >
                   {g.hasAbnormal && (
                     <span
                       className="absolute rounded-full animate-bodymap-marker-ring"
-                      style={{ inset: -7, border: "1px solid #FF6173" }}
+                      style={{ inset: -7, border: `1px solid ${color}` }}
                     />
                   )}
                   {g.hasAbnormal && <span className="absolute inset-0 rounded-full animate-bodymap-marker-glow" />}
@@ -544,12 +586,12 @@ export const BodyMapPanel = ({
                     {/* Static, not blinking: the marker on the figure is the
                         one thing in this layout that glows. */}
                     {g.hasAbnormal && (
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF6173" }} />
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: ZONE_COLOR[zone] }} />
                     )}
                   </div>
 
                   <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
-                    {renderRows(rows, false, (key) => (el) => {
+                    {renderRows(rows, zone, (key) => (el) => {
                       if (el) rowRefs.current[key] = el;
                     })}
                   </div>
