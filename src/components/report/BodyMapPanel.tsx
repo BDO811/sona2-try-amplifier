@@ -153,7 +153,7 @@ function buildZoneGroups(
   ) as Record<BodyZone, ZoneGroup>;
 
   for (const sig of signals) {
-    const band = bandForSignal(sig.name, sig.level);
+    const band = bandForSignal(sig.name, sig.level, sig.score);
     if (band === "INCONCLUSIVE") continue;
     const zone = zoneForSignal(sig.name);
     /*
@@ -345,50 +345,48 @@ export const BodyMapPanel = ({
   if (zonesWithData.length === 0) return null;
 
   const labelSize = isSeniorMode
-    ? "text-sm font-semibold text-[#1A1A1A]"
+    ? "text-sm font-semibold text-white"
     : isHighVis
-      ? "text-[11px] font-medium text-[#1A1A1A]"
-      : "text-[10px] font-medium text-[#1A1A1A]";
+      ? "text-[11px] font-medium text-white"
+      : "text-[10px] font-medium text-white";
   const zoneNameSize = isSeniorMode ? "text-sm" : isHighVis ? "text-[11px]" : "text-[10px]";
 
   /*
-    Every row card is tinted with its zone's own color at ~10% opacity instead
-    of flat black, so a zone reads as one color from the marker through to its
-    readouts. Only an abnormal row flashes (animate-gentle-blink) - a normal
-    reading sitting in a colored card is not itself something to flag, so it
-    stays still regardless of layout.
+    Row cards are flat black, same as the body graphic's own canvas - only the
+    marker, its connector line, and the zone-header dot carry the zone's
+    identity color. Only an abnormal row flashes (animate-gentle-blink) - a
+    normal reading is not itself something to flag, so it stays still
+    regardless of layout.
   */
-  const renderRows = (rows: ZoneRow[], zone: BodyZone, getRowRef?: (key: string) => (el: HTMLDivElement | null) => void) => {
-    const cardBg = hexToRgba(ZONE_COLOR[zone], 0.1);
-    return rows.map((row) => {
+  const renderRows = (rows: ZoneRow[], getRowRef?: (key: string) => (el: HTMLDivElement | null) => void) =>
+    rows.map((row) => {
       if (row.kind === "lab") {
         return (
           <div
             key={row.key}
             ref={getRowRef?.(row.key)}
-            style={{ backgroundColor: cardBg }}
-            className={`flex items-baseline gap-2 ${
+            className={`bg-black/85 flex items-baseline gap-2 ${
               isSeniorMode ? "px-4 py-3" : isHighVis ? "px-3.5 py-2.5" : "px-3 py-2"
             } ${row.isAbnormal ? "animate-gentle-blink" : ""}`}
           >
             <span className={`font-mono uppercase tracking-wider ${labelSize}`}>{row.label}</span>
             <span
               className="font-mono text-[11px] font-semibold"
-              style={{ color: row.isAbnormal ? "#8A4B08" : "#1E5631" }}
+              style={{ color: row.isAbnormal ? "#FFC163" : "#4CAF6E" }}
             >
               {row.value}
             </span>
-            <span className="font-mono text-[9px] text-[#1A1A1A]/50">{row.unit}</span>
-            <span className="font-mono text-[8px] text-[#1A1A1A]/35 ml-auto">{row.reference}</span>
+            <span className="font-mono text-[9px] text-white/50">{row.unit}</span>
+            <span className="font-mono text-[8px] text-white/35 ml-auto">{row.reference}</span>
           </div>
         );
       }
 
       const scoreText =
         row.kind === "subdim" ? (
-          <span className="font-mono tabular-nums text-[#1A1A1A]/70 text-[9px] flex-shrink-0">
+          <span className="font-mono tabular-nums text-white/70 text-[9px] flex-shrink-0">
             {row.scoreMean.toFixed(2)}
-            <span className="text-[#1A1A1A]/50"> &plusmn;{row.scoreStd.toFixed(2)}</span>
+            <span className="text-white/50"> &plusmn;{row.scoreStd.toFixed(2)}</span>
           </span>
         ) : null;
 
@@ -396,8 +394,7 @@ export const BodyMapPanel = ({
         <div
           key={row.key}
           ref={getRowRef?.(row.key)}
-          style={{ backgroundColor: cardBg }}
-          className={`${isSeniorMode ? "px-4 py-4" : isHighVis ? "px-3.5 py-3" : "px-3 py-2.5"} ${
+          className={`bg-black/85 ${isSeniorMode ? "px-4 py-4" : isHighVis ? "px-3.5 py-3" : "px-3 py-2.5"} ${
             row.isAbnormal ? "animate-gentle-blink" : ""
           }`}
         >
@@ -406,7 +403,7 @@ export const BodyMapPanel = ({
             {row.kind === "signal" ? (
               <span
                 className={`font-mono flex-shrink-0 ${isSeniorMode ? "text-xs" : "text-[10px]"}`}
-                style={{ color: "#12657F" }}
+                style={{ color: "#99E4FF" }}
               >
                 {row.bandWord}
               </span>
@@ -417,14 +414,12 @@ export const BodyMapPanel = ({
           <OptionScale
             options={row.scale}
             activeKey={row.activeKey}
-            surface="light"
             ariaLabel={`${row.label}: ${row.kind === "signal" ? row.bandWord : ""}`}
             {...(row.kind === "subdim" ? { dimOpacity: 0.8 } : {})}
           />
         </div>
       );
     });
-  };
 
   return (
     <div>
@@ -483,7 +478,7 @@ export const BodyMapPanel = ({
                 </div>
 
                 <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
-                  {renderRows(rows, zone)}
+                  {renderRows(rows)}
                 </div>
               </motion.div>
             );
@@ -591,7 +586,7 @@ export const BodyMapPanel = ({
                   </div>
 
                   <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
-                    {renderRows(rows, zone, (key) => (el) => {
+                    {renderRows(rows, (key) => (el) => {
                       if (el) rowRefs.current[key] = el;
                     })}
                   </div>
