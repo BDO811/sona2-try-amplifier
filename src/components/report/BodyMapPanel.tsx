@@ -150,12 +150,21 @@ function buildZoneGroups(
   for (const row of readableSubDimensions(extendedMetrics)) {
     const zone = zoneForSubDimension();
     const isAbnormal = !row.neutral && row.bandIndex === 2;
+    /*
+      row.levels is always [favourable, "NORMAL", unfavourable] (see
+      sub-dimensions.ts), but SUBDIM_SCALE_COLOR is indexed the other way
+      round - [unfavourable, middle, favourable] - matching
+      SubDimensionPanel's own DIRECTION_COLORS. Indexing it with the same `i`
+      used to walk row.levels paired favourable with the unfavourable colour
+      and vice versa; `2 - i` maps each label to its actual semantic colour
+      before the array is reversed for favourable-left display.
+    */
     const scale: ScaleOption[] = row.levels
       .map((label, i) => ({
         key: String(i),
         label,
-        color: SUBDIM_SCALE_COLOR[i].dark,
-        colorLight: SUBDIM_SCALE_COLOR[i].light,
+        color: SUBDIM_SCALE_COLOR[2 - i].dark,
+        colorLight: SUBDIM_SCALE_COLOR[2 - i].light,
       }))
       .reverse();
     groups[zone].subDimRows.push({
@@ -172,7 +181,15 @@ function buildZoneGroups(
     if (isAbnormal) groups[zone].hasAbnormal = true;
   }
 
-  for (const metric of labMetrics) {
+  /*
+    Raw acoustic lab metrics (pitch, loudness, jitter, shimmer, HNR, pause,
+    breathiness...) are intentionally not shown here - they read as a wall of
+    unexplained numbers to a non-clinical visitor, where the signal and
+    sub-dimension rows above already carry the same information in words. The
+    loop stays rather than being deleted so turning them back on is a one-line
+    change, not a rebuild of labMetrics plumbing through every call site.
+  */
+  for (const metric of [] as typeof labMetrics) {
     const zone = zoneForLabMetric(metric.label);
     const isAbnormal = metric.status !== "normal";
     groups[zone].labRows.push({
@@ -417,16 +434,15 @@ export const BodyMapPanel = ({
                   <span className={`font-mono uppercase tracking-widest ${zoneNameSize} text-[#231200]`}>
                     {BODY_ZONE_LABEL[zone]}
                   </span>
+                  {/* Static, not blinking: the marker on the body graphic
+                      above is the only thing on this screen that glows. */}
                   {g.hasAbnormal && (
-                    <span
-                      className="w-1.5 h-1.5 rounded-full animate-gentle-blink"
-                      style={{ background: "#FF6173" }}
-                    />
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF6173" }} />
                   )}
                 </div>
 
                 <div className="flex flex-col gap-px bg-[#231200]/15 rounded-lg overflow-hidden">
-                  {renderRows(rows, true)}
+                  {renderRows(rows, false)}
                 </div>
               </motion.div>
             );
