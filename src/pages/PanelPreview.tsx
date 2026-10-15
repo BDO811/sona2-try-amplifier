@@ -184,6 +184,38 @@ const PanelPreview = () => {
           />
         </div>
       </div>
+
+      {/*
+        Body map's lg-and-up split layout needs real width to show, so it gets
+        its own wider wrapper rather than the 420px one above - same data,
+        both biologicalSex graphics, stacked (not side by side, so neither one
+        is starved of the width its own internal lg: split layout needs).
+      */}
+      <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+        Body map · desktop split layout, lg and up · connector lines + slow glow on flagged zones
+      </h1>
+      <div className="mx-auto px-4 py-3 flex flex-col gap-10" data-panel-preview style={{ maxWidth: 900 }}>
+        <div>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-[#4B2700] mb-1.5">Male</p>
+          <BodyMapPanel
+            signals={LIVE_SIGNALS}
+            extendedMetrics={AT_THE_EDGES}
+            labMetrics={SAMPLE_LAB_METRICS}
+            showContent
+            biologicalSex="male"
+          />
+        </div>
+        <div>
+          <p className="font-mono text-[9px] uppercase tracking-widest text-[#4B2700] mb-1.5">Female</p>
+          <BodyMapPanel
+            signals={LIVE_SIGNALS}
+            extendedMetrics={AT_THE_EDGES}
+            labMetrics={SAMPLE_LAB_METRICS}
+            showContent
+            biologicalSex="female"
+          />
+        </div>
+      </div>
     </div>
   );
 };

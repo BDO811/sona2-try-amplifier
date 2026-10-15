@@ -192,9 +192,15 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
         />
       </div>
 
-      {/* Sensor Chassis Container */}
+      {/*
+        Sensor Chassis Container. Widens at lg: only Body Map (below) uses the
+        extra room, to lay the figure and its measurements side by side with
+        connector lines instead of stacked - everything else in this card
+        (centered mono labels, the hero phrase, the spectrogram) reads fine
+        wider, just with more breathing room either side.
+      */}
       <motion.div
-        className="relative z-10 w-full max-w-[500px] mx-4 md:mx-6 rounded-xl overflow-hidden"
+        className="relative z-10 w-full max-w-[500px] lg:max-w-[880px] mx-4 md:mx-6 rounded-xl overflow-hidden"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.6 }}
@@ -387,6 +393,7 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             showContent={showContent}
             isHighVis={isHighVis}
             isSeniorMode={isSeniorMode}
+            biologicalSex={userProfile.biologicalSex}
           />
         </div>
 

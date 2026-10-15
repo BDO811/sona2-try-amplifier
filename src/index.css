@@ -381,4 +381,42 @@
       opacity: 1;
     }
   }
+
+  /*
+    Desktop body-map split layout (BodyMapPanel's connector-line mode): a
+    heavier, slower glow than .animate-gentle-blink for the marker dot itself,
+    plus an expanding ring and a breathing connector line, so a flagged zone
+    reads as glowing from across the gap to its readout rather than just
+    fading in place.
+  */
+  @keyframes bodymap-marker-glow {
+    0%, 100% { opacity: 1; box-shadow: 0 0 10px 4px var(--bodymap-glow-color, rgba(255,97,115,0.55)); }
+    50%      { opacity: 0.55; box-shadow: 0 0 16px 7px var(--bodymap-glow-color, rgba(255,97,115,0.55)); }
+  }
+
+  @keyframes bodymap-marker-ring {
+    0%   { transform: scale(0.7); opacity: 0.55; }
+    70%  { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1.35); opacity: 0; }
+  }
+
+  @keyframes bodymap-line-breathe {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 0.35; }
+  }
+
+  .animate-bodymap-marker-glow { animation: bodymap-marker-glow 3.6s ease-in-out infinite; }
+  .animate-bodymap-marker-ring { animation: bodymap-marker-ring 3.6s ease-in-out infinite; }
+  .animate-bodymap-line-breathe { animation: bodymap-line-breathe 3.6s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-bodymap-marker-glow,
+    .animate-bodymap-marker-ring,
+    .animate-bodymap-line-breathe {
+      animation: none;
+    }
+    .animate-bodymap-marker-ring {
+      opacity: 0;
+    }
+  }
 }
