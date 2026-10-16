@@ -1,6 +1,7 @@
 import { SubDimensionPanel } from "@/components/report/SubDimensionPanel";
 import { AnalysisAnimation } from "@/components/AnalysisAnimation";
 import { SignalPanel } from "@/components/report/SignalPanel";
+import { AmplifierScorePanel } from "@/components/report/AmplifierScorePanel";
 import { BodyMapPanel } from "@/components/report/BodyMapPanel";
 import { SpectrogramWaveform } from "@/components/report/SpectrogramWaveform";
 import { OptionScale } from "@/components/report/OptionScale";
@@ -51,6 +52,22 @@ const LIVE_SIGNALS: SignalSummary[] = [
     flagged: false,
   },
 ];
+
+/** Same five signs, all reading within normal range — the Amplifier Score ceiling case. */
+const ALL_NORMAL_SIGNALS: SignalSummary[] = LIVE_SIGNALS.map((s) => ({
+  ...s,
+  score: 0.05,
+  level: "none",
+  flagged: false,
+}));
+
+/** Same five signs, all elevated — the Amplifier Score floor case. */
+const ALL_ELEVATED_SIGNALS: SignalSummary[] = LIVE_SIGNALS.map((s) => ({
+  ...s,
+  score: 0.95,
+  level: "elevated",
+  flagged: true,
+}));
 
 /** One elevated reading (Jitter) so the body map's abnormal-only blink has something to show. */
 const SAMPLE_LAB_METRICS: LabMetric[] = [
@@ -143,6 +160,42 @@ const PanelPreview = () => {
         {(["clean", "good", "steady", "focus"] as HeadlineRung[]).map((r) => (
           <Hero key={r} rung={r} />
         ))}
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Amplifier Score · live pulse signals + real apex sub-dimensions
+        </h1>
+        <AmplifierScorePanel signals={LIVE_SIGNALS} extendedMetrics={APEX_RUN} showContent />
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Amplifier Score · same signals, sub-dimensions forced to both edges
+        </h1>
+        <AmplifierScorePanel signals={LIVE_SIGNALS} extendedMetrics={AT_THE_EDGES} showContent />
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Amplifier Score · all normal (every signal + sub-dimension in range)
+        </h1>
+        <AmplifierScorePanel signals={ALL_NORMAL_SIGNALS} extendedMetrics={APEX_RUN} showContent />
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Amplifier Score · all elevated (every signal flagged, every sub-dimension past its high anchor)
+        </h1>
+        <AmplifierScorePanel signals={ALL_ELEVATED_SIGNALS} extendedMetrics={AT_THE_EDGES} showContent />
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Amplifier Score · senior mode
+        </h1>
+        <AmplifierScorePanel signals={LIVE_SIGNALS} extendedMetrics={APEX_RUN} showContent isSeniorMode />
+
+        <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
+          Amplifier Score · nothing to average (no signals, no sub-dimensions) — renders nothing
+        </h1>
+        <div className="px-4 py-3 border border-dashed border-[#231200]/20 rounded">
+          <p className="font-mono text-[9px] text-[#2E2E2E]">
+            (AmplifierScorePanel with empty signals/extendedMetrics renders null — nothing should
+            appear between this caption and the next heading.)
+          </p>
+          <AmplifierScorePanel signals={[]} extendedMetrics={[]} showContent />
+        </div>
 
         <h1 className="font-mono text-[10px] uppercase tracking-widest text-[#231200] mb-1 mt-6 px-4">
           Signal rows · live pulse set

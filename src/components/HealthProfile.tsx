@@ -6,6 +6,7 @@ import { useAssessment, AssessmentPathway, BRAND_COLOR, getIsHighVis, getIsSenio
 import { RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { SpectrogramWaveform } from "./report/SpectrogramWaveform";
+import { AmplifierScorePanel } from "./report/AmplifierScorePanel";
 import { BodyMapPanel } from "./report/BodyMapPanel";
 import { RecommendationsPanel } from "./report/RecommendationsPanel";
 import { SinceLastVisitPanel } from "./report/SinceLastVisitPanel";
@@ -362,6 +363,14 @@ export const HealthProfile = ({ archetype, onReset, onRecapture }: HealthProfile
             />
           )}
         </div>
+
+        <AmplifierScorePanel
+          signals={revealSignals}
+          extendedMetrics={visualizedResult.extendedMetrics}
+          showContent={showContent}
+          isHighVis={isHighVis}
+          isSeniorMode={isSeniorMode}
+        />
 
         {/*
           Body Map — every real measurement (signals, sub-dimensions, lab
