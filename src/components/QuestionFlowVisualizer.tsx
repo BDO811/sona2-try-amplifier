@@ -12,6 +12,17 @@ import { t, getQuestionPool } from "@/lib/i18n";
 import { asset } from "@/lib/asset";
 
 const RECORDING_MIME_TYPE = "audio/webm;codecs=opus";
+// Firefox's MediaRecorder has never shipped audio/webm for audio-only capture —
+// it records Opus in an Ogg container instead. Both containers decode fine
+// through decodeBlobToAudioBuffer downstream, so the init effect below picks
+// whichever of these the running browser actually supports instead of hard
+// -requiring WebM.
+const RECORDING_MIME_CANDIDATES = [
+  "audio/webm;codecs=opus",
+  "audio/ogg;codecs=opus",
+  "audio/webm",
+  "audio/ogg",
+];
 const RECORDING_SAMPLE_RATE = 48000;
 const RECORDING_DURATION_SECONDS = 20;
 // How many questions the user is asked, at most. Everything downstream — the
@@ -309,8 +320,11 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
   useEffect(() => {
     const initRecording = async () => {
       try {
-        if (!MediaRecorder.isTypeSupported(RECORDING_MIME_TYPE)) {
-          console.warn("[QuestionFlowVisualizer] Browser doesn't support audio/webm;codecs=opus");
+        const mimeType = RECORDING_MIME_CANDIDATES.find((candidate) =>
+          MediaRecorder.isTypeSupported(candidate)
+        );
+        if (!mimeType) {
+          console.warn("[QuestionFlowVisualizer] Browser doesn't support any recordable audio codec");
           navigate("/recording-not-supported", { replace: true, state: { reason: "codec" } });
           return;
         }
@@ -327,15 +341,19 @@ export const QuestionFlowVisualizer = ({ onComplete }: QuestionFlowVisualizerPro
 
         const audioTrack = stream.getAudioTracks()[0];
         const settings = audioTrack?.getSettings();
-        const actualSampleRate = settings?.sampleRate ?? 0;
-        if (actualSampleRate !== RECORDING_SAMPLE_RATE) {
-          stream.getTracks().forEach((t) => t.stop());
-          console.warn("[QuestionFlowVisualizer] Mic not 48kHz:", actualSampleRate);
-          navigate("/recording-not-supported", { replace: true, state: { reason: "codec" } });
-          return;
+        /*
+          48kHz is a preference, not a requirement: everything downstream decodes
+          through AudioContext.decodeAudioData and re-encodes at whatever rate the
+          buffer carries, so a mic that lands on 44.1kHz - or a browser like
+          Firefox that doesn't report sampleRate in getSettings() at all - still
+          produces a usable take. This used to hard-fail to the not-supported
+          screen on anything but an exact 48000 match, which blocked Firefox.
+        */
+        if (settings?.sampleRate && settings.sampleRate !== RECORDING_SAMPLE_RATE) {
+          console.warn("[QuestionFlowVisualizer] Mic sample rate not 48kHz, continuing anyway:", settings.sampleRate);
         }
 
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: RECORDING_MIME_TYPE });
+        const mediaRecorder = new MediaRecorder(stream, { mimeType });
         mediaRecorderRef.current = mediaRecorder;
 
         mediaRecorder.ondataavailable = (event) => {
